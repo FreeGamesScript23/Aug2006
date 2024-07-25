@@ -1,0 +1,53 @@
+-- Assuming necessary services and variables are already defined
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+-- Function to place a trap at the given position
+local function placeTrap(position)
+    ReplicatedStorage:WaitForChild("TrapSystem"):WaitForChild("PlaceTrap"):InvokeServer(CFrame.new(position))
+end
+
+-- Create the tool
+local tool = Instance.new("Tool")
+tool.Name = "TrapTool"
+tool.RequiresHandle = false
+tool.CanBeDropped = false
+
+-- Mouse input handling for placing the trap
+tool.Equipped:Connect(function(mouse)
+    mouse.Button1Down:Connect(function()
+        if mouse.Target then
+            placeTrap(mouse.Hit.p)
+        end
+    end)
+end)
+
+-- Add the tool to the player's backpack at the 3rd slot
+local function addToolToBackpack()
+    local player = Players.LocalPlayer
+    local backpack = player:WaitForChild("Backpack")
+    
+    -- Remove the tool if it already exists to prevent duplicates
+    if backpack:FindFirstChild(tool.Name) then
+        backpack:FindFirstChild(tool.Name):Destroy()
+    end
+    
+    -- Add the tool to the backpack
+    tool.Parent = backpack
+    
+    -- Move the tool to the 3rd slot
+    local tools = backpack:GetChildren()
+    for i, item in ipairs(tools) do
+        if item:IsA("Tool") and item ~= tool then
+            if i == 2 then -- Because the list is 0-indexed
+                tool.Parent = nil
+                tool.Parent = backpack
+            else
+                item.Parent = nil
+                item.Parent = backpack
+            end
+        end
+    end
+end
+
+addToolToBackpack()
