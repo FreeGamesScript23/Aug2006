@@ -8,7 +8,7 @@ KeySystemUI.New({
 })
 repeat task.wait() until KeySystemUI.Finished() or KeySystemUI.Closed
 if KeySystemUI.Finished() and KeySystemUI.Closed == false then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMain.lua", true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
 else
     print("Player closed the GUI.")
 end
