@@ -1,0 +1,412 @@
+local DYWebhookServices = {
+	Size = {
+		["48x48"] = "48x48",
+		["50x50"] = "50x50",
+		["60x60"] = "60x60",
+		["75x75"] = "75x75",
+		["100x100"] = "100x100",
+		["150x150"] = "150x150",
+		["180x180"] = "180x180",
+		["353x352"] = "353x352",
+		["420x420"] = "420x420",
+		["720x720"] = "720x720"
+	},
+	ErrorPrinting = true
+}
+
+local httpService = game:GetService("HttpService")
+local HttpRequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+
+local function safeReq(url, data)
+	local InfoReq = HttpRequest({
+		Url = url,
+		Method = "POST",
+		Body = data,
+		Headers = {
+			["Content-Type"] = "application/json"
+		}
+	})
+
+	if InfoReq.StatusCode == 204 then 
+		return true, 204, nil 
+	end
+
+	local body = InfoReq.Body
+
+	if not InfoReq.Success then
+		if InfoReq.StatusCode == 500 then
+			if DYWebhookServices.ErrorPrinting then
+				warn("[Darkrai Y | Webhook Services]: Webhook instance encountered an internal error.")
+			end
+			return true, 204, nil
+		else
+			return false, InfoReq.StatusCode, body.error
+		end
+	end
+
+	return true, InfoReq.StatusCode, body
+end
+
+local function processStatus(statusCode, body, url)
+	if statusCode == 403 then
+		if body.message == "IP Has Been Banned" then
+			if DYWebhookServices.ErrorPrinting then
+				warn("[Darkrai Y | Webhook Services]: This Roblox Server IP Has Been Temporarily Banned Due To Abuse.")
+			end
+			return "Error Found"
+		elseif body.message == "Webhook Has Been Blocked" then
+			if DYWebhookServices.ErrorPrinting then
+				warn("[Darkrai Y | Webhook Services]: " .. body.reason)
+			end
+			return "Error Found"
+		else
+			return nil
+		end
+	end
+
+	if statusCode == 429 then
+		if DYWebhookServices.ErrorPrinting then
+			warn("[Darkrai Y | Webhook Services]: Hit ratelimit.")
+		end	
+		return "Error Found"
+	elseif statusCode == 404 then
+		if DYWebhookServices.ErrorPrinting then	
+			warn("[Darkrai Y | Webhook Services]: Provided Webhook Is Not Valid.")
+		end
+		return "Error Found"
+	elseif statusCode == 400 and not url then
+		if DYWebhookServices.ErrorPrinting then		
+			warn("[Darkrai Y | Webhook Services]: Error Occured\n" .. body.message)
+		end
+		return "Error Found"
+	else
+		return nil
+	end
+end
+
+local function postWebhook(url, data)
+	local ProxyURL = string.gsub(url, "discord.com", "hooks.hyra.io")
+	local BackupProxyURL = string.gsub(url, "discord.com", "webhook.newstargeted.com")
+	local LastProxyURL = string.gsub(url, "discord.com", "webhook.lewisakura.moe")
+
+	local success, statusCode, body = safeReq(url, data)
+
+	if success then
+		if DYWebhookServices.ErrorPrinting then
+			print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		end
+	else
+		if DYWebhookServices.ErrorPrinting then
+			warn("[Darkrai Y | Webhook Services]: Webhook Request Failed. Trying Proxy Urls")
+		end
+		local success, statusCode, body = safeReq(ProxyURL, data)
+
+		if success then
+		    if DYWebhookServices.ErrorPrinting then
+		    	print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		    end
+		else
+			if DYWebhookServices.ErrorPrinting then
+				warn("[Darkrai Y | Webhook Services]: Webhook Request Failed. Trying Backup URL")
+			end
+			
+			success, statusCode, body = safeReq(BackupProxyURL, data)
+
+			if success then
+				if DYWebhookServices.ErrorPrinting then
+					print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		        end
+			else
+				if DYWebhookServices.ErrorPrinting then
+					warn("[Darkrai Y | Webhook Services]: Backup Webhook Request Failed. Trying Last URL")
+				end
+				success, statusCode, body = safeReq(LastProxyURL, data)
+				
+				if success then
+		            if DYWebhookServices.ErrorPrinting then
+		            	print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		            end
+				else
+					if DYWebhookServices.ErrorPrinting then
+						warn("[Darkrai Y | Webhook Services]: Backup Request Failed")
+					end
+					local processStatus = processStatus(statusCode, body, url)
+					if processStatus == nil then
+						if DYWebhookServices.ErrorPrinting then
+							warn(" > Most Likely Error Or Proxy Are Down")
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function isURL(str)
+	local pattern = "^https?://[%w-_%.%?%.:/%+=&]+$"
+	return string.match(str, pattern) ~= nil
+end
+
+local function sendToWebhooks(urls, requestBody)
+	for _, url in pairs(urls) do
+		if isURL(url) then
+			postWebhook(url, httpService:JSONEncode(requestBody))
+		else
+			warn("Invalid URL format for webhook: " .. url)
+		end
+	end
+end
+
+function DYWebhookServices.BuildEmbed(config)
+	local Embed = {
+		Info = {
+			Settings = {},
+			Embed = {}
+		}
+	}
+
+	if config then
+		if config.Settings then
+			for setting, value in pairs(config.Settings) do
+				Embed.Info.Settings[setting] = value
+			end
+		end
+
+		if config.Embed then
+			for property, value in pairs(config.Embed) do
+				Embed.Info.Embed[property] = value
+			end
+		end
+	end
+
+	return Embed
+end
+
+function DYWebhookServices:Send(data)
+	if typeof(data) ~= "table" or (data.content == nil and data.embeds == nil and data.file == nil) then
+		error("[Darkrai Y | Webhook Services]: Invalid data object. Expecting a table containing content, embeds.")
+	end
+
+	if data.embeds and type(data.embeds) == "table" then
+		local embed = data.embeds[1]
+		if embed then
+			embed.fields = embed.fields or {}
+			table.insert(embed.fields, {name = "Proxy URL used with Queue:", value = self._instance, inline = false})
+		end
+	end
+
+	local urls = data.urls or {data.url}
+	local content = data.content
+	local embeds = data.embeds or {}
+
+	local requestBody = {
+		content = content,
+		embeds = {},
+	}
+
+	for _, embed in pairs(embeds) do
+		local embedData = {
+			title = embed.Info.Embed.Title or "No Title Provided",
+			description = embed.Info.Embed.Description or "",
+			type = embed.Info.Settings.Type or "rich",
+			color = embed.Info.Settings.Color or "",
+			fields = embed.Info.Embed.Fields or nil,
+			image = {
+				url = embed.Info.Embed.Image or "",
+			},
+			thumbnail = {
+				url = embed.Info.Embed.Thumbnail or "",
+			},
+			timestamp = os.date("!%Y-%m-%dT%H:%M:%S", os.time(embed.Info.Embed.TimeStamp)) or "",
+			footer = {
+				text = embed.Info.Embed.Footer or "",
+				icon_url = embed.Info.Embed.FooterIcon or "",
+			}
+		}
+
+		table.insert(requestBody.embeds, embedData)
+	end
+
+	sendToWebhooks(urls, requestBody)
+end
+
+------------------------------------ Format Editor ------------------------------------------
+
+DYWebhookServices.FormatEditor = {}
+
+function DYWebhookServices.FormatEditor.Italic(txt)
+	return "*" .. txt .. "*"
+end
+
+function DYWebhookServices.FormatEditor.Bold(txt)
+	return "**" .. txt .. "**"
+end
+
+function DYWebhookServices.FormatEditor.BoldItalic(txt)
+	return "***" .. txt .. "***"
+end
+
+function DYWebhookServices.FormatEditor.Underline(txt)
+	return "__" .. txt .. "__"
+end
+
+function DYWebhookServices.FormatEditor.UnderlineItalic(txt)
+	return "__*" .. txt .. "*__"
+end
+
+function DYWebhookServices.FormatEditor.UnderlineBold(txt)
+	return "__**" .. txt .. "**__"
+end
+
+function DYWebhookServices.FormatEditor.UnderlineBoldItalic(txt)
+	return "__***" .. txt .. "***__"
+end
+
+function DYWebhookServices.FormatEditor.Strikethrough(txt)
+	return "~~" .. txt .. "~~"
+end
+
+function DYWebhookServices.FormatEditor.CodeblockLine(txt)
+	return "`" .. txt .. "`"
+end
+
+function DYWebhookServices.FormatEditor.Codeblock(txt, syntax)
+	syntax = syntax or ""
+	return "```" .. syntax .. "\n" .. txt .. "\n```"
+end
+
+function DYWebhookServices.FormatEditor.BlockQuote(txt)
+	return "> " .. txt
+end
+
+function DYWebhookServices.FormatEditor.MultiLineBlockQuote(txt)
+	local lines = string.split(txt, "\n")
+	local result = ""
+	for _, line in pairs(lines) do
+		result = result .. "> " .. line .. "\n"
+	end
+	return result
+end
+
+function DYWebhookServices.FormatEditor.Spoiler(txt)
+	return "||" .. txt .. "||"
+end
+
+function DYWebhookServices.FormatEditor.URL(url, txt)
+	txt = txt or url
+	return "[" .. txt .. "](" .. url .. ")"
+end
+
+function DYWebhookServices.ColorConverter(color)
+	local r = math.floor(color.R * 255 + 0.5)
+	local g = math.floor(color.G * 255 + 0.5)
+	local b = math.floor(color.B * 255 + 0.5)
+	return (r * 65536) + (g * 256) + b
+end
+
+---------------------------------------------- Get Player Shot ----------------------------------------------------
+
+DYWebhookServices.GetPlayerShot = {}
+
+function DYWebhookServices.GetPlayerShot.Headshot(UserID, Size)
+	local thumbnail_url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="..tostring(UserID).."&size="..tostring(Size).."&format=Png&isCircular=false"
+	local response = game:HttpGet(thumbnail_url)
+	local jsonResponse = game.HttpService:JSONDecode(response)
+	local imageUrl = jsonResponse.data[1].imageUrl
+	return jsonResponse.data[1].imageUrl
+end
+
+function DYWebhookServices.GetPlayerShot.BustShot(UserID, Size)
+	local thumbnail_url = "https://thumbnails.roblox.com/v1/users/avatar-bust?userIds="..tostring(UserID).."&size="..tostring(Size).."&format=Png&isCircular=false"
+	local response = game:HttpGet(thumbnail_url)
+	local jsonResponse = game.HttpService:JSONDecode(response)
+	local imageUrl = jsonResponse.data[1].imageUrl
+	return jsonResponse.data[1].imageUrl
+end
+
+function DYWebhookServices.GetPlayerShot.Avatar(UserID, Size)
+	local thumbnail_url = "https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(UserID).."&size="..tostring(Size).."&format=Png&isCircular=false"
+	local response = game:HttpGet(thumbnail_url)
+	local jsonResponse = game.HttpService:JSONDecode(response)
+	local imageUrl = jsonResponse.data[1].imageUrl
+	return jsonResponse.data[1].imageUrl
+end
+
+--------------------------------------------- Mention --------------------------------------------------------------
+
+DYWebhookServices.Mention = {}
+
+function DYWebhookServices.Mention.User(id)
+	return "<@" .. id .. ">"
+end
+
+function DYWebhookServices.Mention.Role(id)
+	return "<@&" .. id .. ">"
+end
+
+function DYWebhookServices.Mention.Channel(id)
+	return "<#" .. id .. ">"
+end
+
+-------------------------------------------------- Queue System ----------------------------------------------
+
+DYWebhookServices.QueueSystem = {}
+
+local webhookQueue = {}
+local isQueueRunning = false
+
+local function processQueue()
+	local data = webhookQueue[1]
+	if data then
+		local success, statusCode, body, headers = pcall(DYWebhookServices.Send, DYWebhookServices, data)
+
+		if success then
+			print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		else
+			local retryAfter = 60
+			if headers["Retry-After"] then
+				retryAfter = tonumber(headers["Retry-After"])
+			end
+			if statusCode == 429 then
+				-- Ratelimit encountered
+				print("[Darkrai Y | Webhook Services]: Hit ratelimit. Waiting for " .. retryAfter .. " seconds...")
+			else
+				-- Other error occurred
+				if DYWebhookServices.ErrorPrinting then
+					warn("[Darkrai Y | Webhook Services]: Webhook Request Failed. Error: " .. tostring(body))
+				end
+			end
+			wait(retryAfter)
+		end
+
+		table.remove(webhookQueue, 1)
+	end
+
+	if #webhookQueue > 0 then
+		processQueue()
+	else
+		isQueueRunning = false
+	end
+	wait(2)
+end
+
+function DYWebhookServices.QueueSystem.addToQueue(data)
+	local maxTableLimit = 1000
+
+	if #webhookQueue < maxTableLimit then
+		table.insert(webhookQueue, data)
+	else
+		-- Handle the case when the table limit is reached
+		if DYWebhookServices.ErrorPrinting then
+			warn("[Darkrai Y | Webhook Services]: Queue limit reached. Skipping webhook request.")
+		end
+		return
+	end
+
+	if not isQueueRunning then
+		isQueueRunning = true
+		processQueue()
+	end
+end
+
+return DYWebhookServices
