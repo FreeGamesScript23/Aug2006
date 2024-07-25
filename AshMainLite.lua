@@ -82,5 +82,5 @@ if not ownerUserIds[LocalPlayer.UserId] then
         })
     })
     
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshbornnHubLite.lua",true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/SilentLite.lua",true))()
 end
