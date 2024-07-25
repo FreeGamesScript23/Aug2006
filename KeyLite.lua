@@ -105,7 +105,7 @@ AshGUI.checkKeyButton.MouseButton1Click:Connect(function()
         SendNotif("AshbornnHub", "Authenticated", 2)
         saveKey(key)
         destroyUI()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMainLite.lua",true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua",true))()
     else
         SendNotif("AshbornnHub", "Not authenticated", 2)
     end
@@ -123,7 +123,7 @@ if savedKey then
     if PandaAuth:ValidateKey(ServiceID, savedKey) or PandaAuth:ValidatePremiumKey(ServiceID, savedKey) then
         SendNotif("AshbornnHub", "Authenticated with saved key", 2)
         destroyUI()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMainLite.lua",true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua",true))()
     else
         SendNotif("AshbornnHub", "Saved key not valid", 2)
         resetKey()
@@ -134,7 +134,7 @@ end
 while true do
     if PandaAuth:Authenticate_Keyless(ServiceID) then
         destroyUI()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMainLite.lua",true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua",true))()
         break -- Exit the loop if authorization is successful
     else
         warn('Hardware ID not Successfully Authorized')
