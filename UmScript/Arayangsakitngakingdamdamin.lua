@@ -27,7 +27,7 @@ local games = {
 }
 
 if not games[game.PlaceId] then
-    game:GetService("Players").LocalPlayer:Kick("Unfortunately, this game is not supported.")
+    game:GetService("Players").LocalPlayer:Kick("Game not supported lol")
     while true do end
     wait(99999999999999999999999999999999999)
 end
