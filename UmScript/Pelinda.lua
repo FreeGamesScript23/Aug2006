@@ -14,7 +14,7 @@ local Fluent = loadLibrary("https://github.com/dawid-scripts/Fluent/releases/lat
 
 -- Load KeyGUI.lua and handle errors
 local function loadKeyGUI()
-    local success, result = pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/UmScript/KeyGUI.lua", true)))
+    local success, result = pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/KeyGUI.lua", true)))
     if not success then
         error("Failed to load KeyGUI.lua: " .. result)
     end
@@ -28,7 +28,7 @@ if type(KeyGUI) == "function" then
     KeyGUI = KeyGUI() -- Call the function to get the GUI instance
 elseif type(KeyGUI) == "table" then
     -- If KeyGUI is a table, ensure it has the expected fields
-    print("KeyGUI is a table. Ensure it contains the GUI elements.")
+
 else
     error("KeyGUI is neither a function nor a table")
 end
@@ -105,7 +105,7 @@ AshGUI.checkKeyButton.MouseButton1Click:Connect(function()
         SendNotif("AshbornnHub", "Authenticated", 2)
         saveKey(key)
         destroyUI()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMain.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
     else
         SendNotif("AshbornnHub", "Not authenticated", 2)
     end
@@ -122,7 +122,8 @@ if savedKey then
     SendNotif("AshbornnHub", "Checking saved key", 2)
     if PandaAuth:ValidateKey(ServiceID, savedKey) or PandaAuth:ValidatePremiumKey(ServiceID, savedKey) then
         SendNotif("AshbornnHub", "Authenticated with saved key", 2)
-        
+        destroyUI()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
     else
         SendNotif("AshbornnHub", "Saved key not valid", 2)
         resetKey()
@@ -133,10 +134,10 @@ end
 while true do
     if PandaAuth:Authenticate_Keyless(ServiceID) then
         destroyUI()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshMain.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
         break -- Exit the loop if authorization is successful
     else
         warn('Hardware ID not Successfully Authorized')
     end  
     wait(5) -- Pause execution for 5 seconds before the next iteration
-end
+end   
