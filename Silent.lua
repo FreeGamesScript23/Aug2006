@@ -3072,7 +3072,7 @@ Description = "Get all emotes that are in the Store",
 Callback = function()
         if not AshMotes then
             AshMotes = true
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/RblxEmotes.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/RblxEmotes.lua", true))()
         else
             SendNotif("Already executed", "You cant just executed this twice lol", 3)
         end
