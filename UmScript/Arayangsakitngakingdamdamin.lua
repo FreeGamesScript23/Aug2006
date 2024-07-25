@@ -1,13 +1,9 @@
-
 repeat wait() until game:IsLoaded()
 
 if getgenv().scriptexecuted then return end
 getgenv().scriptexecuted = true
 
-local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-
-local DYWebhook = loadstring(game:HttpGet("https://raw.githubusercontent.com/R3TH-PRIV/UILibs/main/Librarys/Orion/Source"))()
+local DYWebhook = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/angsakitsadamdamin.lua"))()
 DYWebhook.ErrorPrinting = false
 local embed = DYWebhook.BuildEmbed()
 
@@ -65,9 +61,9 @@ end
 if Config.Script == "Custom" then
     loadstring(game:HttpGet(Config.CustomLink))()
 elseif Config.Script == "Hub" then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/KeyKong.lua",true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/Pelinda.lua",true))()
 elseif Config.Script == "Lite" then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/KeyLite.lua",true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/KeyLite.lua",true))()
 end
 
 Executor = identifyexecutor()
