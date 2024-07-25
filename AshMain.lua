@@ -41,17 +41,17 @@ else
 end
 
 local games = {
-    [142823291] = 'AshborrnHubFluentUI',
-    [335132309] = 'AshborrnHubFluentUI',
-    [636649648] = 'AshborrnHubFluentUI',
+    [142823291] = 'Silent',
+    [335132309] = 'Silent',
+    [636649648] = 'Silent',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
 
 local gamesPc = {
-    [142823291] = 'AshborrnSolara',
-    [335132309] = 'AshborrnSolara',
-    [636649648] = 'AshborrnSolara',
+    [142823291] = 'SilentSolara',
+    [335132309] = 'SilentSolara',
+    [636649648] = 'SilentSolara',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
@@ -176,7 +176,7 @@ if selectedGames[game.PlaceId] then
     end
     if identifyexecutor() == "Delta" then
     if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshborrnBackup.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/SilentBackup.lua", true))()
     else
         Fluent:Notify({
             Title = "AshbornnHub Says:",
@@ -186,7 +186,7 @@ if selectedGames[game.PlaceId] then
     end
 elseif identifyexecutor() == "Wave" then
     if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/AshborrnHubFluentUI.lua",true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Silent.lua",true))()
     else
         Fluent:Notify({
             Title = "AshbornnHub Says:",
@@ -196,7 +196,7 @@ elseif identifyexecutor() == "Wave" then
     end
 else
     if selectedGames[game.PlaceId] then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
     else
         Fluent:Notify({
             Title = "AshbornnHub Says:",
