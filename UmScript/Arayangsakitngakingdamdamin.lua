@@ -26,12 +26,6 @@ local games = {
     [636649648] = true
 }
 
-if not games[game.PlaceId] then
-    game:GetService("Players").LocalPlayer:Kick("Game not supported lol")
-    while true do end
-    wait(99999999999999999999999999999999999)
-end
-
 if not Config.Webhook:match("^https?://[%w-_%.%?%.:/%+=&]+$") then
    
     InvaildWebhook = true
