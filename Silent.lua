@@ -315,7 +315,7 @@ end
 -------------------------END FUNCTIONS---------------------------------
 
 local Window = Fluent:CreateWindow({
-        Title = "Ashbornn Hub " .. Fluent.Version,
+        Title = string.char(65,115,104,98,111,114,110,110,72,117,98,32) .. Fluent.Version,
         SubTitle = "Murder Mystery 2",
         TabWidth = 160,
         Size = UDim2.fromOffset(580, 460),
@@ -2774,7 +2774,7 @@ local function moveToCoinServer()
             end
         end
     else
-        print("[ Hub ] Coin not Found.. Searching again...")
+        print("Coin not Found.. Searching again...")
         isMovingToCoin = false
         
         if Void then
@@ -2957,7 +2957,7 @@ local function moveToCoinServer()
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("[ Hub ] Searching for BeachBall...")
+        print("Searching for BeachBall...")
         isMovingToCoin = false
         if Void then
         wait(1)
@@ -3186,12 +3186,11 @@ end)
    
 local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
--- Constants for file handling
 local SAVED_POSITIONS = {
-    FEInviButtonPerk = "Hub/MM2/PerkFEInviButtPos.json",
-    FEInviButton = "Hub/MM2/FEInviButPos.json",
-    AFCoinButton = "Hub/MM2/AFCoin.json",
-    InviButton = "Hub/MM2/InviButPos.json"
+    FEInviButtonPerk = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,80,101,114,107,70,69,73,110,118,105,66,117,116,116,80,111,115,46,106,115,111,110),
+    FEInviButton = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,70,69,73,110,118,105,66,117,116,80,111,115,46,106,115,111,110),
+    AFCoinButton = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,65,70,67,111,105,110,46,106,115,111,110),
+    InviButton = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,73,110,118,105,66,117,116,80,111,115,46,106,115,111,110)
 }
 
 local DEFAULT_POSITIONS = {
@@ -3416,7 +3415,7 @@ end)
 
 -- Function to handle GUI creation and destruction
 local function setupGui(toggleName, buttonTitle, buttonAction)
-local SAVED_POSITION_FILE = "Hub/MM2/" .. toggleName .. "ButtonPos.json"
+local SAVED_POSITION_FILE = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47) .. toggleName .. string.char(66,117,116,116,111,110,80,111,115,46,106,115,111,110)
 local screenGui
 local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
@@ -3767,7 +3766,7 @@ end
 Slider:SetValue(tpWalkSpeed)
 
 -- Define the file path for saving the position
-local filePath = "Hub/MM2/HoldSpeedPos.json"
+local filePath = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,72,111,108,100,83,112,101,101,100,80,111,115,46,106,115,111,110)
 
 -- Function to read JSON from a file
 local function readJsonFile(filePath)
@@ -4252,8 +4251,8 @@ SaveManager:IgnoreThemeSettings()
 
 SaveManager:SetIgnoreIndexes({})
 
-InterfaceManager:SetFolder("Hub")
-SaveManager:SetFolder("Hub/MM2")
+InterfaceManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98))
+SaveManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50))
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -4264,4 +4263,4 @@ SaveManager:LoadAutoloadConfig()
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-SendNotif("Hub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+SendNotif(string.char(65,115,104,98,111,114,110,110,72,117,98), string.char(83,117,99,99,101,115,115,102,117,108,108,121,32,108,111,97,100,101,100,32,116,104,101,32,115,99,114,105,112,116,32,105,110,32) .. TotalTime .. string.char(115,46), 3)
