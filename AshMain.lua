@@ -5,7 +5,7 @@ else
     if getgenv().AshExecuted then
         local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         Fluent:Notify({
-            Title = "Hub Says:",
+            Title = string.char(72,117,98,32,83,97,121,115,58,32),
             Content = "The Hub is already executed. If you're having any problems, join my Discord for support.",
             Duration = 5
         })
@@ -59,9 +59,9 @@ local gamesPc = {
 local LocalPlayer = Players.LocalPlayer
 
 function sendnotification(message, type)
-    local title = "Welcome to AshborrnHub GUI (" .. LocalPlayer.Name .. ")"
+    local title = string.char(87,101,108,99,111,109,101,32,116,111,32,65,115,104,98,111,114,110,110,72,117,98,32,71,85,73,32,40) .. LocalPlayer.Name .. string.char(41)
     if type == false or type == nil then
-        print("[ AshborrnHub ]: " .. message)
+        print(string.char(91,32,65,115,104,98,111,114,110,110,72,117,98,32,93,58,32) .. message)
     end
     if type == true or type == nil then
         Fluent:Notify({
@@ -169,7 +169,7 @@ if selectedGames[game.PlaceId] then
             })
         })
         Fluent:Notify({
-                Title = "Hub Says:",
+                Title = string.char(72,117,98,32,83,97,121,115,58,32),
                 Content = "Game Supported! 🥳",
                 Duration = 3
             })
@@ -179,7 +179,7 @@ if selectedGames[game.PlaceId] then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/SilentBackup.lua", true))()
     else
         Fluent:Notify({
-            Title = "Hub Says:",
+            Title = string.char(72,117,98,32,83,97,121,115,58,32),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -189,7 +189,7 @@ elseif identifyexecutor() == "Wave" then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Silent.lua",true))()
     else
         Fluent:Notify({
-            Title = "Hub Says:",
+            Title = string.char(72,117,98,32,83,97,121,115,58,32),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -199,7 +199,7 @@ else
         loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
     else
         Fluent:Notify({
-            Title = "Hub Says:",
+            Title = string.char(72,117,98,32,83,97,121,115,58,32),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -220,7 +220,7 @@ else
                         description = "Hi " .. LocalPlayer.Name .. " executed your script in Roblox " .. Ash_Device,
                         color = 16711680,
                         footer = { text = "Timestamp: " .. getCurrentTime() },
-                        author = { name = "Hub Executed in " .. identifyexecutor() },
+                        author = { name = string.char(65,115,104,98,111,114,110,110,72,117,98,32,69,120,101,99,117,116,101,100,32,105,110,32,40) .. identifyexecutor() },
                         fields = {
                             { name = "Game Info", value = "Unsupported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                         },
@@ -233,7 +233,7 @@ else
         })
     end
     Fluent:Notify({
-        Title = "Hub Says:",
+        Title = string.char(72,117,98,32,83,97,121,115,58,32),
         Content = "Game is not supported. 😔",
         Duration = 3
     })
