@@ -1,6 +1,6 @@
 repeat wait() until game:IsLoaded()
 
-print("[ Ashbornn Hub ]: Murder Mystery 2 loading...")
+print(string.char(91,32,65,115,104,98,111,114,110,110,72,117,98,32,93,58,32,77,117,114,100,101,114,32,77,121,115,116,101,114,121,32,50,32,108,111,97,100,105,110,103,46,46,46))
 
 local TimeStart = tick()
 -- Place this LocalScript in StarterPlayerScripts
