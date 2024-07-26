@@ -288,7 +288,7 @@ Toggle:OnChanged(function(flingplayer)
         if selectedPlayer ~= "" then
             -- You can pass the selectedPlayer to the loaded script if needed
             getgenv().FLINGTARGET = selectedPlayer
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/FlingGood.lua'))()
             wait()
         else
             -- Handle case when no player is selected
