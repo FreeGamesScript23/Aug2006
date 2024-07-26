@@ -1,6 +1,6 @@
 repeat wait() until game:IsLoaded()
 
-print("[ AshbornnHub ]: Murder Mystery 2 loading...")
+print("[ Ashbornn Hub ]: Murder Mystery 2 loading...")
 
 local TimeStart = tick()
 -- Place this LocalScript in StarterPlayerScripts
@@ -2174,7 +2174,7 @@ Tabs.Troll:AddButton({
         Title = "Get Trap Tool",
         Description = "Give you trap tool that u can place anywhere you want loll",
         Callback = function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/TrapTool",true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/Hub/main/TrapTool",true))()
 end
 })
 
@@ -2757,7 +2757,7 @@ local function moveToCoinServer()
             end
         end
     else
-        print("[ AshbornnHub ] Coin not Found.. Searching again...")
+        print("[ Hub ] Coin not Found.. Searching again...")
         isMovingToCoin = false
         
         if Void then
@@ -2940,7 +2940,7 @@ local function moveToCoinServer()
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("[ AshbornnHub ] Searching for BeachBall...")
+        print("[ Hub ] Searching for BeachBall...")
         isMovingToCoin = false
         if Void then
         wait(1)
@@ -3054,7 +3054,7 @@ Description = "Get all emotes that are in the Store",
 Callback = function()
         if not AshMotes then
             AshMotes = true
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/RblxEmotes.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/Hub/main/RblxEmotes.lua", true))()
         else
             SendNotif("Already executed", "You cant just executed this twice lol", 3)
         end
@@ -3171,10 +3171,10 @@ local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
 -- Constants for file handling
 local SAVED_POSITIONS = {
-    FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
-    FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
-    AFCoinButton = "AshbornnHub/MM2/AFCoin.json",
-    InviButton = "AshbornnHub/MM2/InviButPos.json"
+    FEInviButtonPerk = "Hub/MM2/PerkFEInviButtPos.json",
+    FEInviButton = "Hub/MM2/FEInviButPos.json",
+    AFCoinButton = "Hub/MM2/AFCoin.json",
+    InviButton = "Hub/MM2/InviButPos.json"
 }
 
 local DEFAULT_POSITIONS = {
@@ -3399,7 +3399,7 @@ end)
 
 -- Function to handle GUI creation and destruction
 local function setupGui(toggleName, buttonTitle, buttonAction)
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/" .. toggleName .. "ButtonPos.json"
+local SAVED_POSITION_FILE = "Hub/MM2/" .. toggleName .. "ButtonPos.json"
 local screenGui
 local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
@@ -3750,7 +3750,7 @@ end
 Slider:SetValue(tpWalkSpeed)
 
 -- Define the file path for saving the position
-local filePath = "AshbornnHub/MM2/HoldSpeedPos.json"
+local filePath = "Hub/MM2/HoldSpeedPos.json"
 
 -- Function to read JSON from a file
 local function readJsonFile(filePath)
@@ -3943,7 +3943,7 @@ Tabs.Buttons:AddParagraph({
         
 -- Create a ScreenGui object to hold the button
 local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
+gui.Name = "HubGui"
 gui.Parent = game.CoreGui
 
 -- Create the button as a TextButton
@@ -4234,8 +4234,8 @@ SaveManager:IgnoreThemeSettings()
 
 SaveManager:SetIgnoreIndexes({})
 
-InterfaceManager:SetFolder("AshbornnHub")
-SaveManager:SetFolder("AshbornnHub/MM2")
+InterfaceManager:SetFolder("Hub")
+SaveManager:SetFolder("Hub/MM2")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -4246,4 +4246,4 @@ SaveManager:LoadAutoloadConfig()
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+SendNotif("Hub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
