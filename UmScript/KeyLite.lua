@@ -95,37 +95,37 @@ end)
 AshGUI.checkKeyButton.MouseButton1Click:Connect(function()
     local key = AshGUI.textbox.Text
     if key == "" then
-        SendNotif("AshbornnHub", "Please enter a key", 2)
+        SendNotif("Hub", "Please enter a key", 2)
         return
     end
     
     SendNotif("Authenticating...", "Checking your key, please wait.", 2)
 
     if PandaAuth:ValidateKey(ServiceID, key) or PandaAuth:ValidatePremiumKey(ServiceID, key) then
-        SendNotif("AshbornnHub", "Authenticated", 2)
+        SendNotif("Hub", "Authenticated", 2)
         saveKey(key)
         destroyUI()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua",true))()
     else
-        SendNotif("AshbornnHub", "Not authenticated", 2)
+        SendNotif("Hub", "Not authenticated", 2)
     end
 end)
 
 AshGUI.discordButton.MouseButton1Click:Connect(function()
     setclipboard("https://discord.com/invite/JzkvpnVVA7")
-    SendNotif("AshbornnHub", "Discord invite copied to clipboard", 2)
+    SendNotif("Hub", "Discord invite copied to clipboard", 2)
 end)
 
 -- Attempt to load the saved key
 local savedKey = loadKey()
 if savedKey then
-    SendNotif("AshbornnHub", "Checking saved key", 2)
+    SendNotif("Hub", "Checking saved key", 2)
     if PandaAuth:ValidateKey(ServiceID, savedKey) or PandaAuth:ValidatePremiumKey(ServiceID, savedKey) then
-        SendNotif("AshbornnHub", "Authenticated with saved key", 2)
+        SendNotif("Hub", "Authenticated with saved key", 2)
         destroyUI()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua",true))()
     else
-        SendNotif("AshbornnHub", "Saved key not valid", 2)
+        SendNotif("Hub", "Saved key not valid", 2)
         resetKey()
     end
 end
