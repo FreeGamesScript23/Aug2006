@@ -1,6 +1,6 @@
 repeat wait() until game:IsLoaded()
 
-print("[ AshbornnHub ]: Murder Mystery 2 loading...")
+print("[ Hub ]: Murder Mystery 2 loading...")
 
 local TimeStart = tick()
 -- Place this LocalScript in StarterPlayerScripts
@@ -2343,7 +2343,7 @@ Tabs.AutoFarm:AddParagraph({
                 end
             end
         else
-            print("[ AshbornnHub ] Coin not Found.. Searching again...")
+            print("[ Hub ] Coin not Found.. Searching again...")
             isMovingToCoin = false
             
             if Void then
@@ -2526,7 +2526,7 @@ Tabs.AutoFarm:AddParagraph({
                 coroutine.wrap(moveToCoinServer)()
             end
         else
-            print("[ AshbornnHub ] Searching for BeachBall...")
+            print("[ Hub ] Searching for BeachBall...")
             isMovingToCoin = false
             if Void then
             wait(1)
@@ -3126,7 +3126,7 @@ end
         
 -- Create a ScreenGui object to hold the button
 local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
+gui.Name = "HubGui"
 gui.Parent = game.CoreGui
 
 -- Create the button as a TextButton
@@ -3460,8 +3460,8 @@ end)
     -- use case for doing it this way:
     -- a script hub could have themes in a global folder
     -- and game configs in a separate folder per game
-    InterfaceManager:SetFolder("AshbornnHub")
-    SaveManager:SetFolder("AshbornnHub/MM2")
+    InterfaceManager:SetFolder("Hub")
+    SaveManager:SetFolder("Hub/MM2")
 
     InterfaceManager:BuildInterfaceSection(Tabs.Settings)
     SaveManager:BuildConfigSection(Tabs.Settings)
@@ -3475,4 +3475,4 @@ end)
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+SendNotif("Hub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
