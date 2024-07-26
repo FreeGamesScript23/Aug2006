@@ -225,7 +225,7 @@ while getgenv().flingloop do
         end
 
         if not Welcome then
-            Message("AshbornnHub Says:", "Fling Script has been loaded", 3)
+            Message("Hub Says:", "Fling Script has been loaded", 3)
         end
         getgenv().Welcome = true
 
