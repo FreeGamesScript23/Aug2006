@@ -64,7 +64,7 @@ titleLabel.BackgroundTransparency = 1.000
 titleLabel.Position = UDim2.new(0.237, 0, 0, 0)
 titleLabel.Size = UDim2.new(0, 200, 0, 32)
 titleLabel.Font = Enum.Font.Ubuntu
-titleLabel.Text = "AshbornnHub - Key System"
+titleLabel.Text = "Ashbornn Hub - Key System"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextSize = 20.000
 
