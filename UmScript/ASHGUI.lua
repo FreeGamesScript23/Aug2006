@@ -18,7 +18,7 @@ local RunService = game:GetService("RunService")
 
 
 local Window = Fluent:CreateWindow({
-    Title = "AshbornnHub " .. Fluent.Version,
+    Title = "Ashbornn Hub " .. Fluent.Version,
     SubTitle = "BlackHawk Rescue Mission 5",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -196,7 +196,7 @@ end
         
 -- Create a ScreenGui object to hold the button
 local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
+gui.Name = "Gui"
 gui.Parent = game.CoreGui
 
 -- Create the button as a TextButton
@@ -431,8 +431,8 @@ SaveManager:IgnoreThemeSettings()
 
 SaveManager:SetIgnoreIndexes({})
 
-InterfaceManager:SetFolder("AshbornnHub")
-SaveManager:SetFolder("AshbornnHub/MM2")
+InterfaceManager:SetFolder("")
+SaveManager:SetFolder("/MM2")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -443,4 +443,4 @@ SaveManager:LoadAutoloadConfig()
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+SendNotif("Hub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
