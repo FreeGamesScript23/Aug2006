@@ -47,14 +47,14 @@ end
 
 -- File operations
 local function saveKey(key)
-    local success, errorMsg = pcall(function() writefile("AshbornnHub/saved_key.txt", key) end)
+    local success, errorMsg = pcall(function() writefile("Hub/saved_key.txt", key) end)
     if not success then
         error("Failed to save key: " .. errorMsg)
     end
 end
 
 local function loadKey()
-    local success, keyOrError = pcall(readfile, "AshbornnHub/saved_key.txt")
+    local success, keyOrError = pcall(readfile, "Hub/saved_key.txt")
     if success and keyOrError then
         return keyOrError
     else
@@ -77,7 +77,7 @@ end
 
 -- Function to reset the key
 local function resetKey()
-    local success, errorMsg = pcall(function() writefile("AshbornnHub/saved_key.txt", "") end)
+    local success, errorMsg = pcall(function() writefile("Hub/saved_key.txt", "") end)
     if not success then
         error("Failed to reset key: " .. errorMsg)
     end
@@ -96,7 +96,7 @@ end)
 AshGUI.checkKeyButton.MouseButton1Click:Connect(function()
     local key = AshGUI.textbox.Text
     if key == "" then
-        SendNotif("AshbornnHub", "Please enter a key", 2)
+        SendNotif("Hub", "Please enter a key", 2)
         return
     end
     
