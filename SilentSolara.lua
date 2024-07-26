@@ -1,6 +1,6 @@
 repeat wait() until game:IsLoaded()
 
-print("[ Hub ]: Murder Mystery 2 loading...")
+print(string.char(91,32,65,115,104,98,111,114,110,110,72,117,98,32,93,58,32,77,117,114,100,101,114,32,77,121,115,116,101,114,121,32,50,32,108,111,97,100,105,110,103,46,46,46))
 
 local TimeStart = tick()
 -- Place this LocalScript in StarterPlayerScripts
@@ -265,7 +265,7 @@ end
 -------------------------END FUNCTIONS---------------------------------
 
 local Window = Fluent:CreateWindow({
-    Title = "Ashbornn Hub " .. Fluent.Version,
+    Title = string.char(65,115,104,98,111,114,110,110,72,117,98,32,83,111,108,97,114,97,32,86,101,114,115,105,111,110) .. Fluent.Version,
     SubTitle = "by Ashbornn",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -2343,7 +2343,7 @@ Tabs.AutoFarm:AddParagraph({
                 end
             end
         else
-            print("[ Hub ] Coin not Found.. Searching again...")
+            print("Coin not Found.. Searching again...")
             isMovingToCoin = false
             
             if Void then
@@ -2526,7 +2526,7 @@ Tabs.AutoFarm:AddParagraph({
                 coroutine.wrap(moveToCoinServer)()
             end
         else
-            print("[ Hub ] Searching for BeachBall...")
+            print("Searching for BeachBall...")
             isMovingToCoin = false
             if Void then
             wait(1)
@@ -3460,8 +3460,8 @@ end)
     -- use case for doing it this way:
     -- a script hub could have themes in a global folder
     -- and game configs in a separate folder per game
-    InterfaceManager:SetFolder("Hub")
-    SaveManager:SetFolder("Hub/MM2")
+    InterfaceManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98))
+SaveManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50))
 
     InterfaceManager:BuildInterfaceSection(Tabs.Settings)
     SaveManager:BuildConfigSection(Tabs.Settings)
@@ -3475,4 +3475,4 @@ end)
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-SendNotif("Hub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+SendNotif(string.char(65,115,104,98,111,114,110,110,72,117,98), string.char(83,117,99,99,101,115,115,102,117,108,108,121,32,108,111,97,100,101,100,32,116,104,101,32,115,99,114,105,112,116,32,105,110,32) .. TotalTime .. string.char(115,46), 3)
