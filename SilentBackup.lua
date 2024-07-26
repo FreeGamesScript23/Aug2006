@@ -3,6 +3,7 @@ repeat wait() until game:IsLoaded()
 print("[ AshbornnHub ]: Murder Mystery 2 loading...")
 
 local TimeStart = tick()
+-- Place this LocalScript in StarterPlayerScripts
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
@@ -67,28 +68,26 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
 
 
 local premiums = {
-        [6069697086] = true,
-        [4072731377] = true,
-        [6150337449] = true,
-        [1571371222] = true,
-        [2911976621] = true,
-        [2729297689] = true,
-        [6150320395] = true,
-        [301098121] = true,
-        [773902683] = true,
-        [671905963] = true,
-        [3129701628] = true,
-        [3063352401] = true,
-        [7007834038] = true,
-        [4767937607] = true,
-        [3129413184] = true
-    }
+    [6069697086] = true,
+    [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
+    [2911976621] = true,
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+}
 
-    local monarchs = {
-        [129215104] = true,
-        [6135258891] = true,
-        [290931] = true
-    }
+local monarchs = {
+    [129215104] = true,
+    [6135258891] = true,
+    [290931] = true
+}
 
 function SendNotif(title, content, time)
 Fluent:Notify({
@@ -198,6 +197,28 @@ end
 end
 
 function UpdateHighlights()
+    local premiums = {
+        [6069697086] = true,
+        [4072731377] = true,
+        [6150337449] = true,
+        [1571371222] = true,
+        [2911976621] = true,
+        [2729297689] = true,
+        [6150320395] = true,
+        [301098121] = true,
+        [773902683] = true,
+        [671905963] = true,
+        [3129701628] = true,
+        [3063352401] = true,
+        [3129413184] = true
+    }
+
+    local monarchs = {
+        [129215104] = true,
+        [6135258891] = true,
+        [290931] = true
+    }
+
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = v.Character:FindFirstChild("ESP_Highlight")
@@ -430,13 +451,13 @@ local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
 
 local function IsPlayerEligible()
-    local currentTime = tick() -- get current time
-    
+    if not IsAlive(Player) then
+        SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+        return false
+    end
+
     if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-        if currentTime - lastNotifTime >= cooldown then
-            SendNotif("You already have a gun", "Lollll.", 3)
-            lastNotifTime = currentTime -- update the last notification time
-        end
+        SendNotif("You already have a gun", "Lollll.", 3)
         return false
     end
     
@@ -447,7 +468,6 @@ local function IsPlayerEligible()
 
     return true
 end
-
 
 local function GrabGun()
     if not IsPlayerEligible() then return end
@@ -505,38 +525,6 @@ Toggle:OnChanged(function(value)
         end
     end
 end)
-
-if identifyexecutor() == "Wave" then
-local Keybind = Tabs.Combat:AddKeybind("GrabGunKeybind", {
-    Title = "Grab Gun V2 Keybind",
-    Mode = "Toggle", -- Always, Toggle, Hold
-    Default = "", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
-
-    -- Occurs when the keybind is clicked, Value is `true`/`false`
-    Callback = function(Value)
-        print("Keybind clicked!", Value)
-    end,
-
-    -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-    ChangedCallback = function(New)
-        print("Keybind changed!", New)
-    end
-})
-
--- OnClick is only fired when you press the keybind and the mode is Toggle
--- Otherwise, you will have to use Keybind:GetState()
-Keybind:OnClick(function()
-    print("Keybind clicked:", Keybind:GetState())
-    if Keybind:GetState() then
-        GrabGun()
-    end
-end)
-
-Keybind:OnChanged(function()
-    print("Keybind changed:", Keybind.Value)
-end)
-
-end
         
 local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
 
@@ -871,7 +859,7 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
                         end
-                    elseif not premiums[localUserId] and not monarchs[localUserId] and not premiums[playerUserId] and not monarchs[playerUserId] then
+                    elseif not premiums[localUserId] and not monarchs[playerUserId] then
                         -- Normal users can kill others but not Monarchs or Premiums
                         EquipTool()
                         wait()
@@ -897,7 +885,6 @@ knifeAuraToggle:OnChanged(function(knifeaura)
 end)
 
 Options.KnifeAura:SetValue(false)
-
 
 local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
@@ -930,8 +917,8 @@ autoKillAllToggle:OnChanged(function(autokillall)
                             Stab()
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif not premiums[localUserId] and not monarchs[localUserId] and not premiums[playerUserId] and not monarchs[playerUserId] then
-                            -- Normal users can kill others but not Premiums or Monarchs
+                        elseif not premiums[localUserId] and not monarchs[playerUserId] then
+                            -- Normal users can kill others but not Monarchs or Premiums
                             Stab()
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
@@ -947,7 +934,6 @@ autoKillAllToggle:OnChanged(function(autokillall)
 end)
 
 Options.AutoKillAll:SetValue(false)
-
 
 
 
@@ -1276,7 +1262,7 @@ Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-96, 143, 103)
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
             end
         })
         
@@ -1633,7 +1619,7 @@ Options.Noclip:SetValue(false)
 local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
 
 local function togglePlayerCollision(enable)
-    for _, player in ipairs(Players:GetPlayers()) do
+for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             local playerCharacter = player.Character
             if playerCharacter then
@@ -1644,42 +1630,39 @@ local function togglePlayerCollision(enable)
                 end
             end
         end
-    end
+end
 end
 
-local function enableAntiFling()
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not Toggle.Value then
-            connection:Disconnect()
-            return
-        end
+function enableAntiFling()
+while Toggle.Value do
         togglePlayerCollision(true)
-    end)
+        wait()
+end
 end
 
-local function disableAntiFling()
-    togglePlayerCollision(false)
+function disableAntiFling()
+togglePlayerCollision(false)
 end
-
-local function onCharacterAdded(character)
-    if Toggle.Value then
+ function onCharacterAdded(character)
+if Toggle.Value then
         togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
-    end
+end
 end
 
 Toggle:OnChanged(function(antiFling)
-    if antiFling then
-        enableAntiFling()
-    else
+if antiFling then
+        spawn(enableAntiFling)
+else
         disableAntiFling()
-    end
+end
 end)
 
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if Toggle.Value and LocalPlayer.Character then
-    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
 end
+
+      -- Getting the UserInputService
 
 -- Function to enable infinite jump
 function enableInfiniteJump(speaker)
@@ -2020,7 +2003,7 @@ Toggle:OnChanged(function(flingplayer)
                 loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/FlingGood.lua'))()
                 wait()
             else
-
+                -- Handle case when no Player is selected
                 print("No Player selected for flinging.")
             end
         end
@@ -2191,7 +2174,7 @@ Tabs.Troll:AddButton({
         Title = "Get Trap Tool",
         Description = "Give you trap tool that u can place anywhere you want loll",
         Callback = function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/TrapTool",true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/TrapTool",true))()
 end
 })
 
@@ -2288,7 +2271,7 @@ Tabs.Server:AddButton({
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
 Tabs.AutoFarm:AddParagraph({
 Title = "IMPORTANT: PLEASE READ",
-Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay."
+Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare BeachBall' option if the game has not started. because it search for nothing so thats why don't always toggle it."
 })
 local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
 
@@ -3071,7 +3054,7 @@ Description = "Get all emotes that are in the Store",
 Callback = function()
         if not AshMotes then
             AshMotes = true
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/RblxEmotes.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/RblxEmotes.lua", true))()
         else
             SendNotif("Already executed", "You cant just executed this twice lol", 3)
         end
@@ -4101,8 +4084,8 @@ local function fetchAvatarUrl(userId)
     end
     })
     
-   -- Define the function to send feedback to Discord
-local function sendFeedbackToDiscord(feedbackMessage)
+    -- Define the function to send feedback to Discord
+    local function sendFeedbackToDiscord(feedbackMessage)
     local response = request({
         Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
         Method = "POST",
@@ -4112,7 +4095,7 @@ local function sendFeedbackToDiscord(feedbackMessage)
         Body = HttpService:JSONEncode({
             embeds = {{
                 title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device .. ", Using " .. identifyexecutor(),
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
                 color = 16711935,
                 footer = { text = "Timestamp: " .. getCurrentTime() },
                 author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
@@ -4127,8 +4110,7 @@ local function sendFeedbackToDiscord(feedbackMessage)
     })
     
     if response and response.StatusCode == 204 then
-        print("Feedback sent successfully.")
-        SendNotif("Feedback has been sent to Ashbornn Thank you.", " ", 3)
+        SendNotif("Feedback has been sent to Ashbornn", "Thank you", 3)
     else
         warn("Failed to send feedback to Discord:", response)
     end
