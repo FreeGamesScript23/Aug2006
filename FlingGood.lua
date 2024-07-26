@@ -207,7 +207,7 @@ local SkidFling = function(TargetPlayer)
     end
 end
 
-if not Welcome then Message("AshbornnHub Says:","Fling Script has been loaded",3) end
+if not Welcome then Message("Hub Says:","Fling Script has been loaded",3) end
 getgenv().Welcome = true
 if Targets[1] then for _,x in next, Targets do GetPlayer(x) end else return end
 
