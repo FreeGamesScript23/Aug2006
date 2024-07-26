@@ -3,7 +3,7 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "AshbornnHub" .. Fluent.Version,
+    Title = "Hub" .. Fluent.Version,
     SubTitle = "Flee the facility",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -23,7 +23,7 @@ local Tabs = {
 
 -- Create a ScreenGui object to hold the button
 local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
+gui.Name = "HubGui"
 gui.Parent = game.CoreGui
 
 -- Create the button
@@ -537,7 +537,7 @@ Tabs.ServerH:AddButton({
                     {
                         Title = "Confirm",
                         Callback = function()
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/Hub/main/ServerHop.lua", true))()
         wait()
                         end
                     },
@@ -896,8 +896,8 @@ SaveManager:SetIgnoreIndexes({})
 -- use case for doing it this way:
 -- a script hub could have themes in a global folder
 -- and game configs in a separate folder per game
-InterfaceManager:SetFolder("AshbornnHub")
-SaveManager:SetFolder("AshbornnHub/FleeFacility")
+InterfaceManager:SetFolder("Hub")
+SaveManager:SetFolder("Hub/FleeFacility")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -906,7 +906,7 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 Window:SelectTab(1)
 
 Fluent:Notify({
-    Title = "AshbornnHub",
+    Title = "Hub",
     Content = "Has been loaded.",
     Duration = 4
 })
