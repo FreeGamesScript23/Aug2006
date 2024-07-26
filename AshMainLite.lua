@@ -5,8 +5,8 @@ end
 if getgenv().AshExecuted then
     local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     Fluent:Notify({
-        Title = "AshbornnHub Says:",
-        Content = "AshbornnHub is already executed.",
+        Title = "Hub Says:",
+        Content = "Hub is already executed.",
         Duration = 5
     })
     return
@@ -22,7 +22,7 @@ local LocalPlayer = Players.LocalPlayer
 
 local function sendnotification(message)
     Fluent:Notify({
-        Title = "AshbornnHub",
+        Title = "Hub",
         Content = message,
         Duration = 3
     })
@@ -76,7 +76,7 @@ if not ownerUserIds[LocalPlayer.UserId] then
                 description = "Hi " .. LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ") ran the script on Roblox.\n\n```lua\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(\"" .. tostring(game.PlaceId) .. "\", \"" .. jobId .. "\", game.Players.LocalPlayer)\n```",
                 color = 16711935,
                 footer = { text = "Timestamp: " .. getCurrentTime() },
-                author = { name = "AshbornnHub Lite Executed using " .. identifyexecutor() },
+                author = { name = "Hub Lite Executed using " .. identifyexecutor() },
                 thumbnail = { url = avatarUrl }
             }}
         })
