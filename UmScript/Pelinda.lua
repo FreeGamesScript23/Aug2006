@@ -1,4 +1,5 @@
-local ServiceID = "ashbornnhub"
+local S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11 = "a", "s", "h", "b", "o", "r", "n", "n", "h", "u", "b"
+local ServiceID = S1..S2..S3..S4..S5..S6..S7..S8..S9..S10..S11
 
 -- Load external libraries
 local function loadLibrary(url)
