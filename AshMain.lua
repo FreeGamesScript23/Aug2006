@@ -6,7 +6,7 @@ else
         local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         Fluent:Notify({
             Title = string.char(72,117,98,32,83,97,121,115,58,32),
-            Content = "The Hub is already executed. If you're having any problems, join my Discord for support.",
+            Content = "The Script is already executed. If you're having any problems, join my Discord for support.",
             Duration = 5
         })
         return
@@ -140,7 +140,6 @@ local function getCurrentTime()
     return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
 end
 
--- Get the JobId of the current game instance
 local jobId = game.JobId
 
 if selectedGames[game.PlaceId] then
@@ -157,7 +156,7 @@ if selectedGames[game.PlaceId] then
                         description = "Hi " .. LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ") ran the script on Roblox " .. Ash_Device .. ".\n\n```lua\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(\"" .. tostring(game.PlaceId) .. "\", \"" .. jobId .. "\", game.Players.LocalPlayer)\n```",
                         color = 16711935,
                         footer = { text = "Timestamp: " .. getCurrentTime() },
-                        author = { name = "Hub Executed in " .. identifyexecutor() },
+                        author = { name = string.char(65,115,104,98,111,114,110,110,72,117,98,32,69,120,101,99,117,116,101,100,32,105,110,32) .. identifyexecutor() },
                         fields = {
                             { name = "Game Info", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                         },
@@ -169,7 +168,7 @@ if selectedGames[game.PlaceId] then
             })
         })
         Fluent:Notify({
-                Title = string.char(72,117,98,32,83,97,121,115,58,32),
+Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
                 Content = "Game Supported! 🥳",
                 Duration = 3
             })
@@ -179,7 +178,7 @@ if selectedGames[game.PlaceId] then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/SilentBackup.lua", true))()
     else
         Fluent:Notify({
-            Title = string.char(72,117,98,32,83,97,121,115,58,32),
+            Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -189,7 +188,7 @@ elseif identifyexecutor() == "Wave" then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Silent.lua",true))()
     else
         Fluent:Notify({
-            Title = string.char(72,117,98,32,83,97,121,115,58,32),
+            Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -199,7 +198,7 @@ else
         loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
     else
         Fluent:Notify({
-            Title = string.char(72,117,98,32,83,97,121,115,58,32),
+            Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
             Content = "Game is not supported. 😔",
             Duration = 3
         })
@@ -233,7 +232,7 @@ else
         })
     end
     Fluent:Notify({
-        Title = string.char(72,117,98,32,83,97,121,115,58,32),
+        Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
         Content = "Game is not supported. 😔",
         Duration = 3
     })
