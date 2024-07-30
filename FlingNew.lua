@@ -5,16 +5,11 @@ local Player = Players.LocalPlayer
 
 -- Function to send messages
 local function Message(_Title, _Text, Time)
-    -- Replace Fluent with your notification system or remove if not needed
+    -- Replace with your notification system or remove if not needed
     print(_Title .. ": " .. _Text)
 end
 
--- Function to calculate fling position
-local function FlungPosition(BasePart)
-    return BasePart.Position + Vector3.new(0, 1000, 0) -- Adjust the offset as needed
-end
-
--- Function to apply force to target
+-- Function to apply force to the target
 local function ApplyForceToTarget(TargetPlayer)
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
@@ -46,15 +41,15 @@ local function ApplyForceToTarget(TargetPlayer)
         local BV = Instance.new("BodyVelocity")
         BV.Name = "FlingVelocity"
         BV.Parent = TRootPart
-        BV.Velocity = (TRootPart.Position - RootPart.Position).unit * 1000 -- Adjust force magnitude as needed
+        BV.Velocity = (TRootPart.Position - RootPart.Position).unit * 5000 -- Increase force magnitude
         BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)  -- Infinite force
 
-        -- Rapidly move towards the target
+        -- Function to move towards target
         local function MoveToTarget()
-            local targetPos = TRootPart.Position
             while Character and RootPart and TargetPlayer.Character and TargetPlayer.Parent do
+                local targetPos = TRootPart.Position
                 local direction = (targetPos - RootPart.Position).unit
-                RootPart.CFrame = CFrame.new(RootPart.Position + direction * 10) -- Move towards target rapidly
+                RootPart.CFrame = CFrame.new(RootPart.Position + direction * 5) -- Move towards target
                 task.wait(0.1)  -- Adjust wait time as needed
 
                 -- Check if target is flung or moved out of range
@@ -64,6 +59,7 @@ local function ApplyForceToTarget(TargetPlayer)
             end
         end
 
+        -- Move to the target rapidly
         MoveToTarget()
 
         -- Ensure target is flung out of the map
