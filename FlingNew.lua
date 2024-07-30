@@ -11,6 +11,8 @@ end
 
 -- Function to apply force to the target
 local function ApplyForceToTarget(TargetPlayer)
+    if not getgenv().flingloop then return end  -- Exit if flingloop is false
+
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
     local RootPart = Humanoid and Humanoid.RootPart
@@ -46,7 +48,7 @@ local function ApplyForceToTarget(TargetPlayer)
 
         -- Function to move towards target
         local function MoveToTarget()
-            while Character and RootPart and TargetPlayer.Character and TargetPlayer.Parent do
+            while getgenv().flingloop and Character and RootPart and TargetPlayer.Character and TargetPlayer.Parent do
                 local targetPos = TRootPart.Position
                 local direction = (targetPos - RootPart.Position).unit
                 RootPart.CFrame = CFrame.new(RootPart.Position + direction * 5) -- Move towards target
@@ -70,6 +72,8 @@ local function ApplyForceToTarget(TargetPlayer)
 
         -- Restore the character's position
         repeat
+            if not getgenv().flingloop then break end  -- Exit if flingloop is false
+
             RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
             Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
             Humanoid:ChangeState("GettingUp")
@@ -107,6 +111,8 @@ while getgenv().flingloop do
 
     local function HandleTargets(Targets)
         for _, x in next, Targets do
+            if not getgenv().flingloop then return end  -- Exit if flingloop is false
+
             local TPlayer = GetPlayer(x)
             if TPlayer and TPlayer ~= Player then
                 -- Check if the player is whitelisted
