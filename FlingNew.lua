@@ -9,8 +9,8 @@ local function Message(_Title, _Text, Time)
     print(_Title .. ": " .. _Text)
 end
 
--- Function to apply force to the target
-local function ApplyForceToTarget(TargetPlayer)
+-- Function to teleport, apply force, and return
+local function TeleportFlingAndReturn(TargetPlayer)
     if not getgenv().flingloop then return end  -- Exit if flingloop is false
 
     local Character = Player.Character
@@ -18,74 +18,63 @@ local function ApplyForceToTarget(TargetPlayer)
     local RootPart = Humanoid and Humanoid.RootPart
 
     local TCharacter = TargetPlayer.Character
-    local THumanoid
-    local TRootPart
-
-    if TCharacter:FindFirstChildOfClass("Humanoid") then
-        THumanoid = TCharacter:FindFirstChildOfClass("Humanoid")
-    end
-    if THumanoid and THumanoid.RootPart then
-        TRootPart = THumanoid.RootPart
-    end
+    local THumanoid = TCharacter and TCharacter:FindFirstChildOfClass("Humanoid")
+    local TRootPart = THumanoid and THumanoid.RootPart
 
     if Character and Humanoid and RootPart and TRootPart then
         -- Save the old position
-        if RootPart.Velocity.Magnitude < 50 then
-            getgenv().OldPos = RootPart.CFrame
-        end
+        local OldPos = RootPart.CFrame
 
-        -- Error handling
-        if THumanoid and THumanoid.Sit then
-            return Message("Error Occurred", "Targeting is sitting", 5)
-        end
+        -- Teleport to target
+        RootPart.CFrame = TRootPart.CFrame * CFrame.new(0, 5, 0)  -- Adjust position above the target if needed
+        Character:SetPrimaryPartCFrame(TRootPart.CFrame * CFrame.new(0, 5, 0))
 
-        -- Create a BodyVelocity to apply a large force to the target
+        -- Create a BodyVelocity to apply a force to the target
         local BV = Instance.new("BodyVelocity")
         BV.Name = "FlingVelocity"
         BV.Parent = TRootPart
-        BV.Velocity = (TRootPart.Position - RootPart.Position).unit * 5000 -- Increase force magnitude
+        BV.Velocity = Vector3.new()  -- Start with no velocity
         BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)  -- Infinite force
 
-        -- Function to move towards target
-        local function MoveToTarget()
-            while getgenv().flingloop and Character and RootPart and TargetPlayer.Character and TargetPlayer.Parent do
-                local targetPos = TRootPart.Position
-                local direction = (targetPos - RootPart.Position).unit
-                RootPart.CFrame = CFrame.new(RootPart.Position + direction * 5) -- Move towards target
-                task.wait(0.1)  -- Adjust wait time as needed
+        local timeToWait = 0.1  -- Adjust as needed
+        local flingSpeed = 1000  -- Adjust the fling speed as needed
+        local direction = 1  -- 1 for right, -1 for left
 
-                -- Check if target is flung or moved out of range
-                if (TRootPart.Position - targetPos).Magnitude > 1000 or not TargetPlayer.Character or THumanoid.Health <= 0 then
-                    break
-                end
+        -- Apply force repeatedly until the target is flung
+        local startTime = tick()
+        while getgenv().flingloop do
+            -- Apply force
+            BV.Velocity = Vector3.new(direction * flingSpeed, 0, 0)
+            task.wait(timeToWait)
+            BV.Velocity = Vector3.new()
+            task.wait(timeToWait)
+
+            -- Change direction
+            direction = -direction
+
+            -- Check if the target has been flung away
+            if (TRootPart.Position - RootPart.Position).Magnitude > 50 then  -- Adjust the distance as needed
+                break
+            end
+
+            -- Check for exit conditions
+            if not TargetPlayer.Character or TargetPlayer.Parent ~= Players or Humanoid.Health <= 0 then
+                break
             end
         end
-
-        -- Move to the target rapidly
-        MoveToTarget()
-
-        -- Ensure target is flung out of the map
-        task.wait(2) -- Ensure enough time for the fling to take effect
 
         -- Clean up
         BV:Destroy()
 
-        -- Restore the character's position
-        repeat
-            if not getgenv().flingloop then break end  -- Exit if flingloop is false
+        -- Return to original position
+        RootPart.CFrame = OldPos
+        Character:SetPrimaryPartCFrame(OldPos)
 
-            RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
-            Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
-            Humanoid:ChangeState("GettingUp")
-            for _, part in pairs(Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Velocity, part.RotVelocity = Vector3.new(), Vector3.new()
-                end
-            end
-            task.wait()
-        until (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
+        -- Wait to ensure the force is applied and character is returned
+        task.wait(1)
+
     else
-        return Message("Error Occurred", "Random error", 5)
+        return Message("Error Occurred", "Character or Target is missing.", 5)
     end
 end
 
@@ -126,7 +115,7 @@ while getgenv().flingloop do
                 }
 
                 if not WhitelistedUserIDs[TPlayer.UserId] then
-                    ApplyForceToTarget(TPlayer)
+                    TeleportFlingAndReturn(TPlayer)
                 else
                     Message("Info", "Player is whitelisted and skipped.", 3)
                 end
