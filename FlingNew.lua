@@ -76,12 +76,12 @@ local SkidFling = function(TargetPlayer)
         if RootPart.Velocity.Magnitude < 50 then
             getgenv().OldPos = RootPart.CFrame
         end
-        
+
         -- Error handling
         if THumanoid and THumanoid.Sit and not AllBool then
             return Message("Error Occurred", "Targeting is sitting", 5)
         end
-        
+
         -- Set camera subject
         if THead then
             workspace.CurrentCamera.CameraSubject = THead
@@ -90,66 +90,72 @@ local SkidFling = function(TargetPlayer)
         elseif THumanoid and TRootPart then
             workspace.CurrentCamera.CameraSubject = THumanoid
         end
-        
+
         if not TCharacter:FindFirstChildWhichIsA("BasePart") then
             return
         end
 
-        -- Define circular movement
-        local function CircularMovement(BasePart, Radius, Speed)
-            local Angle = 0
-            local MaxDistance = 500 -- Set a large value to ensure the target is flung out
-            while true do
+        -- Define fling logic
+        local function MoveTowardsTarget()
+            local direction = (TRootPart.Position - RootPart.Position).unit
+            RootPart.Velocity = direction * 100  -- Adjust speed as needed
+            task.wait(1)  -- Wait for movement
+        end
+
+        local function FlungPosition(BasePart)
+            local TargetPos = BasePart.Position + Vector3.new(0, 0, 50)  -- Adjust the offset if needed
+            return TargetPos
+        end
+
+        local function FlingTarget(BasePart)
+            local TimeToWait = 2
+            local Time = tick()
+
+            local BV = Instance.new("BodyVelocity")
+            BV.Name = "EpixVel"
+            BV.Parent = RootPart
+            BV.Velocity = (FlungPosition(BasePart) - RootPart.Position).unit * 1000  -- Adjust velocity as needed
+            BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+
+            Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
+            -- Move towards the target
+            MoveTowardsTarget()
+
+            repeat
                 if RootPart and THumanoid then
-                    local X = Radius * math.cos(Angle)
-                    local Z = Radius * math.sin(Angle)
-                    local TargetPosition = BasePart.Position + Vector3.new(X, 0, Z)
-                    RootPart.CFrame = CFrame.new(TargetPosition) * CFrame.Angles(0, math.rad(Angle), 0)
+                    -- Fling action
+                    RootPart.CFrame = CFrame.new(FlungPosition(BasePart))
                     Character:SetPrimaryPartCFrame(RootPart.CFrame)
-                    Angle = Angle + Speed
-                    
-                    -- Check if the target is far from the map
-                    if (TargetPlayer.Character.PrimaryPart.Position - Vector3.new(0, 0, 0)).Magnitude > MaxDistance then
-                        return
-                    end
-                    
                     task.wait()
                 else
                     break
                 end
-            end
+            until (BasePart.Position - RootPart.Position).Magnitude > 1000 or tick() > Time + TimeToWait
+
+            BV:Destroy()
+            Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+            workspace.CurrentCamera.CameraSubject = Humanoid
         end
-        
-        -- Fling logic
-        local BV = Instance.new("BodyVelocity")
-        BV.Name = "EpixVel"
-        BV.Parent = RootPart
-        BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
-        BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
 
-        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-
+        -- Perform fling
         if TRootPart and THead then
             if (TRootPart.CFrame.p - THead.CFrame.p).Magnitude > 5 then
-                CircularMovement(THead, 10, 1)  -- Adjust radius and speed as needed
+                FlingTarget(THead)
             else
-                CircularMovement(TRootPart, 10, 1)  -- Adjust radius and speed as needed
+                FlingTarget(TRootPart)
             end
         elseif TRootPart and not THead then
-            CircularMovement(TRootPart, 10, 1)  -- Adjust radius and speed as needed
+            FlingTarget(TRootPart)
         elseif not TRootPart and THead then
-            CircularMovement(THead, 10, 1)  -- Adjust radius and speed as needed
+            FlingTarget(THead)
         elseif not TRootPart and not THead and Accessory and Handle then
-            CircularMovement(Handle, 10, 1)  -- Adjust radius and speed as needed
+            FlingTarget(Handle)
         else
             return Message("Error Occurred", "Target is missing everything", 5)
         end
-        
-        -- Restore the character's position
-        BV:Destroy()
-        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        workspace.CurrentCamera.CameraSubject = Humanoid
 
+        -- Restore the character's position
         repeat
             RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
             Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
