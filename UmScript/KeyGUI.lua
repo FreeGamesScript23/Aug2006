@@ -209,5 +209,6 @@ return {
     checkKeyButton = checkKeyButton,
     discordButton = discordButton,
     textbox = textbox,
+    titleLabel = titleLabel,
     titleLabel_2 = titleLabel_2
 }
