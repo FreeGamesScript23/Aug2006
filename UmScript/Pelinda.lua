@@ -173,11 +173,10 @@ if savedKey then
         end)
     end
 else
-
 end
-
+Valid = false
 -- Keyless Mode
-while not Validated do
+while not Validated or not Valid do
     SendNotif("Checking for keyless authorization", 2)
     
     -- Perform keyless authentication
@@ -185,6 +184,7 @@ while not Validated do
         SendNotif("Successfully Authorized in Keyless Mode", 2)
         destroyUI()
         loadScript()
+        Valid = true
     else
         warn('Hardware ID not Successfully Authorized')
     end
