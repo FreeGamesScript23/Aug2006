@@ -7,7 +7,7 @@ local AshDirect = string.char(
     65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 47, 115, 97, 118, 101, 100, 95, 107, 101, 121, 46, 116, 120, 116
 )
 
-
+local Valid 
 function loadScript()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMainLite.lua", true))()
 end
@@ -87,6 +87,7 @@ function validateKey(key)
     -- Check regular key validation
     if isRegularKeyValid then
         print("Regular Key Authenticated")
+        Valid = true
     else
         print("Regular Key Not Authenticated")
     end  
@@ -94,6 +95,7 @@ function validateKey(key)
     -- Check premium key validation
     if isPremiumKeyValid then
         print("Premium Key Authenticated")
+        Valid = true
     else
         print("Premium Key Not Authenticated")
     end
@@ -173,12 +175,10 @@ if savedKey then
         end)
     end
 else
-
 end
 
-Valid = false
 -- Keyless Mode
-while not Validated or not Valid do
+while not Valid do
     SendNotif("Checking for keyless authorization", 2)
     
     -- Perform keyless authentication
