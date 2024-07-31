@@ -5,10 +5,10 @@ end
 if getgenv().AshExecuted then
     local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     Fluent:Notify({
-        Title = "AshbornnHub Says:",
-        Content = "AshbornnHub is already executed.",
-        Duration = 5
-    })
+    Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 83, 97, 121, 115, 58), 
+    Content = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 105, 115, 32, 97, 108, 114, 101, 97, 100, 121, 32, 101, 120, 101, 99, 117, 116, 101, 100, 46),
+    Duration = 5
+})
     return
 end
 
@@ -22,10 +22,10 @@ local LocalPlayer = Players.LocalPlayer
 
 local function sendnotification(message)
     Fluent:Notify({
-        Title = "AshbornnHub",
-        Content = message,
-        Duration = 3
-    })
+    Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
+    Content = message, 
+    Duration = 3
+})
 end
 
 local ownerUserIds = {
