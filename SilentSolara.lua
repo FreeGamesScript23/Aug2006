@@ -1954,58 +1954,64 @@ Tabs.AutoFarm:AddParagraph({
     
     Options.AutoFEInvi:SetValue(false)
     
-    -- Function to check if the local player has a knife or the role of Murderer
     local function checkLocalPlayerRole()
-        local character = Players.LocalPlayer.Character
-        if character then
-            -- Check if the local player has a knife
-            local hasKnife = character:FindFirstChild("Knife") ~= nil
-            -- Check if the local player's role is Murderer
-            local isMurderer = Murder == Players.LocalPlayer.Name
-    
-            if hasKnife or isMurderer then
-                autoInvisible = false
-                Options.AutoFEInvi:SetValue(false)
-                Options.FEInvisible:SetValue(false)
-            else
-                -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-                if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
-                    autoInvisible = true
-                    Options.AutoFEInvi:SetValue(true)
-                end
+    if LocalPlayer.Name == Murder then
+        return
+    end
+    local character = Players.LocalPlayer.Character
+    if character then
+        -- Check if the local player has a knife
+        local hasKnife = character:FindFirstChild("Knife") ~= nil
+        -- Check if the local player's role is Murderer
+        local isMurderer = Murder == Players.LocalPlayer.Name
+
+        if hasKnife or isMurderer then
+            autoInvisible = false
+            Options.AutoFEInvi:SetValue(false)
+            Options.FEInvisible:SetValue(false)
+        else
+            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
+            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+                autoInvisible = true
+                Options.AutoFEInvi:SetValue(true)
             end
         end
     end
-    
-    -- Function to check the distance between the local player and the murderer
-    local function checkDistance()
-        if autoInvisible and Murder then
-            local murdererPlayer = Players:FindFirstChild(Murder)
-            local localCharacter = Players.LocalPlayer.Character
-    
-            if murdererPlayer and murdererPlayer.Character and localCharacter then
-                local murdererRootPart = murdererPlayer.Character:FindFirstChild("HumanoidRootPart")
-                local localRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
-    
-                if murdererRootPart and localRootPart then
-                    local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
-                    if distance <= distanceM then -- ensure distanceM is a number
-                        if not isinvisible then
-                            isinvisible = true
-                            Options.FEInvisible:SetValue(true)
-                            print("Turning FEInvisible ON")
-                        end
-                    else
-                        if isinvisible then
-                            isinvisible = false
-                            Options.FEInvisible:SetValue(false)
-                            print("Turning FEInvisible OFF")
-                        end
+end
+
+-- Function to check the distance between the local player and the murderer
+local function checkDistance()
+    if LocalPlayer.Name == Murder then
+        return
+    end
+    if autoInvisible and Murder then
+        local murdererPlayer = Players:FindFirstChild(Murder)
+        local localCharacter = Players.LocalPlayer.Character
+
+        if murdererPlayer and murdererPlayer.Character and localCharacter then
+            local murdererRootPart = murdererPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local localRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+
+            if murdererRootPart and localRootPart then
+                local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
+                if distance <= distanceM then -- ensure distanceM is a number
+                    if not isinvisible then
+                        isinvisible = true
+                        Options.FEInvisible:SetValue(true)
+                        print("Turning FEInvisible ON")
+                    end
+                else
+                    if isinvisible then
+                        isinvisible = false
+                        Options.FEInvisible:SetValue(false)
+                        print("Turning FEInvisible OFF")
                     end
                 end
             end
         end
     end
+end
+
     
     -- Call the role check function initially after a short delay to ensure Options are initialized
     delay(0.1, function()
