@@ -2369,8 +2369,10 @@ end)
 
 Options.AutoFEInvi:SetValue(false)
 
--- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
+    if LocalPlayer.Name == Murder then
+        return
+    end
     local character = Players.LocalPlayer.Character
     if character then
         -- Check if the local player has a knife
@@ -2394,6 +2396,9 @@ end
 
 -- Function to check the distance between the local player and the murderer
 local function checkDistance()
+    if LocalPlayer.Name == Murder then
+        return
+    end
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
         local localCharacter = Players.LocalPlayer.Character
