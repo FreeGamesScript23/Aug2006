@@ -7,7 +7,7 @@ local AshDirect = string.char(
     65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 47, 115, 97, 118, 101, 100, 95, 107, 101, 121, 46, 116, 120, 116
 )
 
-local Valid 
+local Valid = false
 function loadScript()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/AshMain.lua", true))()
 end
