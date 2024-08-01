@@ -123,11 +123,6 @@ elseif Config.Script == "Solara" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/iloveyouplscomebacktome.lua",true))()
 end
 
-Executor = identifyexecutor()
-if Executor == "Solara" then
-    return
-end
-
 wait(3)
 
 local success, errorMsg = pcall(function()
