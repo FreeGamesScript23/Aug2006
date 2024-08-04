@@ -974,48 +974,6 @@ Tabs.Combat:AddParagraph({
         
 ----------------------------------------------MISC---------------------------------------------------
 
-
-        
-        local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
-
-Toggle:OnChanged(function(alwaysalive)
-        if alwaysalive == true then
-            alwaysalivechat = true
-            task.wait()
-        end
-        if alwaysalive == false then
-            alwaysalivechat = false
-            task.wait()
-        end
-end)
-
-Options.AlwaysAliveChat:SetValue(false)
-
--- Initialize the seedeadchat variable
-local seedeadchat = false
-
--- Define a function to handle the Fade event
-function handleFadeEvent()
-        game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
-            if seedeadchat then
-                task.wait(0.5)
-                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join Dead", "normalchat")
-            end
-        end)
-end
-
--- Create the toggle and handle its change event
-local Toggle = Tabs.Misc:AddToggle("SeeDeadChat", {Title = "See dead chat", Default = false})
-
-Toggle:OnChanged(function(value)
-        seedeadchat = value
-        if seedeadchat then
-            handleFadeEvent()
-        end
-end)
-
-Options.SeeDeadChat:SetValue(false)
-
         
 Tabs.Misc:AddButton({
         Title = "Get fake knife",
@@ -1072,51 +1030,128 @@ Tabs.Misc:AddButton({
         end
 })
 
-Tabs.Misc:AddButton({
-        Title = "Anti Fake Lag(Delete Chroma)",
-        Description = "",
-        Callback = function()
-            for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                if v.Name == "LugerChroma" then
-                    if v:FindFirstChild("Handle"):FindFirstChild("Chroma") then
-                        v.Handle:FindFirstChild("Chroma"):Destroy()
-                    end
-                    if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
-                        v.Handle:FindFirstChild("Mesh"):Destroy()
-                    end
-                    if v:FindFirstChild("Handle").Transparency == 0 then
-                        v.Handle.Transparency = 1
-                        v.GripPos = Vector3.new(0, -5, 0)
-                    end
-                end
-            end
-        end
-})
+if _G.cons then
+    for _, v in pairs(_G.cons) do
+        v:Disconnect()
+    end
 
-Tabs.Misc:AddButton({
-        Title = "Anti Fake Lag 2(Delete LugerChroma)",
-        Description = "",
-        Callback = function()
-            for i, v in pairs(workspace:GetDescendants()) do
-                if v.Name == "LugerChroma" then
-                    if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
-                        v:FindFirstChild("Handle"):FindFirstChild("Chroma"):Destroy()
-                        v:FindFirstChild("Handle"):FindFirstChild("Mesh"):Destroy()
-                    end
-                end
-            end
-            for i, v in pairs(game.Players:GetPlayers()) do
-                if v.Backpack:FindFirstChild("LugerChroma") then
-                    if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Chroma") then
-                        v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Chroma"):Destroy()
-                    end
-                    if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Mesh") then
-                        v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Mesh"):Destroy()
-                    end
-                end
+    _G.cons = nil
+end
+
+local rsrv = game:GetService("RunService")
+    local heartbeat = rsrv.Heartbeat
+    local renderstepped = rsrv.RenderStepped
+
+    local lp = game.Players.LocalPlayer
+    local mouse = lp:GetMouse()
+
+    local isinvisible = false
+    local visible_parts = {}
+    local kdown, loop
+
+    local function ghost_parts()
+        for _, v in pairs(visible_parts) do
+            v.Transparency = isinvisible and 0.5 or 0
+        end
+    end
+
+    local function setup_character(character)
+        local hum = character:WaitForChild("Humanoid")
+        local root = character:WaitForChild("HumanoidRootPart")
+
+        visible_parts = {}
+
+        for _, v in pairs(character:GetDescendants()) do
+            if v:IsA("BasePart") and v.Transparency == 0 then
+                visible_parts[#visible_parts + 1] = v
             end
         end
-})
+
+        if kdown then
+            kdown:Disconnect()
+        end
+
+        kdown = mouse.KeyDown:Connect(function(key)
+            if key == "g" then
+                isinvisible = not isinvisible
+                ghost_parts()
+            end
+        end)
+
+        if loop then
+            loop:Disconnect()
+        end
+
+        loop = heartbeat:Connect(function()
+            if isinvisible then
+                local oldcf = root.CFrame
+                local oldcamoffset = hum.CameraOffset
+
+                local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
+
+                hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+                root.CFrame = newcf
+
+                renderstepped:Wait()
+
+                hum.CameraOffset = oldcamoffset
+                root.CFrame = oldcf
+            end
+        end)
+
+        _G.cons = {kdown, loop}
+    end
+
+    lp.CharacterAdded:Connect(function(character)
+        setup_character(character)
+        if isinvisible then
+            ghost_parts()
+        end
+    end)
+
+    local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
+
+local visible_parts = {}
+
+local function ghost_parts()
+if lp.Character then
+    for _, v in pairs(lp.Character:GetChildren()) do
+        if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+            table.insert(visible_parts, v)
+            v.Transparency = 0.5
+        end
+    end
+end
+end
+
+local FEInviToggle = Tabs.Misc:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
+
+FEInviToggle:OnChanged(function(value)
+isinvisible = value
+if lp.Character then
+    if not isinvisible then
+        -- Restore visibility
+        for _, v in pairs(visible_parts) do
+            v.Transparency = 0
+        end
+        visible_parts = {}  -- Clear the table after restoring visibility
+    else
+        ghost_parts()
+    end
+end
+end)
+
+Options.FEInvisible:SetValue(false)
+
+if lp.Character then
+    setup_character(lp.Character)
+    if isinvisible then
+        ghost_parts()
+    end
+end
 
 ----------------------------------------------------MISC---------------------------------------------------
 
@@ -1595,13 +1630,122 @@ end
 
 -------------------------------------------------------------------------LOCAL PLAYER----------------------------------------------------------------------------------------------
 
-local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Not Working)", Default = false})
+local ScreenGui
+local createdGui = false
 
-Toggle:OnChanged(function(invis)
-        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(invis)
+local function getWaitingImage()
+    return game.Players.LocalPlayer.PlayerGui:FindFirstChild("MainGUI") and
+           game.Players.LocalPlayer.PlayerGui.MainGUI:FindFirstChild("Game") and
+           game.Players.LocalPlayer.PlayerGui.MainGUI.Game:FindFirstChild("Waiting")
+end
+
+local function createGui()
+    if not createdGui then
+        ScreenGui = Instance.new("ScreenGui")
+        local Frame = Instance.new("Frame")
+        local CurrentRound = Instance.new("TextLabel")
+        local Timer = Instance.new("TextLabel")
+
+        ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        Frame.Parent = ScreenGui
+        Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Frame.BackgroundTransparency = 1.000
+        Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        Frame.BorderSizePixel = 0
+        Frame.Size = UDim2.new(0, 200, 0, 43)  -- Fixed size
+        Frame.AnchorPoint = Vector2.new(0.5, 0) -- Anchor to the top center
+        Frame.Position = UDim2.new(0.5, 0, 0, 10) -- Center horizontally, 10 pixels from the top
+
+        CurrentRound.Name = "CurrentRound"
+        CurrentRound.Parent = Frame
+        CurrentRound.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        CurrentRound.BackgroundTransparency = 1.000
+        CurrentRound.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        CurrentRound.BorderSizePixel = 0
+        CurrentRound.Size = UDim2.new(1, 0, 0.5, 0)
+        CurrentRound.Font = Enum.Font.Ubuntu
+        CurrentRound.Text = "Current Round:"
+        CurrentRound.TextColor3 = Color3.fromRGB(255, 255, 255)  -- White text color
+        CurrentRound.TextSize = 14.000
+        CurrentRound.TextXAlignment = Enum.TextXAlignment.Center
+
+        Timer.Name = "Timer"
+        Timer.Parent = Frame
+        Timer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Timer.BackgroundTransparency = 1.000
+        Timer.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        Timer.BorderSizePixel = 0
+        Timer.Position = UDim2.new(0, 0, 0.5, 0)
+        Timer.Size = UDim2.new(1, 0, 0.5, 0)
+        Timer.Font = Enum.Font.Ubuntu
+        Timer.Text = "Waiting for Round to Start"
+        Timer.TextColor3 = Color3.fromRGB(255, 255, 255)  -- White text color
+        Timer.TextSize = 20.000
+        Timer.TextXAlignment = Enum.TextXAlignment.Center
+
+        -- Script to update Timer text
+        local function updateTimerText()
+            local timerPart = game.Workspace:FindFirstChild("RoundTimerPart")
+            if timerPart and timerPart:FindFirstChild("SurfaceGui") and timerPart.SurfaceGui:FindFirstChild("Timer") then
+                Timer.Text = timerPart.SurfaceGui.Timer.Text
+            end
+        end
+
+        game:GetService("RunService").RenderStepped:Connect(updateTimerText)
+
+        createdGui = true
+    end
+end
+
+local function destroyGui()
+    if ScreenGui then
+        ScreenGui:Destroy()
+        ScreenGui = nil
+        createdGui = false
+    end
+end
+
+local Toggle = Tabs.LPlayer:AddToggle("TimerView", {Title = "View Timer ", Default = false})
+
+Toggle:OnChanged(function(enabled)
+    if enabled then
+        createGui()
+        local WaitingImage = getWaitingImage()
+        if WaitingImage then
+            WaitingImage.ImageTransparency = 1
+        end
+    else
+        destroyGui()
+        local WaitingImage = getWaitingImage()
+        if WaitingImage then
+            WaitingImage.ImageTransparency = 0
+        end
+    end
 end)
 
-Options.Invisible:SetValue(false)
+Options.TimerView:SetValue(false)  -- Initialize the toggle to be off
+
+-- Recreate GUI on player respawn
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+        local WaitingImage = getWaitingImage()
+        if WaitingImage then
+            WaitingImage.ImageTransparency = 1
+        end
+    end
+end)
+
+-- Handle GUI recreation when resetting the player's character
+game.Players.LocalPlayer.CharacterRemoving:Connect(function()
+    destroyGui()
+    local WaitingImage = getWaitingImage()
+    if WaitingImage then
+        WaitingImage.ImageTransparency = 0
+    end
+end)
+
 
 local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
@@ -1834,134 +1978,6 @@ Tabs.LPlayer:AddParagraph({
 
 
         
-        if _G.cons then
-        for _, v in pairs(_G.cons) do
-            v:Disconnect()
-        end
-
-        _G.cons = nil
-end
-
-local rsrv = game:GetService("RunService")
-        local heartbeat = rsrv.Heartbeat
-        local renderstepped = rsrv.RenderStepped
-
-        local lp = game.Players.LocalPlayer
-        local mouse = lp:GetMouse()
-
-        local isinvisible = false
-        local visible_parts = {}
-        local kdown, loop
-
-        local function ghost_parts()
-            for _, v in pairs(visible_parts) do
-                v.Transparency = isinvisible and 0.5 or 0
-            end
-        end
-
-        local function setup_character(character)
-            local hum = character:WaitForChild("Humanoid")
-            local root = character:WaitForChild("HumanoidRootPart")
-
-            visible_parts = {}
-
-            for _, v in pairs(character:GetDescendants()) do
-                if v:IsA("BasePart") and v.Transparency == 0 then
-                    visible_parts[#visible_parts + 1] = v
-                end
-            end
-
-            if kdown then
-                kdown:Disconnect()
-            end
-
-            kdown = mouse.KeyDown:Connect(function(key)
-                if key == "g" then
-                    isinvisible = not isinvisible
-                    ghost_parts()
-                end
-            end)
-
-            if loop then
-                loop:Disconnect()
-            end
-
-            loop = heartbeat:Connect(function()
-                if isinvisible then
-                    local oldcf = root.CFrame
-                    local oldcamoffset = hum.CameraOffset
-
-                    local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
-
-                    hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
-                    root.CFrame = newcf
-
-                    renderstepped:Wait()
-
-                    hum.CameraOffset = oldcamoffset
-                    root.CFrame = oldcf
-                end
-            end)
-
-            _G.cons = {kdown, loop}
-        end
-
-        lp.CharacterAdded:Connect(function(character)
-            setup_character(character)
-            if isinvisible then
-                ghost_parts()
-                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-            end
-        end)
-
-        local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local lp = Players.LocalPlayer
-
-local visible_parts = {}
-
-local function ghost_parts()
-    if lp.Character then
-        for _, v in pairs(lp.Character:GetChildren()) do
-            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                table.insert(visible_parts, v)
-                v.Transparency = 0.5
-                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
-            end
-        end
-    end
-end
-
-local FEInviToggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
-
-FEInviToggle:OnChanged(function(value)
-    isinvisible = value
-    if lp.Character then
-        if not isinvisible then
-            -- Restore visibility
-            for _, v in pairs(visible_parts) do
-                v.Transparency = 0
-            end
-            visible_parts = {}  -- Clear the table after restoring visibility
-        else
-            ghost_parts()
-        end
-    end
-end)
-
-Options.FEInvisible:SetValue(false)
-
-if lp.Character then
-        setup_character(lp.Character)
-        if isinvisible then
-            ghost_parts()
-        end
-end
-
-
-
-        
         local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
 -- Function to get other players, including an "All" option
@@ -2062,160 +2078,6 @@ getgenv().FLINGTARGET = Sheriff
 end)
 
 Options.Fling:SetValue(false)
-
-
-local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Not Working)")
-
-
--- Function to create the dropdown menu
-local function CreateDropdown()
-Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
-        Title = "Select Player",
-        Values = GetOtherPlayersAll(),
-        Multi = false,
-        Default = "All",
-})
-
-Dropdown:OnChanged(function(Value)
-        selectedPlayer = Value  -- Update selectedPlayer when selection changes
-        ChangeLoopTarget = Value  -- Update ChangeLoopTarget when selection changes
-end)
-end
-
--- Initial creation of the dropdown
-CreateDropdown()
-
--- Function to update the dropdown values
-function UpdateDropdown()
-local newValues = GetOtherPlayersAll()
-Dropdown.Values = newValues  -- Update the dropdown values
-Dropdown:SetValue("All")  -- Reset selected value to default
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-Players.PlayerAdded:Connect(UpdateDropdown)
-Players.PlayerRemoving:Connect(UpdateDropdown)
-
-local ToggleTrapAll = Tabs.Troll:AddToggle("TrapAll", {Title = "Loop Trap Selected Player", Default = false })
-local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Trap Sheriff", Default = false })
-local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
-
-function placeTrapForPlayer(Player)
-    local localUserId = game.Players.LocalPlayer.UserId
-    local targetUserId = Player.UserId
-
-    if (monarchs[localUserId] or (premiums[localUserId] and not monarchs[targetUserId]) or (not premiums[localUserId] and not monarchs[localUserId])) then
-        local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-        if HumanoidRootPart then
-            pcall(function()
-                PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
-            end)
-        end
-    end
-end
-
-function ChangeLoopTrapPlayerFix()
-    if ChangeLoopTarget == "All" then
-        for _, v in pairs(Players:GetChildren()) do
-            if v ~= LocalPlayer then
-                placeTrapForPlayer(v)
-            end
-        end
-    else
-        local Target = Players:FindFirstChild(ChangeLoopTarget)
-        if Target then
-            placeTrapForPlayer(Target)
-        end
-    end
-end
-
-function ChangeLoopTrapSheriffFix()
-    if Sheriff then
-        local SheriffPlayer = Players:FindFirstChild(Sheriff)
-        if SheriffPlayer then
-            placeTrapForPlayer(SheriffPlayer)
-        end
-    end
-end
-
-function ChangeLoopTrapMurdererFix()
-    if Murder then
-        local MurderPlayer = Players:FindFirstChild(Murder)
-        if MurderPlayer then
-            placeTrapForPlayer(MurderPlayer)
-        end
-    end
-end
-
-ToggleTrapAll:OnChanged(function(Value)
-    ChangeLoopTrapPlayer = Value
-
-    spawn(function()
-        while ChangeLoopTrapPlayer do
-            pcall(ChangeLoopTrapPlayerFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-ToggleTrapSheriff:OnChanged(function(Value)
-    ChangeLoopTrapSheriff = Value
-
-    spawn(function()
-        while ChangeLoopTrapSheriff do
-            pcall(ChangeLoopTrapSheriffFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-ToggleTrapMurderer:OnChanged(function(Value)
-    ChangeLoopTrapMurderer = Value
-
-    spawn(function()
-        while ChangeLoopTrapMurderer do
-            pcall(ChangeLoopTrapMurdererFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-Options.TrapAll:SetValue(false)
-Options.TrapSheriff:SetValue(false)
-Options.TrapMurderer:SetValue(false)
-
--- Start role updater in a separate thread
-spawn(updateRoles)
-
-Tabs.Troll:AddButton({
-        Title = "Get Trap Tool",
-        Description = "Give you trap tool that u can place anywhere you want loll",
-        Callback = function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/TrapTool",true))()
-end
-})
-
-local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
-
-function AntiTrapFix()
-local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
-        Humanoid.WalkSpeed = 16
-end
-end
-
-ToggleAntiTrap:OnChanged(function(Value)
-ChangeAntiTrap = Value
-
-spawn(function()
-        while ChangeAntiTrap do
-            pcall(AntiTrapFix)
-            task.wait(0.1)  -- Check more frequently for traps
-        end
-end)
-end)
-
-Options.AntiTrap:SetValue(false)
         
         
         Tabs.Troll:AddParagraph({
@@ -2462,7 +2324,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Beachball only)", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2943,7 +2805,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).Magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at the Egg")
+                print("Arrived at the BeachBall")
                 isMovingToCoin = false
                 break
             end
@@ -3358,7 +3220,6 @@ end
 local toggles = {
     FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
     FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
-    InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false}),
     AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
 }
 
@@ -3366,7 +3227,6 @@ local toggleOptions = {
     FEInviButtonPerk = Options.FEInvisible,
     FEInviButton = Options.FEInvisible,
     AFCoinButton = Options.AutoFarmCoin,
-    InviButton = Options.Invisible
 }
 
 -- Connect toggle state changes to handleToggle
@@ -3381,9 +3241,6 @@ for buttonType, toggle in pairs(toggles) do
     elseif buttonType == "AFCoinButton" then
         buttonText = "Auto Farm Coin is"
         remoteEvent = nil
-    elseif buttonType == "InviButton" then
-        buttonText = "Invisible is"
-        remoteEvent = "Stealth"
     end
     toggle:OnChanged(function(value)
         handleToggle(buttonType, value, buttonText, toggleOptions[buttonType], remoteEvent)
@@ -3392,7 +3249,6 @@ end
 
 -- Set the initial state of the toggles
 Options.FEInvisible:SetValue(false)
-Options.Invisible:SetValue(false)
 
 -- Ensure the GUI persists across respawns
 local Player = game.Players.LocalPlayer
