@@ -1,8 +1,9 @@
-repeat task.wait() until game:IsLoaded()
+repeat wait() until game:IsLoaded()
 
 print(string.char(91,32,65,115,104,98,111,114,110,110,72,117,98,32,93,58,32,77,117,114,100,101,114,32,77,121,115,116,101,114,121,32,50,32,108,111,97,100,105,110,103,46,46,46))
 
 local TimeStart = tick()
+-- Place this LocalScript in StarterPlayerScripts
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
@@ -67,28 +68,26 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
 
 
 local premiums = {
-        [6069697086] = true,
-        [4072731377] = true,
-        [6150337449] = true,
-        [1571371222] = true,
-        [2911976621] = true,
-        [2729297689] = true,
-        [6150320395] = true,
-        [301098121] = true,
-        [773902683] = true,
-        [671905963] = true,
-        [3129701628] = true,
-        [3063352401] = true,
-        [7007834038] = true,
-        [4767937607] = true,
-        [3129413184] = true
-    }
+    [6069697086] = true,
+    [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
+    [2911976621] = true,
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+}
 
-    local monarchs = {
-        [129215104] = true,
-        [6135258891] = true,
-        [290931] = true
-    }
+local monarchs = {
+    [129215104] = true,
+    [6135258891] = true,
+    [290931] = true
+}
 
 function SendNotif(title, content, time)
 Fluent:Notify({
@@ -193,11 +192,33 @@ while true do
             end
         end
         UpdateHighlights() -- Call UpdateHighlights after updating roles
-        task.wait(1) -- Update every second
+        wait(1) -- Update every second
 end
 end
 
 function UpdateHighlights()
+    local premiums = {
+        [6069697086] = true,
+        [4072731377] = true,
+        [6150337449] = true,
+        [1571371222] = true,
+        [2911976621] = true,
+        [2729297689] = true,
+        [6150320395] = true,
+        [301098121] = true,
+        [773902683] = true,
+        [671905963] = true,
+        [3129701628] = true,
+        [3063352401] = true,
+        [3129413184] = true
+    }
+
+    local monarchs = {
+        [129215104] = true,
+        [6135258891] = true,
+        [290931] = true
+    }
+
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = v.Character:FindFirstChild("ESP_Highlight")
@@ -430,13 +451,13 @@ local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
 
 local function IsPlayerEligible()
-    local currentTime = tick() -- get current time
-    
+    if not IsAlive(Player) then
+        SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+        return false
+    end
+
     if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-        if currentTime - lastNotifTime >= cooldown then
-            SendNotif("You already have a gun", "Lollll.", 3)
-            lastNotifTime = currentTime -- update the last notification time
-        end
+        SendNotif("You already have a gun", "Lollll.", 3)
         return false
     end
     
@@ -447,7 +468,6 @@ local function IsPlayerEligible()
 
     return true
 end
-
 
 local function GrabGun()
     if not IsPlayerEligible() then return end
@@ -461,9 +481,9 @@ local function GrabGun()
 
             repeat
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                task.wait()
+                wait()
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                task.wait()
+                wait()
             until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
             
             Player.Character.HumanoidRootPart.CFrame = oldpos
@@ -500,43 +520,11 @@ Toggle:OnChanged(function(value)
     if value then
         -- Continuous check for GunDrop
         while Toggle.Value do
-            task.wait()
+            wait()
             checkAndGrabGun()
         end
     end
 end)
-
-if identifyexecutor() == "Wave" then
-local Keybind = Tabs.Combat:AddKeybind("GrabGunKeybind", {
-    Title = "Grab Gun V2 Keybind",
-    Mode = "Toggle", -- Always, Toggle, Hold
-    Default = "", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
-
-    -- Occurs when the keybind is clicked, Value is `true`/`false`
-    Callback = function(Value)
-        print("Keybind clicked!", Value)
-    end,
-
-    -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-    ChangedCallback = function(New)
-        print("Keybind changed!", New)
-    end
-})
-
--- OnClick is only fired when you press the keybind and the mode is Toggle
--- Otherwise, you will have to use Keybind:GetState()
-Keybind:OnClick(function()
-    print("Keybind clicked:", Keybind:GetState())
-    if Keybind:GetState() then
-        GrabGun()
-    end
-end)
-
-Keybind:OnChanged(function()
-    print("Keybind changed:", Keybind.Value)
-end)
-
-end
         
 local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
 
@@ -585,7 +573,7 @@ Tabs.Combat:AddButton({
 
                         -- Shoot the gun at the murderer's position
                         if Player.Character:FindFirstChild("Gun") then
-                            task.wait(0.2)
+                            wait(0.2)
                             Player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
                             Player.Character.Gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH2")
                         end
@@ -679,14 +667,14 @@ while autoShootingActive do
         end
         
         -- Wait for the cooldown interval before checking again
-        task.wait(2) -- Cooldown before checking the murderer's presence and line of sight again
+        wait(2) -- Cooldown before checking the murderer's presence and line of sight again
 end
 end
 
 function onCharacterAdded(character)
    if Options.AutoShoot.Value == true then
       Options.AutoShoot:SetValue(false)
-      task.wait(0.1)
+      wait(0.1)
       Options.AutoShoot:SetValue(true)
    end
 end
@@ -784,7 +772,7 @@ Tabs.Combat:AddButton({
 
                     -- Stab the target
                     if character:FindFirstChild("Knife") then
-                        task.wait(0.2)
+                        wait(0.2)
                         character:MoveTo(currentPosition)
                         if type(Stab) == "function" then
                             Stab()
@@ -842,11 +830,11 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                     if monarchs[localUserId] then
                         -- Monarch can kill everyone, including premiums
                         EquipTool()
-                        task.wait()
+                        wait()
                         local localCharacter = game.Players.LocalPlayer.Character
                         local knife = localCharacter and localCharacter:FindFirstChild("Knife")
                         if not knife then return end
-                        task.wait()
+                        wait()
                         local playerCharacter = v.Character
                         local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
 
@@ -858,11 +846,11 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                     elseif premiums[localUserId] and not monarchs[playerUserId] then
                         -- Premium can kill others but not Monarchs
                         EquipTool()
-                        task.wait()
+                        wait()
                         local localCharacter = game.Players.LocalPlayer.Character
                         local knife = localCharacter and localCharacter:FindFirstChild("Knife")
                         if not knife then return end
-                        task.wait()
+                        wait()
                         local playerCharacter = v.Character
                         local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
 
@@ -871,14 +859,14 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
                         end
-                    elseif not premiums[localUserId] and not monarchs[localUserId] and not premiums[playerUserId] and not monarchs[playerUserId] then
+                    elseif not premiums[localUserId] and not monarchs[playerUserId] then
                         -- Normal users can kill others but not Monarchs or Premiums
                         EquipTool()
-                        task.wait()
+                        wait()
                         local localCharacter = game.Players.LocalPlayer.Character
                         local knife = localCharacter and localCharacter:FindFirstChild("Knife")
                         if not knife then return end
-                        task.wait()
+                        wait()
                         local playerCharacter = v.Character
                         local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
 
@@ -891,13 +879,12 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                 end
             end
         end
-        task.wait()
+        wait()
         pcall(knifeAuraLoopFunction)
     end
 end)
 
 Options.KnifeAura:SetValue(false)
-
 
 local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
@@ -906,11 +893,11 @@ autoKillAllToggle:OnChanged(function(autokillall)
     while autokillallloop do
         function autoKillAllLoopFunction()
             EquipTool()
-            task.wait()
+            wait()
             local localCharacter = game.Players.LocalPlayer.Character
             local knife = localCharacter and localCharacter:FindFirstChild("Knife")
             if not knife then return end
-            task.wait()
+            wait()
             for _, Player in ipairs(game.Players:GetPlayers()) do
                 if Player ~= game.Players.LocalPlayer then
                     local playerCharacter = Player.Character
@@ -930,8 +917,8 @@ autoKillAllToggle:OnChanged(function(autokillall)
                             Stab()
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif not premiums[localUserId] and not monarchs[localUserId] and not premiums[playerUserId] and not monarchs[playerUserId] then
-                            -- Normal users can kill others but not Premiums or Monarchs
+                        elseif not premiums[localUserId] and not monarchs[playerUserId] then
+                            -- Normal users can kill others but not Monarchs or Premiums
                             Stab()
                             firetouchinterest(humanoidRootPart, knife.Handle, 1)
                             firetouchinterest(humanoidRootPart, knife.Handle, 0)
@@ -939,15 +926,14 @@ autoKillAllToggle:OnChanged(function(autokillall)
                     end
                 end
             end
-            task.wait()
+            wait()
         end
-        task.wait()
+        wait()
         pcall(autoKillAllLoopFunction)
     end
 end)
 
 Options.AutoKillAll:SetValue(false)
-
 
 
 
@@ -973,6 +959,48 @@ Tabs.Combat:AddParagraph({
 
         
 ----------------------------------------------MISC---------------------------------------------------
+
+
+        
+        local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
+
+Toggle:OnChanged(function(alwaysalive)
+        if alwaysalive == true then
+            alwaysalivechat = true
+            wait()
+        end
+        if alwaysalive == false then
+            alwaysalivechat = false
+            wait()
+        end
+end)
+
+Options.AlwaysAliveChat:SetValue(false)
+
+-- Initialize the seedeadchat variable
+local seedeadchat = false
+
+-- Define a function to handle the Fade event
+function handleFadeEvent()
+        game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
+            if seedeadchat then
+                task.wait(0.5)
+                game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join Dead", "normalchat")
+            end
+        end)
+end
+
+-- Create the toggle and handle its change event
+local Toggle = Tabs.Misc:AddToggle("SeeDeadChat", {Title = "See dead chat", Default = false})
+
+Toggle:OnChanged(function(value)
+        seedeadchat = value
+        if seedeadchat then
+            handleFadeEvent()
+        end
+end)
+
+Options.SeeDeadChat:SetValue(false)
 
         
 Tabs.Misc:AddButton({
@@ -1030,128 +1058,51 @@ Tabs.Misc:AddButton({
         end
 })
 
-if _G.cons then
-    for _, v in pairs(_G.cons) do
-        v:Disconnect()
-    end
-
-    _G.cons = nil
-end
-
-local rsrv = game:GetService("RunService")
-    local heartbeat = rsrv.Heartbeat
-    local renderstepped = rsrv.RenderStepped
-
-    local lp = game.Players.LocalPlayer
-    local mouse = lp:GetMouse()
-
-    local isinvisible = false
-    local visible_parts = {}
-    local kdown, loop
-
-    local function ghost_parts()
-        for _, v in pairs(visible_parts) do
-            v.Transparency = isinvisible and 0.5 or 0
-        end
-    end
-
-    local function setup_character(character)
-        local hum = character:WaitForChild("Humanoid")
-        local root = character:WaitForChild("HumanoidRootPart")
-
-        visible_parts = {}
-
-        for _, v in pairs(character:GetDescendants()) do
-            if v:IsA("BasePart") and v.Transparency == 0 then
-                visible_parts[#visible_parts + 1] = v
+Tabs.Misc:AddButton({
+        Title = "Anti Fake Lag(Delete Chroma)",
+        Description = "",
+        Callback = function()
+            for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if v.Name == "LugerChroma" then
+                    if v:FindFirstChild("Handle"):FindFirstChild("Chroma") then
+                        v.Handle:FindFirstChild("Chroma"):Destroy()
+                    end
+                    if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                        v.Handle:FindFirstChild("Mesh"):Destroy()
+                    end
+                    if v:FindFirstChild("Handle").Transparency == 0 then
+                        v.Handle.Transparency = 1
+                        v.GripPos = Vector3.new(0, -5, 0)
+                    end
+                end
             end
         end
+})
 
-        if kdown then
-            kdown:Disconnect()
-        end
-
-        kdown = mouse.KeyDown:Connect(function(key)
-            if key == "g" then
-                isinvisible = not isinvisible
-                ghost_parts()
+Tabs.Misc:AddButton({
+        Title = "Anti Fake Lag 2(Delete LugerChroma)",
+        Description = "",
+        Callback = function()
+            for i, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "LugerChroma" then
+                    if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                        v:FindFirstChild("Handle"):FindFirstChild("Chroma"):Destroy()
+                        v:FindFirstChild("Handle"):FindFirstChild("Mesh"):Destroy()
+                    end
+                end
             end
-        end)
-
-        if loop then
-            loop:Disconnect()
-        end
-
-        loop = heartbeat:Connect(function()
-            if isinvisible then
-                local oldcf = root.CFrame
-                local oldcamoffset = hum.CameraOffset
-
-                local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
-
-                hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
-                root.CFrame = newcf
-
-                renderstepped:Wait()
-
-                hum.CameraOffset = oldcamoffset
-                root.CFrame = oldcf
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if v.Backpack:FindFirstChild("LugerChroma") then
+                    if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Chroma") then
+                        v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Chroma"):Destroy()
+                    end
+                    if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                        v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Mesh"):Destroy()
+                    end
+                end
             end
-        end)
-
-        _G.cons = {kdown, loop}
-    end
-
-    lp.CharacterAdded:Connect(function(character)
-        setup_character(character)
-        if isinvisible then
-            ghost_parts()
         end
-    end)
-
-    local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local lp = Players.LocalPlayer
-
-local visible_parts = {}
-
-local function ghost_parts()
-if lp.Character then
-    for _, v in pairs(lp.Character:GetChildren()) do
-        if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-            table.insert(visible_parts, v)
-            v.Transparency = 0.5
-        end
-    end
-end
-end
-
-local FEInviToggle = Tabs.Misc:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
-
-FEInviToggle:OnChanged(function(value)
-isinvisible = value
-if lp.Character then
-    if not isinvisible then
-        -- Restore visibility
-        for _, v in pairs(visible_parts) do
-            v.Transparency = 0
-        end
-        visible_parts = {}  -- Clear the table after restoring visibility
-    else
-        ghost_parts()
-    end
-end
-end)
-
-Options.FEInvisible:SetValue(false)
-
-if lp.Character then
-    setup_character(lp.Character)
-    if isinvisible then
-        ghost_parts()
-    end
-end
+})
 
 ----------------------------------------------------MISC---------------------------------------------------
 
@@ -1311,7 +1262,7 @@ Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-96, 143, 103)
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
             end
         })
         
@@ -1428,7 +1379,7 @@ Toggle:OnChanged(function(SeeGun)
         SSeeGun = true
         spawn(function()
             while SSeeGun do
-                repeat task.wait() until workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop")
+                repeat wait() until workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop")
                 local normal = workspace:FindFirstChild("Normal")
                 if normal then
                     local gunDrop = normal:FindFirstChild("GunDrop")
@@ -1535,7 +1486,7 @@ Tabs.Main:AddButton({
         Title = "Respawn",
         Callback = function()
             LocalPlayer.Character:WaitForChild("Humanoid").Health = 0
-            task.wait()
+            wait()
         end
 })
 
@@ -1543,7 +1494,7 @@ Tabs.Main:AddButton({
         Title = "Open Console",
         Callback = function()
             game.StarterGui:SetCore("DevConsoleVisible", true)
-            task.wait()
+            wait()
         end
 })
 
@@ -1746,7 +1697,6 @@ game.Players.LocalPlayer.CharacterRemoving:Connect(function()
     end
 end)
 
-
 local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
 Toggle:OnChanged(function(noclip)
@@ -1762,9 +1712,9 @@ Toggle:OnChanged(function(noclip)
                         end
                     end
                 end
-                task.wait()
+                wait()
             end
-            task.wait()
+            wait()
             pcall(loopnoclipfix)
         end
 end)
@@ -1777,7 +1727,7 @@ Options.Noclip:SetValue(false)
 local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
 
 local function togglePlayerCollision(enable)
-    for _, player in ipairs(Players:GetPlayers()) do
+for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             local playerCharacter = player.Character
             if playerCharacter then
@@ -1788,42 +1738,39 @@ local function togglePlayerCollision(enable)
                 end
             end
         end
-    end
+end
 end
 
-local function enableAntiFling()
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not Toggle.Value then
-            connection:Disconnect()
-            return
-        end
+function enableAntiFling()
+while Toggle.Value do
         togglePlayerCollision(true)
-    end)
+        wait()
+end
 end
 
-local function disableAntiFling()
-    togglePlayerCollision(false)
+function disableAntiFling()
+togglePlayerCollision(false)
 end
-
-local function onCharacterAdded(character)
-    if Toggle.Value then
+ function onCharacterAdded(character)
+if Toggle.Value then
         togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
-    end
+end
 end
 
 Toggle:OnChanged(function(antiFling)
-    if antiFling then
-        enableAntiFling()
-    else
+if antiFling then
+        spawn(enableAntiFling)
+else
         disableAntiFling()
-    end
+end
 end)
 
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if Toggle.Value and LocalPlayer.Character then
-    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
 end
+
+      -- Getting the UserInputService
 
 -- Function to enable infinite jump
 function enableInfiniteJump(speaker)
@@ -1839,7 +1786,7 @@ infJump = UserInputService.JumpRequest:Connect(function()
             -- Make the character jump by changing its state to Jumping
             speaker.Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
             
-            task.wait()  -- Wait briefly to allow the jump action to complete
+            wait()  -- Wait briefly to allow the jump action to complete
             
             infJumpDebounce = false  -- Reset debounce after the jump is done
         end
@@ -1978,6 +1925,134 @@ Tabs.LPlayer:AddParagraph({
 
 
         
+        if _G.cons then
+        for _, v in pairs(_G.cons) do
+            v:Disconnect()
+        end
+
+        _G.cons = nil
+end
+
+local rsrv = game:GetService("RunService")
+        local heartbeat = rsrv.Heartbeat
+        local renderstepped = rsrv.RenderStepped
+
+        local lp = game.Players.LocalPlayer
+        local mouse = lp:GetMouse()
+
+        local isinvisible = false
+        local visible_parts = {}
+        local kdown, loop
+
+        local function ghost_parts()
+            for _, v in pairs(visible_parts) do
+                v.Transparency = isinvisible and 0.5 or 0
+            end
+        end
+
+        local function setup_character(character)
+            local hum = character:WaitForChild("Humanoid")
+            local root = character:WaitForChild("HumanoidRootPart")
+
+            visible_parts = {}
+
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0 then
+                    visible_parts[#visible_parts + 1] = v
+                end
+            end
+
+            if kdown then
+                kdown:Disconnect()
+            end
+
+            kdown = mouse.KeyDown:Connect(function(key)
+                if key == "g" then
+                    isinvisible = not isinvisible
+                    ghost_parts()
+                end
+            end)
+
+            if loop then
+                loop:Disconnect()
+            end
+
+            loop = heartbeat:Connect(function()
+                if isinvisible then
+                    local oldcf = root.CFrame
+                    local oldcamoffset = hum.CameraOffset
+
+                    local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
+
+                    hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+                    root.CFrame = newcf
+
+                    renderstepped:Wait()
+
+                    hum.CameraOffset = oldcamoffset
+                    root.CFrame = oldcf
+                end
+            end)
+
+            _G.cons = {kdown, loop}
+        end
+
+        lp.CharacterAdded:Connect(function(character)
+            setup_character(character)
+            if isinvisible then
+                ghost_parts()
+                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+            end
+        end)
+
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
+
+local visible_parts = {}
+
+local function ghost_parts()
+    if lp.Character then
+        for _, v in pairs(lp.Character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                table.insert(visible_parts, v)
+                v.Transparency = 0.5
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
+            end
+        end
+    end
+end
+
+local FEInviToggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
+
+FEInviToggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+            end
+            visible_parts = {}  -- Clear the table after restoring visibility
+        else
+            ghost_parts()
+        end
+    end
+end)
+
+Options.FEInvisible:SetValue(false)
+
+if lp.Character then
+        setup_character(lp.Character)
+        if isinvisible then
+            ghost_parts()
+        end
+end
+
+
+
+        
         local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
 -- Function to get other players, including an "All" option
@@ -2034,16 +2109,16 @@ Toggle:OnChanged(function(flingplayer)
                 -- You can pass the selectedPlayer to the loaded script if needed
                 getgenv().FLINGTARGET = selectedPlayer
                 loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/FlingGood.lua'))()
-                task.wait()
+                wait()
             else
-
+                -- Handle case when no Player is selected
                 print("No Player selected for flinging.")
             end
         end
         
         if flingplayer == false then
             getgenv().flingloop = false
-            task.wait()
+            wait()
         end
 end)
 
@@ -2055,10 +2130,10 @@ Toggle:OnChanged(function(flingplayer)
 getgenv().FLINGTARGET = Murder
         if flingplayer then
             loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/FlingGood.lua'))()
-            task.wait()
+            wait()
         else
             getgenv().flingloop = false
-            task.wait()
+            wait()
         end
 end)
 
@@ -2070,10 +2145,10 @@ Toggle:OnChanged(function(flingplayer)
 getgenv().FLINGTARGET = Sheriff
         if flingplayer then
             loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/FlingGood.lua'))()
-            task.wait()
+            wait()
         else
             getgenv().flingloop = false
-            task.wait()
+            wait()
         end
 end)
 
@@ -2105,7 +2180,7 @@ Options.Fling:SetValue(false)
                             Title = "Confirm",
                             Callback = function()
                                 game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
-            task.wait()
+            wait()
                             end
                         },
                         {
@@ -2131,7 +2206,7 @@ Tabs.Server:AddButton({
                             Title = "Confirm",
                             Callback = function()
                                 loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/ServerHop.lua", true))()
-            task.wait()
+            wait()
                             end
                         },
                         {
@@ -2150,7 +2225,7 @@ Tabs.Server:AddButton({
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
 Tabs.AutoFarm:AddParagraph({
 Title = "IMPORTANT: PLEASE READ",
-Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay."
+Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare BeachBall' option if the game has not started. because it search for nothing so thats why don't always toggle it."
 })
 local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
 
@@ -2160,7 +2235,7 @@ Toggle:OnChanged(function(value)
 if value then
         -- Connect to the ErrorMessageChanged event
         connection = game:GetService("GuiService").ErrorMessageChanged:Connect(function()
-            task.wait(0.1)
+            wait(0.1)
             game:GetService("TeleportService"):Teleport(game.PlaceId)
         end)
 else
@@ -2250,9 +2325,6 @@ Options.AutoFEInvi:SetValue(false)
 
 -- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
-    if LocalPlayer.Name == Murder then
-        return
-    end
     local character = Players.LocalPlayer.Character
     if character then
         -- Check if the local player has a knife
@@ -2276,9 +2348,6 @@ end
 
 -- Function to check the distance between the local player and the murderer
 local function checkDistance()
-    if LocalPlayer.Name == Murder then
-        return
-    end
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
         local localCharacter = Players.LocalPlayer.Character
@@ -2434,7 +2503,7 @@ local function moveToCoinServer()
         -- Teleport if too far
         if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).magnitude > TELEPORT_DISTANCE_THRESHOLD then
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Wait briefly to ensure character updates position
+            wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
         -- Move the character towards the nearest untapped "Coin_Server" part gradually
@@ -2461,7 +2530,7 @@ local function moveToCoinServer()
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        task.wait(delay)
+        wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
         if isAutoFarming and not isMovingToCoin then
@@ -2473,7 +2542,7 @@ local function moveToCoinServer()
         print("Coin not found. Searching for Coin_Server...")
         isMovingToCoin = false
         
-        task.wait(1)  -- Wait for a short period before searching again (customize as needed)
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
@@ -2485,7 +2554,7 @@ end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-task.wait(delay)
+wait(delay)
 coroutine.wrap(moveToCoinServer)()
 end
 -- Function to handle character added (when player respawns)
@@ -2599,7 +2668,7 @@ local function moveToCoinServer()
         if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
             -- Teleport to the nearest coin if it's too far away
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Wait briefly to ensure character updates position
+            wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
         -- Check again if auto farming is still enabled after teleportation
@@ -2633,7 +2702,7 @@ local function moveToCoinServer()
             -- Mark the coin as touched
             touchedCoins[nearestCoin] = true
 
-            task.wait(delay)
+            wait(delay)
 
             -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
             if isAutoFarming and not isMovingToCoin then
@@ -2646,10 +2715,10 @@ local function moveToCoinServer()
         isMovingToCoin = false
         
         if Void then
-        task.wait(1)
+        wait(1)
         VoidSafe()
         end
-        task.wait(1)  -- Wait for a short period before searching again (customize as needed)
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
@@ -2660,7 +2729,7 @@ end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-task.wait(delay)
+wait(delay)
 coroutine.wrap(moveToCoinServer)()
 end
 
@@ -2790,7 +2859,7 @@ local function moveToCoinServer()
         -- Teleport if too far
         if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).Magnitude > TELEPORT_DISTANCE_THRESHOLD then
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Wait briefly to ensure character updates position
+            wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
         -- Move the character towards the nearest untapped "Coin_Server" part gradually
@@ -2817,7 +2886,7 @@ local function moveToCoinServer()
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        task.wait(delay)
+        wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
         if isAutoFarming and not isMovingToCoin then
@@ -2828,10 +2897,10 @@ local function moveToCoinServer()
         print("Searching for BeachBall...")
         isMovingToCoin = false
         if Void then
-        task.wait(1)
+        wait(1)
         VoidSafe()
         end
-        task.wait(1)  -- Wait for a short period before searching again (customize as needed)
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
@@ -2842,7 +2911,7 @@ end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-task.wait(delay)
+wait(delay)
 coroutine.wrap(moveToCoinServer)()
 end
 
@@ -2939,7 +3008,7 @@ Description = "Get all emotes that are in the Store",
 Callback = function()
         if not AshMotes then
             AshMotes = true
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/RblxEmotes.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/Hub/main/RblxEmotes.lua", true))()
         else
             SendNotif("Already executed", "You cant just executed this twice lol", 3)
         end
@@ -3054,6 +3123,7 @@ end)
    
 local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
+-- Constants for file handling
 local SAVED_POSITIONS = {
     FEInviButtonPerk = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,80,101,114,107,70,69,73,110,118,105,66,117,116,116,80,111,115,46,106,115,111,110),
     FEInviButton = string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50,47,70,69,73,110,118,105,66,117,116,80,111,115,46,106,115,111,110),
@@ -3218,7 +3288,6 @@ end
 
 -- Define Toggle and Option mappings
 local toggles = {
-    FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
     FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
     AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
 }
@@ -3227,15 +3296,13 @@ local toggleOptions = {
     FEInviButtonPerk = Options.FEInvisible,
     FEInviButton = Options.FEInvisible,
     AFCoinButton = Options.AutoFarmCoin,
+    InviButton = Options.Invisible
 }
 
 -- Connect toggle state changes to handleToggle
 for buttonType, toggle in pairs(toggles) do
     local buttonText, remoteEvent
-    if buttonType == "FEInviButtonPerk" then
-        buttonText = "(Ghost Perk) +\nFE Invisible is"
-        remoteEvent = "Stealth"
-    elseif buttonType == "FEInviButton" then
+    if buttonType == "FEInviButton" then
         buttonText = "FE Invisible is"
         remoteEvent = "Stealth"
     elseif buttonType == "AFCoinButton" then
@@ -3361,14 +3428,14 @@ if button.Text == "Grab Gun" then
         end
     end
 
-    -- Repeat task.wait until both "Normal" and "GunDrop" are present
+    -- Repeat wait until both "Normal" and "GunDrop" are present
     coroutine.wrap(function()
         while true do
             if workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop") then
                 updateButtonText()
                 break
             end
-            task.wait(0.1) -- Check every 0.1 seconds to avoid a tight loop
+            wait(0.1) -- Check every 0.1 seconds to avoid a tight loop
         end
     end)()
 
@@ -3496,12 +3563,12 @@ setupGui("ShootMurd", "TP Shoot Murd", function()
 
                     -- Shoot the gun at the murderer's position
                     if Player.Character:FindFirstChild("Gun") then
-                        task.wait(0.2)
+                        wait(0.2)
                         Player.Character:MoveTo(currentPosition.Position)
                         Player.Character.Gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH2")
                     end
                 else
-                    SendNotif("Gun not Found", "Grab the gun or task.wait for Sheriff's death to grab the gun.", 3)
+                    SendNotif("Gun not Found", "Grab the gun or wait for Sheriff's death to grab the gun.", 3)
                 end
             else
                 SendNotif("Murderer not Found", "Murderer's character not found.", 3)
@@ -3569,7 +3636,7 @@ setupGui("StabSheriff", "TP Stab Sheriff/Hero", function()
 
                 -- Stab the target
                 if character:FindFirstChild("Knife") then
-                    task.wait(0.2)
+                    wait(0.2)
                     character:MoveTo(currentPosition)
                     if type(Stab) == "function" then
                         Stab()
@@ -3778,7 +3845,7 @@ Options.HoldTpWalk:SetValue(false)
 -- Ensure the GUI persists across respawns and retains its position
 Player.CharacterAdded:Connect(function()
 if Toggle.Value then
-        task.wait(1)  -- Delay to ensure the character is fully loaded
+        wait(1)  -- Delay to ensure the character is fully loaded
         toggleGuiG(true)
 end
 end)
@@ -3962,8 +4029,8 @@ local function fetchAvatarUrl(userId)
     end
     })
     
-   -- Define the function to send feedback to Discord
-local function sendFeedbackToDiscord(feedbackMessage)
+    -- Define the function to send feedback to Discord
+    local function sendFeedbackToDiscord(feedbackMessage)
     local response = request({
         Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
         Method = "POST",
@@ -3973,7 +4040,7 @@ local function sendFeedbackToDiscord(feedbackMessage)
         Body = HttpService:JSONEncode({
             embeds = {{
                 title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device .. ", Using " .. identifyexecutor(),
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
                 color = 16711935,
                 footer = { text = "Timestamp: " .. getCurrentTime() },
                 author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
@@ -3988,8 +4055,7 @@ local function sendFeedbackToDiscord(feedbackMessage)
     })
     
     if response and response.StatusCode == 204 then
-        print("Feedback sent successfully.")
-        SendNotif("Feedback has been sent to Ashbornn Thank you.", " ", 3)
+        SendNotif("Feedback has been sent to Ashbornn", "Thank you", 3)
     else
         warn("Failed to send feedback to Discord:", response)
     end
@@ -4100,7 +4166,7 @@ Player.Chatted:Connect(function(message)
 if not debounce[message] then
         debounce[message] = true
         executeCommand(message)
-        task.wait(1)  -- Adjust the delay if needed
+        wait(1)  -- Adjust the delay if needed
         debounce[message] = false  -- Reset debounce after a delay
 end
 end)
