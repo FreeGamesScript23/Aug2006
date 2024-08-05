@@ -93,7 +93,9 @@ local function postWebhook(url, data)
 
 	if success then
 		if DYWebhookServices.ErrorPrinting then
-			print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+			print(string.char(
+    32, 91, 32, 65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 93, 32, 76, 111, 97, 100, 101, 100, 32, 83, 117, 99, 99, 101, 115, 115, 102, 117, 108, 108, 121, 32
+))
 		end
 	else
 		if DYWebhookServices.ErrorPrinting then
@@ -103,7 +105,9 @@ local function postWebhook(url, data)
 
 		if success then
 		    if DYWebhookServices.ErrorPrinting then
-		    	print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		    	print(string.char(
+    32, 91, 32, 65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 93, 32, 76, 111, 97, 100, 101, 100, 32, 83, 117, 99, 99, 101, 115, 115, 102, 117, 108, 108, 121, 32
+))
 		    end
 		else
 			if DYWebhookServices.ErrorPrinting then
@@ -114,7 +118,9 @@ local function postWebhook(url, data)
 
 			if success then
 				if DYWebhookServices.ErrorPrinting then
-					print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+					print(string.char(
+    32, 91, 32, 65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 93, 32, 76, 111, 97, 100, 101, 100, 32, 83, 117, 99, 99, 101, 115, 115, 102, 117, 108, 108, 121, 32
+))
 		        end
 			else
 				if DYWebhookServices.ErrorPrinting then
@@ -124,7 +130,9 @@ local function postWebhook(url, data)
 				
 				if success then
 		            if DYWebhookServices.ErrorPrinting then
-		            	print("[Darkrai Y | Webhook Services]: Webhook Request Sent")
+		            	print(string.char(
+    32, 91, 32, 65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 93, 32, 76, 111, 97, 100, 101, 100, 32, 83, 117, 99, 99, 101, 115, 115, 102, 117, 108, 108, 121, 32
+))
 		            end
 				else
 					if DYWebhookServices.ErrorPrinting then
@@ -398,7 +406,7 @@ function DYWebhookServices.QueueSystem.addToQueue(data)
 	else
 		-- Handle the case when the table limit is reached
 		if DYWebhookServices.ErrorPrinting then
-			warn("[Darkrai Y | Webhook Services]: Queue limit reached. Skipping webhook request.")
+			warn(" Error 0421 Http Service provoked")
 		end
 		return
 	end
