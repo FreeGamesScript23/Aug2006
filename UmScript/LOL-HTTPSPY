@@ -14,7 +14,6 @@ local patterns = {
     "https://raw.githubusercontent.com/"
 }
 
--- Hooking the functions
 for i, v in next, functions do
     local old
     old =
@@ -37,25 +36,6 @@ for i, v in next, functions do
     )
 end
 
--- Monitor changes to TextLabel
-local function monitorTextLabel(textLabel)
-    if textLabel:IsA("TextLabel") then
-        textLabel:GetPropertyChangedSignal("Text"):Connect(function()
-            for _, pattern in next, patterns do
-                if textLabel.Text:find(pattern) then
-                    while true do
-                    end
-                end
-            end
-        end)
-    end
-end
-
--- Assuming textLabel is your target TextLabel instance
-local textLabel = -- assign your TextLabel instance here
-monitorTextLabel(textLabel)
-
--- Check if _G.ID is set and freeze
 if _G.ID then
     while true do
     end
