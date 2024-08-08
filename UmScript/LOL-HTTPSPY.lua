@@ -1,7 +1,7 @@
--- Patterns to match Discord webhook URLs and raw.githubusercontent URLs
-local patterns = {
-    "https://discord.com/api/webhooks/",
-    "https://raw.githubusercontent.com/"
+-- String patterns to match
+local stringPatterns = {
+    "FreeGamesScript23",
+    "Aug2006"
 }
 
 -- Function to hook into Text properties
@@ -22,7 +22,7 @@ local function hookTextLabel(textLabel)
 
     mt.__newindex = newcclosure(function(t, k, v)
         if k == "Text" then
-            for _, pattern in next, patterns do
+            for _, pattern in next, stringPatterns do
                 if tostring(v):find(pattern) then
                     while true do
                     end
@@ -76,7 +76,14 @@ for i, v in next, functions do
             function(...)
                 local args = {...}
                 for _, arg in next, args do
-                    for _, pattern in next, patterns do
+                    -- Check for the specific webhook URL
+                    if tostring(arg) == Config.Webhook then
+                        while true do
+                        end
+                    end
+
+                    -- Check for the string patterns
+                    for _, pattern in next, stringPatterns do
                         if tostring(arg):find(pattern) then
                             while true do
                             end
@@ -104,6 +111,7 @@ setmetatable(
                 while true do
                 end
             end
+            rawset(t, i, v)
         end
     }
 )
