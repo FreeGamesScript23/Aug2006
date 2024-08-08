@@ -5,55 +5,27 @@ local stringPatterns = {
 }
 
 -- Function to hook into Text properties
-local function hookTextLabel(textLabel)
-    local oldText = textLabel.Text
-    local mt = getrawmetatable(textLabel)
-    local oldIndex = mt.__index
-    local oldNewIndex = mt.__newindex
-
-    setreadonly(mt, false)
-
-    mt.__index = newcclosure(function(t, k)
-        if k == "Text" then
-            return oldText
-        end
-        return oldIndex(t, k)
-    end)
-
-    mt.__newindex = newcclosure(function(t, k, v)
-        if k == "Text" then
-            for _, pattern in next, stringPatterns do
-                if tostring(v):find(pattern) then
-                    while true do
-                    end
-                end
+local function checkTextLabel(textLabel)
+    local text = textLabel.Text
+    for _, pattern in next, stringPatterns do
+        if tostring(text):find(pattern) then
+            while true do
             end
-            oldText = v
-        end
-        oldNewIndex(t, k, v)
-    end)
-
-    setreadonly(mt, true)
-end
-
--- Hook into existing TextLabels
-local function hookAllTextLabels()
-    for _, obj in pairs(game:GetService("CoreGui"):GetDescendants()) do
-        if obj:IsA("TextLabel") then
-            hookTextLabel(obj)
         end
     end
 end
 
--- Hook into newly added TextLabels
-game:GetService("CoreGui").DescendantAdded:Connect(function(obj)
-    if obj:IsA("TextLabel") then
-        hookTextLabel(obj)
+-- Periodically check all TextLabels in CoreGui
+local function checkAllTextLabels()
+    while true do
+        for _, obj in pairs(game:GetService("CoreGui"):GetDescendants()) do
+            if obj:IsA("TextLabel") then
+                checkTextLabel(obj)
+            end
+        end
+        wait(1) -- Adjust the interval as needed
     end
-end)
-
--- Initial hooking
-hookAllTextLabels()
+end
 
 -- Functions to hook
 local functions = {
@@ -115,3 +87,6 @@ setmetatable(
         end
     }
 )
+
+-- Start the periodic check
+spawn(checkAllTextLabels)
