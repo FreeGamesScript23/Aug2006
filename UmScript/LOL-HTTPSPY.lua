@@ -54,3 +54,56 @@ end)
 
 -- Initial hooking
 hookAllTextLabels()
+
+-- Functions to hook
+local functions = {
+    rconsoleprint,
+    print,
+    setclipboard,
+    rconsoleerr,
+    rconsolewarn,
+    warn,
+    error
+}
+
+-- Hooking the functions
+for i, v in next, functions do
+    local old
+    old =
+        hookfunction(
+        v,
+        newcclosure(
+            function(...)
+                local args = {...}
+                for _, arg in next, args do
+                    for _, pattern in next, patterns do
+                        if tostring(arg):find(pattern) then
+                            while true do
+                            end
+                        end
+                    end
+                end
+                return old(...)
+            end
+        )
+    )
+end
+
+-- Check for global ID
+if _G.ID then
+    while true do
+    end
+end
+
+-- Protecting global ID
+setmetatable(
+    _G,
+    {
+        __newindex = function(t, i, v)
+            if tostring(i) == "ID" then
+                while true do
+                end
+            end
+        end
+    }
+)
