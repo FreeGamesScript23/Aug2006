@@ -82,7 +82,13 @@ local Options = Fluent.Options
 
 do
 
-
+function SendNotif(title, content, time)
+Fluent:Notify({
+        Title = title,
+        Content = content,
+        Duration = time
+})
+end
 
 local function TeleportToPlayer(playerName)
     local targetPlayer = game.Players:FindFirstChild(playerName)
