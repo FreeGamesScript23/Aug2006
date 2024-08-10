@@ -16,12 +16,6 @@ local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
 
-
-
-local mt = getrawmetatable(game);
-local old = {};
-for i, v in next, mt do old[i] = v end;
-setreadonly(mt,false)
 local defualtwalkspeed = 16
 local defualtjumppower = 50
 local defualtgravity = 196.1999969482422
