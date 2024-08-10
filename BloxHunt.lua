@@ -2,9 +2,63 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = game.Players.LocalPlayer
+local Player = game.Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local N = game:GetService("VirtualInputManager")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+
+
+
+local mt = getrawmetatable(game);
+local old = {};
+for i, v in next, mt do old[i] = v end;
+setreadonly(mt,false)
+local defualtwalkspeed = 16
+local defualtjumppower = 50
+local defualtgravity = 196.1999969482422
+newwalkspeed = defualtwalkspeed
+newjumppower = defualtjumppower
+antiafk = true
+
+local AntiFlingEnabled = false
+local playerAddedConnection = nil
+local localHeartbeatConnection = nil 
+
+local UserInputService = game:GetService("UserInputService")
+local Touchscreen = UserInputService.TouchEnabled
+getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
+local placeId = game.PlaceId
+local MarketplaceService = game:GetService("MarketplaceService")
+
+-- Declare GameName outside the pcall block
+local GameName
+
+local success, info = pcall(function()
+    return MarketplaceService:GetProductInfo(placeId)
+end)
+
+if success and info then
+    GameName = info.Name
+    print("Game Name: " .. GameName)
+else
+    GameName = "Unknown Game"
+end
+
+
+
+
 local Window = Fluent:CreateWindow({
     Title = "Ashbornn Hub " .. Fluent.Version,
-    SubTitle = "Universal by Ashbornn",
+    SubTitle = "BloxHunt",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
@@ -16,31 +70,12 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
     Main = Window:AddTab({ Title = "Game", Icon = "gamepad" }),
     Universal = Window:AddTab({ Title = "Universal", Icon = "box" }),
-    LP = Window:AddTab({ Title = "Local Player", Icon = "user-round" }),
+    LPlayer = Window:AddTab({ Title = "Local Player", Icon = "user" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
-
--- Create a ScreenGui object to hold the button
-local gui = Instance.new("ScreenGui")
-gui.Name = "HubGui"
-gui.Parent = game.CoreGui
-
--- Create the button
-local button = Instance.new("TextButton")
-button.Name = "ToggleButton"
-button.Text = "Open/Close"
-button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
-button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-button.BackgroundColor3 = Color3.new(0, 0, 0) -- Black background
-button.TextColor3 = Color3.new(1, 1, 1) -- White text
-button.Parent = gui
-
--- Functionality for the button
-button.MouseButton1Click:Connect(function()
-    Window:Minimize()
-    
-end)
 
 
 local Options = Fluent.Options
@@ -67,172 +102,56 @@ local function GetOtherPlayers()
     return players
 end
 
+local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
 
-
-local AntiFlingEnabled = false
-local playerAddedConnection = nil
-local localHeartbeatConnection = nil
-
--- Constants
-local Services = setmetatable({}, {
-    __index = function(Self, Index)
-        local NewService = game:GetService(Index)
-        if NewService then
-            Self[Index] = NewService
-        end
-        return NewService
-    end
-})
-
-local LocalPlayer = Services.Players.LocalPlayer
-
--- Functions
-local function CharacterAdded(Player)
-    local Character = Player.Character or Player.CharacterAdded:Wait()
-    local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
-
-    local Detected = false
-
-    local function CheckFling()
-        if not (Character:IsDescendantOf(workspace) and PrimaryPart:IsDescendantOf(Character)) then
-            return
-        end
-
-        if PrimaryPart.AssemblyAngularVelocity.Magnitude > 50 or PrimaryPart.AssemblyLinearVelocity.Magnitude > 100 then
-            if not Detected then
-                game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                    Text = "Fling Exploit detected, Player: " .. tostring(Player);
-                    Color = Color3.fromRGB(255, 200, 0);
-                })
-            end
-            Detected = true
-
-            for _, Part in ipairs(Character:GetDescendants()) do
-                if Part:IsA("BasePart") then
-                    Part.CanCollide = false
-                    Part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                    Part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                    Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-                end
-            end
-
-            PrimaryPart.CanCollide = false
-            PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-            PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-            PrimaryPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-        end
-    end
-
-    Services.RunService.Heartbeat:Connect(CheckFling)
-end
-
-local function OnPlayerAdded(Player)
-    if AntiFlingEnabled and Player ~= LocalPlayer then
-        CharacterAdded(Player)
-    end
-end
-
-local function NeutralizeLocalPlayer()
-    local LastPosition = nil
-    local function CheckLocalPlayerFling()
-        pcall(function()
-            local Character = LocalPlayer.Character
-            if Character then
-                local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
-                if PrimaryPart then
-                    if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
-                        PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.CFrame = LastPosition
-
-                        game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                            Text = "You were flung. Neutralizing velocity. Thanks Ashbornn for this.";
-                            Color = Color3.fromRGB(195, 115, 255);
-                        })
-                    else
-                        LastPosition = PrimaryPart.CFrame
+local function togglePlayerCollision(enable)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local playerCharacter = player.Character
+            if playerCharacter then
+                for _, part in ipairs(playerCharacter:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not enable
                     end
                 end
             end
-        end)
+        end
     end
-
-    return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        local Toggle = Tabs.LP:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
-
-Toggle:OnChanged(function(enabled)
-    AntiFlingEnabled = enabled
-    if enabled then
-        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
-        for _, Player in ipairs(Services.Players:GetPlayers()) do
-            if Player ~= LocalPlayer then
-                CharacterAdded(Player)
-            end
+local function enableAntiFling()
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not Toggle.Value then
+            connection:Disconnect()
+            return
         end
-        localHeartbeatConnection = NeutralizeLocalPlayer()
+        togglePlayerCollision(true)
+    end)
+end
+
+local function disableAntiFling()
+    togglePlayerCollision(false)
+end
+
+local function onCharacterAdded(character)
+    if Toggle.Value then
+        togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
+    end
+end
+
+Toggle:OnChanged(function(antiFling)
+    if antiFling then
+        enableAntiFling()
     else
-        if playerAddedConnection then
-            playerAddedConnection:Disconnect()
-            playerAddedConnection = nil
-        end
-        if localHeartbeatConnection then
-            localHeartbeatConnection:Disconnect()
-            localHeartbeatConnection = nil
-        end
+        disableAntiFling()
     end
 end)
+
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+if Toggle.Value and LocalPlayer.Character then
+    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+end
 
 local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
@@ -303,31 +222,31 @@ Toggle:OnChanged(function(flingplayer)
 end)
 
 
-local Toggle = Tabs.LP:AddToggle("Noclip", {Title = "Noclip", Default = false })
+local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
 Toggle:OnChanged(function(noclip)
-    loopnoclip = noclip
-    while loopnoclip do
-        local function loopnoclipfix()
-            for _, b in pairs(Workspace:GetChildren()) do
-                if b.Name == LocalPlayer.Name then
-                    for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
-                        if v:IsA("BasePart") then
-                            v.CanCollide = false
+        loopnoclip = noclip
+        while loopnoclip do
+            function loopnoclipfix()
+                for _, b in pairs(Workspace:GetChildren()) do
+                    if b.Name == LocalPlayer.Name then
+                        for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
+                            if v:IsA("BasePart") then
+                                v.CanCollide = false
+                            end
                         end
                     end
                 end
+                task.wait()
             end
-            wait()
+            task.wait()
+            pcall(loopnoclipfix)
         end
-        wait()
-        pcall(loopnoclipfix)
-    end
 end)
 
 Options.Noclip:SetValue(false)
 
-Tabs.Universal:AddButton({
+Tabs.Server:AddButton({
         Title = "Rejoin",
         Description = "Rejoining on this current server",
         Callback = function()
@@ -353,7 +272,7 @@ Tabs.Universal:AddButton({
         end
     })
 
-Tabs.Universal:AddButton({
+Tabs.Server:AddButton({
         Title = "Serverhop",
         Description = "Join to another server",
         Callback = function()
@@ -381,7 +300,7 @@ Tabs.Universal:AddButton({
     
     
     local function CreateDropdownB()
-    local Dropdown = Tabs.Universal:AddDropdown("ViewPlayerd", {
+    local Dropdown = Tabs.Visual:AddDropdown("ViewPlayerd", {
         Title = "View Player / Spectate Player",
         Values = GetOtherPlayers(),
         Multi = false,
@@ -415,7 +334,7 @@ end
 game.Players.PlayerAdded:Connect(UpdateDropdownB)
 game.Players.PlayerRemoving:Connect(UpdateDropdownB)
 
-Tabs.Universal:AddButton({
+Tabs.Visual:AddButton({
     Title = "Stop Viewing",
     Description = "Stop viewing the selected player",
     Callback = function()
@@ -427,7 +346,7 @@ local Dropdown
 local isResetting = false
 
 local function CreateDropdownC()
-    Dropdown = Tabs.Universal:AddDropdown("TPtoPlayer", {
+    Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
         Title = "Teleport to Player",
         Values = GetOtherPlayers(),
         Multi = false,
@@ -467,7 +386,7 @@ Tabs.Universal:AddButton({
         end
     })
     
-Tabs.LP:AddButton({
+Tabs.LPlayer:AddButton({
     Title = "Respawn",
     Callback = function()
         LocalPlayer.Character:WaitForChild("Humanoid").Health = 0
@@ -566,7 +485,7 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
 -- Slider for WalkSpeed
-local WalkSpeedSlider = Tabs.LP:AddSlider("WalkSpeedSlider", {
+local WalkSpeedSlider = Tabs.LPlayer:AddSlider("WalkSpeedSlider", {
     Title = "WalkSpeed Slider",
     Description = "Adjust WalkSpeed",
     Default = 16, -- Default WalkSpeed
@@ -587,7 +506,7 @@ end)
 WalkSpeedSlider:SetValue(16)
 
 -- Slider for JumpPower
-local JumpPowerSlider = Tabs.LP:AddSlider("JumpPowerSlider", {
+local JumpPowerSlider = Tabs.LPlayer:AddSlider("JumpPowerSlider", {
     Title = "JumpPower Slider",
     Description = "Adjust JumpPower",
     Default = 50, -- Default JumpPower
@@ -787,119 +706,46 @@ Toggle:OnChanged(function(value)
     end
 end)
 
+local player = game.Players.LocalPlayer
+local teleportPosition = CFrame.new(-90, 62, 143)
+local teleportEnabled = false
+
+-- Function to teleport the player
+local function teleportToCoin()
+    player.Character.HumanoidRootPart.CFrame = teleportPosition
+end
+
+-- Button to teleport to coin
 Tabs.Main:AddButton({
-        Title = "TP to Coin",
-        Description = "Teleport to Obby Coin ",
-        Callback = function()
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-90, 62, 143)
-        end
-    })
+    Title = "TP to Coin",
+    Description = "Teleport to Obby Coin",
+    Callback = function()
+        teleportToCoin()
+    end
+})
 
+-- Toggle for looping teleport
+local Toggle = Tabs.Main:AddToggle("LoopTPCoin", {
+    Title = "Loop Teleport to Coin",
+    Default = false
+})
 
+-- Handle the toggle change
+Toggle:OnChanged(function(value)
+    teleportEnabled = value
+end)
 
+-- Loop teleport using RenderStepped
+game:GetService("RunService").RenderStepped:Connect(function()
+    if teleportEnabled then
+        teleportToCoin()
+    end
+end)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Set the initial value of the toggle to false
+Options.LoopTPCoin:SetValue(false)
 
     
-
-
-    Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) 
-    Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) Tabs.Universal:AddParagraph({
-        Title = "",
-        Content = ""
-    }) 
-
-
-
-    Tabs.Universal:AddButton({
-        Title = "Button",
-        Description = "Very important button",
-        Callback = function()
-            Window:Dialog({
-                Title = "Title",
-                Content = "This is a dialog",
-                Buttons = {
-                    {
-                        Title = "Confirm",
-                        Callback = function()
-                            print("Confirmed the dialog.")
-                        end
-                    },
-                    {
-                        Title = "Cancel",
-                        Callback = function()
-                            print("Cancelled the dialog.")
-                        end
-                    }
-                }
-            })
-        end
-    })
-
-
-
-    
-
-    local Input = Tabs.Universal:AddInput("Input", {
-        Title = "Input",
-        Default = "Default",
-        Placeholder = "Placeholder",
-        Numeric = false, -- Only allows numbers
-        Finished = false, -- Only calls callback when you press enter
-        Callback = function(Value)
-            print("Input changed:", Value)
-        end
-    })
-
-    Input:OnChanged(function()
-        print("Input updated:", Input.Value)
-    end)
     
     
     
@@ -922,41 +768,254 @@ Tabs.Main:AddButton({
     
     
 end
+        
+-- Create a ScreenGui object to hold the button
+local gui = Instance.new("ScreenGui")
+gui.Name = "HubGui"
+gui.Parent = game.CoreGui
+
+-- Create the button as a TextButton
+local button = Instance.new("TextButton")
+button.Name = "ToggleButton"
+button.Text = "Close" -- Initial text set to "Close"
+button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
+button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
+button.BackgroundTransparency = 0.7 -- Set transparency to 50%
+button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
+button.BorderSizePixel = 2 -- Add black stroke
+button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
+button.TextColor3 = Color3.new(1, 1, 1) -- White text color
+button.FontSize = Enum.FontSize.Size12 -- Adjust text size
+button.TextScaled = false -- Allow text to scale with button size
+button.TextWrapped = true -- Wrap text if it's too long
+button.TextStrokeTransparency = 0 -- Make text fully visible
+button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.Parent = gui
+
+-- Apply blur effect
+local blur = Instance.new("BlurEffect")
+blur.Parent = button
+blur.Size = 5 -- Adjust blur size as needed
+
+-- Variable to keep track of button state
+local isOpen = false
+local isDraggable = false
+local dragConnection
+
+-- Functionality for the button
+button.MouseButton1Click:Connect(function()
+        isOpen = not isOpen -- Toggle button state
+        
+        if isOpen then
+            button.Text = "Open"
+        else
+            button.Text = "Close"
+        end
+        
+        Window:Minimize()
+end)
+
+-- Function to make the button draggable
+function setDraggable(draggable)
+        if draggable then
+            -- Connect events for dragging
+            dragConnection = button.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    local dragStart = input.Position
+                    local startPos = button.Position
+                    local dragInput = input
+
+                    local function onInputChanged(input)
+                        if input == dragInput then
+                            local delta = input.Position - dragStart
+                            button.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
+                        end
+                    end
+
+                    local function onInputEnded(input)
+                        if input == dragInput then
+                            dragInput = nil
+                            game:GetService("UserInputService").InputChanged:Disconnect(onInputChanged)
+                            input.Changed:Disconnect(onInputEnded)
+                        end
+                    end
+
+                    game:GetService("UserInputService").InputChanged:Connect(onInputChanged)
+                    input.Changed:Connect(onInputEnded)
+                end
+            end)
+        else
+            -- Disconnect events if not draggable
+            if dragConnection then
+                dragConnection:Disconnect()
+                dragConnection = nil -- Reset dragConnection
+            end
+        end
+end
+
+-- Function to toggle button visibility
+function toggleButtonVisibility(visible)
+        button.Visible = visible
+end
+
+Tabs.Settings:AddParagraph({
+            Title = "To open Window from Chat just say:",
+            Content = "/e ash"
+        })
 
 
--- Addons:
--- SaveManager (Allows you to have a configuration system)
--- InterfaceManager (Allows you to have a interface managment system)
+        -- Function to fetch avatar URL using Roblox API
+local function fetchAvatarUrl(userId)
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+    local response = HttpService:JSONDecode(game:HttpGet(url))
+    if response and response.data and #response.data > 0 then
+        return response.data[1].imageUrl
+    else
+        return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
+    end
+    end
+    
+    -- Fetch avatar URL for LocalPlayer
+    local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+    
+    -- Function to get current timestamp in a specific format
+    local function getCurrentTime()
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local minute = os.date("!%M", os.time() + 8 * 3600)
+    local second = os.date("!%S", os.time() + 8 * 3600)
+    local day = os.date("!%d", os.time() + 8 * 3600)
+    local month = os.date("!%m", os.time() + 8 * 3600)
+    local year = os.date("!%Y", os.time() + 8 * 3600)
+    
+    local suffix = "AM"
+    if hour >= 12 then
+        suffix = "PM"
+        if hour > 12 then
+            hour = hour - 12
+        end
+    elseif hour == 0 then
+        hour = 12
+    end
+    
+    return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
+    end
+    
+    -- Define the Input field for user feedback
+    local Input = Tabs.Settings:AddInput("Input", {
+    Title = "Send FeedBack",
+    Default = "",
+    Placeholder = "Send your feedback to Ashbornn",
+    Numeric = false, -- Only allows numbers
+    Finished = false, -- Only calls callback when you press enter
+    Callback = function(Value)
+        -- This function can be used for validation or other callback logic if needed
+    end
+    })
+    
+   -- Define the function to send feedback to Discord
+local function sendFeedbackToDiscord(feedbackMessage)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device .. ", Using " .. identifyexecutor(),
+                color = 16711935,
+                footer = { text = "Timestamp: " .. getCurrentTime() },
+                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
+                fields = {
+                    { name = "Feedback: ", value = feedbackMessage, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+    
+    if response and response.StatusCode == 204 then
+        print("Feedback sent successfully.")
+        SendNotif("Feedback has been sent to Ashbornn Thank you.", " ", 3)
+    else
+        warn("Failed to send feedback to Discord:", response)
+    end
+    end
+    
+    -- Define a variable to track the last time feedback was sent
+    local lastFeedbackTime = 0
+    local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+    
+    -- Function to check if enough time has passed since last feedback
+    local function canSendFeedback()
+    local currentTime = os.time()
+    return (currentTime - lastFeedbackTime >= cooldownDuration)
+    end
+    
+    -- Update lastFeedbackTime after sending feedback
+    local function updateLastFeedbackTime()
+    lastFeedbackTime = os.time()
+    end
+    
+    -- Define the button to send feedback
+    Tabs.Settings:AddButton({
+    Title = "Send FeedBack",
+    Description = "Tap to Send",
+    Callback = function()
+        if not canSendFeedback() then
+            SendNotif("You cant spam this message", "Try again Later Lol", 3)
+            return
+        end
+        
+        local feedbackMessage = Input.Value  -- Get the value directly from Input
+        
+        -- Check if feedbackMessage is non-empty before sending
+        if feedbackMessage and feedbackMessage ~= "" then
+            sendFeedbackToDiscord(feedbackMessage)
+            updateLastFeedbackTime()  -- Update cooldown timestamp
+        else
+            SendNotif("You cant send empty feedback loll", "Try again later", 3)
+        end
+    end
+    })
+    
 
--- Hand the library over to our managers
+
+-- Create the toggle for draggable button
+local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
+
+DraggableToggle:OnChanged(function(value)
+        isDraggable = value
+        setDraggable(isDraggable)
+end)
+
+-- Create another toggle for button visibility
+local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
+
+VisibilityToggle:OnChanged(function(value)
+        toggleButtonVisibility(value)
+end)
+
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
--- Ignore keys that are used by ThemeManager.
--- (we dont want configs to save themes, do we?)
 SaveManager:IgnoreThemeSettings()
 
--- You can add indexes of elements the save manager should ignore
 SaveManager:SetIgnoreIndexes({})
 
--- use case for doing it this way:
--- a script hub could have themes in a global folder
--- and game configs in a separate folder per game
-InterfaceManager:SetFolder("Hub")
-SaveManager:SetFolder("Hub/Universal")
+InterfaceManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98))
+SaveManager:SetFolder(string.char(65,115,104,98,111,114,110,110,72,117,98,47,77,77,50))
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
-
 Window:SelectTab(1)
 
-Fluent:Notify({
-    Title = "Ashborrn Universal",
-    Content = "Has been loaded Enjoy.",
-    Duration = 8
-})
-
--- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
 SaveManager:LoadAutoloadConfig()
+
+local TimeEnd = tick()
+local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
+SendNotif(string.char(65,115,104,98,111,114,110,110,72,117,98), string.char(83,117,99,99,101,115,115,102,117,108,108,121,32,108,111,97,100,101,100,32,116,104,101,32,115,99,114,105,112,116,32,105,110,32) .. TotalTime .. string.char(115,46), 3)
