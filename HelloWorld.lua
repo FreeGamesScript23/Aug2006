@@ -294,7 +294,7 @@ function clearbackpackguns()
                                                 if v.Name ~= "GGSign" then
                                                     if v.Name ~= "SprayPaint" then
                                                         if v.Name ~= "EggToy2023" then
-                                                            if v.Name ~= "BeachBall2023" then
+                                                            if v.Name ~= "Candy2023" then
                                                                 v:Remove()
                                                             end
                                                         end
@@ -2558,7 +2558,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin or BeachBall.")
+        print("Moving towards Coin or Candy.")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
@@ -2581,7 +2581,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin or BeachBall")
+                print("Arrived at Coin or Candy")
                 isMovingToCoin = false
                 break
             end
@@ -2649,7 +2649,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and BeachBall", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
@@ -2914,7 +2914,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards to the BeachBall")
+        print("Moving towards to the Candy")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position
@@ -2957,7 +2957,7 @@ local function moveToCoinServer()
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Searching for BeachBall...")
+        print("Searching for Candy...")
         isMovingToCoin = false
         if Void then
         wait(1)
@@ -3007,12 +3007,12 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm BeachBall Only ", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Candy Only ", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
 if isAutoFarming then
-        print("Auto Farm BeachBall enabled.")
+        print("Auto Farm Candy enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         -- Connect the character removing event handler only when auto farming is enabled
@@ -3021,7 +3021,7 @@ if isAutoFarming then
             coroutine.wrap(moveToCoinServer)()
         end
 else
-        print("Auto Farm BeachBall disabled.")
+        print("Auto Farm Candy disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
