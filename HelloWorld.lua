@@ -2400,8 +2400,8 @@ local function checkLocalPlayerRole()
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
         else
-            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmCandys is true
+            if Options.AutoFarmCoin.Value or Options.AutoFarmCandys.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -2456,7 +2456,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Candy only)", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2649,7 +2649,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Candy", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinCandys", {Title = "Auto Farm Coin and Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
@@ -2907,10 +2907,9 @@ local function findNearestUntappedCoin()
     return nearestCoin
 end
 
-
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
-    -- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
+    -- Find the nearest untapped Coin_Server part with TouchInterest and CoinVisual
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
@@ -2937,7 +2936,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).Magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at the Egg")
+                print("Arrived at the Candy")
                 isMovingToCoin = false
                 break
             end
@@ -2960,10 +2959,10 @@ local function moveToCoinServer()
         print("Searching for Candy...")
         isMovingToCoin = false
         if Void then
-        wait(1)
-        VoidSafe()
+            wait(1)
+            VoidSafe()
         end
-        wait(1)  -- Wait for a short period before searching again (customize as needed)
+        wait(1)  -- Wait for a short period before searching again
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
@@ -2974,27 +2973,27 @@ end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-wait(delay)
-coroutine.wrap(moveToCoinServer)()
+    wait(delay)
+    coroutine.wrap(moveToCoinServer)()
 end
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
-player.Character = character
-touchedCoins = {}  -- Reset touchedCoins table when character resets
-isMovingToCoin = false  -- Reset moving to coin flag
-if isAutoFarming then
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
         -- Teleport to the map with a delay before starting auto farming again
-        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
+        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-end
+    end
 end
 
 -- Function to handle character removing (when player dies)
 local function onCharacterRemoving()
-if isAutoFarming then
+    if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
         isAutoFarming = false  -- Stop auto farming when character dies
         isMovingToCoin = false  -- Stop moving towards the coin
@@ -3003,15 +3002,15 @@ if isAutoFarming then
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-end
+    end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Candy Only ", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Candy Only", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
-isAutoFarming = isEnabled
-if isAutoFarming then
+    isAutoFarming = isEnabled
+    if isAutoFarming then
         print("Auto Farm Candy enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -3020,7 +3019,7 @@ if isAutoFarming then
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-else
+    else
         print("Auto Farm Candy disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
@@ -3033,17 +3032,17 @@ else
             characterRemovingConnection:Disconnect()
             characterRemovingConnection = nil
         end
-        -- Optionally, you could stop the character here
-end
+    end
 end)
 
 -- Listen for new Coin_Server parts spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
         coroutine.wrap(moveToCoinServer)()
-end
+    end
 end)
+
 
 
 
