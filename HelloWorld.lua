@@ -2401,7 +2401,7 @@ local function checkLocalPlayerRole()
             Options.FEInvisible:SetValue(false)
         else
             -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmCandys is true
-            if Options.AutoFarmCoin.Value or Options.AutoFarmCandys.Value then
+            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -2456,7 +2456,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Candy only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2649,7 +2649,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinCandys", {Title = "Auto Farm Coin and Candy", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
