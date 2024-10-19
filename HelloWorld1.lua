@@ -478,6 +478,7 @@ local function GrabGun()
     end
 end
 
+
 Tabs.Combat:AddButton({
     Title = "Grab Gun v2",
     Description = "Teleport to and grab the gun if available",
