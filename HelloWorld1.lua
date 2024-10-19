@@ -2548,7 +2548,7 @@ local function onCharacterRemoving()
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Candy", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
