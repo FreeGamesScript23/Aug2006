@@ -447,7 +447,16 @@ local function GrabGun()
     if not IsPlayerEligible() then return end
 
     if Player.Character then
-        local gundr = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop")
+        local gundr = nil
+
+        -- Search for GunDrop in the entire Workspace
+        for _, item in pairs(workspace:GetChildren()) do
+            if item:IsA("Part") and item.Name == "GunDrop" then
+                gundr = item
+                break
+            end
+        end
+
         if gundr then
             -- Perform the gun grabbing process
             local oldpos = Player.Character.HumanoidRootPart.CFrame
@@ -458,7 +467,7 @@ local function GrabGun()
                 task.wait()
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
-            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
+            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 1.5
             
             Player.Character.HumanoidRootPart.CFrame = oldpos
             Player.Character.Humanoid:ChangeState(1)
@@ -468,6 +477,9 @@ local function GrabGun()
         end
     end
 end
+
+
+
 
 Tabs.Combat:AddButton({
     Title = "Grab Gun v2",
@@ -2193,7 +2205,7 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 0
+local distanceM = 20
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
@@ -2374,7 +2386,6 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- Movement parameters
--- Adjusted move speed for faster movement
 local arrivalThreshold = 1  -- Distance threshold to stop moving
 local touchedCoins = {}  -- Table to track touched Coin_Server parts
 local isAutoFarming = false  -- Flag to track if auto farming is enabled
@@ -2391,7 +2402,7 @@ local function findNearestUntappedCoin()
     -- Check if player and player.Character are valid
     if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local workspace = game:GetService("Workspace")
-        
+
         -- Search for all CoinContainers in the workspace
         for _, map in ipairs(workspace:GetChildren()) do
             if map:IsA("Model") then  -- Check if the child is a Model (potential map)
@@ -2473,11 +2484,12 @@ local function moveToCoinServer()
         print("Candy not found. Searching for Coin_Server...")
         isMovingToCoin = false
         
+        -- Call VoidSafe() if there are no Coins available
         if Void then
             task.wait(1)
             VoidSafe()
         end
-            task.wait(1)
+        task.wait(1)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
@@ -2547,7 +2559,6 @@ Toggle:OnChanged(function(isEnabled)
             characterRemovingConnection:Disconnect()
             characterRemovingConnection = nil
         end
-        -- Optionally, you could stop the character here
     end
 end)
 
@@ -2562,8 +2573,6 @@ workspace.ChildAdded:Connect(function(child)
     end
 end)
 
--- Start the continuous check in a coroutine (if needed)
-coroutine.wrap(continuouslyCheckCandyAndCoins)()
 
 
 
@@ -2997,53 +3006,53 @@ if value then
         button.BackgroundTransparency = 1
         button.Text = buttonTitle
 
-if button.Text == "Grab Gun" then
-    -- Function to update the button text
-    local function updateButtonText()
-        local normalFold = workspace:FindFirstChild("Normal")
-        if normalFold then
-            local gunReady = normalFold:FindFirstChild("GunDrop")
-            if gunReady then
-                button.Text = "Grab Gun (🟢)"
-            else
-                button.Text = "Grab Gun (🔴)"
+        if button.Text == "Grab Gun" then
+            -- Function to update the button text
+            local function updateButtonText()
+                local gunDropFound = false
+        
+                -- Search for GunDrop in the entire Workspace
+                for _, item in pairs(workspace:GetChildren()) do
+                    if item:IsA("Part") and item.Name == "GunDrop" then
+                        gunDropFound = true
+                        break
+                    end
+                end
+        
+                -- Update button text based on the presence of GunDrop
+                if gunDropFound then
+                    button.Text = "Grab Gun (🟢)"
+                else
+                    button.Text = "Grab Gun (🔴)"
+                end
             end
-        else
-            button.Text = "Grab Gun (🔴)"
+        
+            -- Initial check for GunDrop in the Workspace
+            updateButtonText()  -- Call it initially to set the correct text
+        
+            -- Continuously check for GunDrop's presence in the Workspace
+            coroutine.wrap(function()
+                while true do
+                    updateButtonText() -- Update button text based on current state
+                    task.wait(0.1) -- Check every 0.1 seconds
+                end
+            end)()
+        
+            -- Connect the function to update the button text when a child is added or removed in the Workspace
+            workspace.ChildAdded:Connect(function(child)
+                if child:IsA("Part") and child.Name == "GunDrop" then
+                    updateButtonText()
+                end
+            end)
+        
+            workspace.ChildRemoved:Connect(function(child)
+                if child:IsA("Part") and child.Name == "GunDrop" then
+                    updateButtonText()  -- Update button text when GunDrop is removed
+                end
+            end)
         end
-    end
-
-    -- Repeat task.wait until both "Normal" and "GunDrop" are present
-    coroutine.wrap(function()
-        while true do
-            if workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop") then
-                updateButtonText()
-                break
-            end
-            task.wait(0.1) -- Check every 0.1 seconds to avoid a tight loop
-        end
-    end)()
-
-    -- Connect the function to update the button text when a child is added or removed in the workspace
-    workspace.ChildAdded:Connect(updateButtonText)
-    workspace.ChildRemoved:Connect(updateButtonText)
-
-    -- Additionally, connect to changes within the "Normal" folder specifically if it exists
-    local function connectNormalEvents()
-        local normalFold = workspace:FindFirstChild("Normal")
-        if normalFold then
-            normalFold.ChildAdded:Connect(updateButtonText)
-            normalFold.ChildRemoved:Connect(updateButtonText)
-        end
-    end
-
-    connectNormalEvents()
-    workspace.ChildAdded:Connect(function(child)
-        if child.Name == "Normal" then
-            connectNormalEvents()
-        end
-    end)
-end
+        
+        
         
         button.TextSize = InputTSize.Value
         button.TextColor3 = Color3.new(1, 1, 1)
