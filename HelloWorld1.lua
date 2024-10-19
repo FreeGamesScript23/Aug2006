@@ -2446,27 +2446,37 @@ local function moveToCoinServer()
             print("Moving towards Coin")
             isMovingToCoin = true
 
-            local targetPosition = nearestCoin.Position
-
             -- Smooth transition to the nearest untapped Coin_Server part
+            local targetPosition = nearestCoin.Position
+            local arrivalThreshold = 3  -- Distance at which we consider the player has arrived at the coin
+
+            -- Move towards the target gradually
             while isAutoFarming and isMovingToCoin do
                 if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
                     isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
                     break
                 end
 
+                -- Get current position of player
                 local currentPos = player.Character.HumanoidRootPart.Position
-                local direction = (targetPosition - currentPos).Unit
                 local distanceToTarget = (targetPosition - currentPos).Magnitude
 
+                -- If the player is close enough, stop moving
                 if distanceToTarget <= arrivalThreshold then
                     print("Arrived at Coin")
                     isMovingToCoin = false
                     break
                 end
 
-                -- Move smoothly towards the target
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+                -- Calculate the direction to move in
+                local direction = (targetPosition - currentPos).Unit
+                local nextPosition = currentPos + direction * moveSpeed * RunService.Heartbeat:Wait()
+
+                -- Move the player towards the coin by updating their CFrame
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nextPosition)
+
+                -- Small delay to ensure smooth movement
+                RunService.Heartbeat:Wait()
             end
 
             -- Mark the coin as touched and wait for the next move
