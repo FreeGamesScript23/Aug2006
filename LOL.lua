@@ -2683,38 +2683,53 @@ local function continuouslyCheckCandyAndCoins()
     while isAutoFarming do  -- Use isAutoFarming as the exit condition for this loop
         -- Ensure Void is defined and true
         if Void then
-            -- Get Candy and Coin counts
-            local candyText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
-            local coinBagText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+            -- Validate paths and check for existence
+            local player = game:GetService("Players").LocalPlayer
+            local mainGui = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("MainGUI")
             
-            print("Current Candy:", candyText)  -- Debug print for current candy count
-            print("Current Coin Bag:", coinBagText)  -- Debug print for current coin bag count
+            if mainGui then
+                local candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+                local coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
 
-            -- If Candy reaches 40, trigger VoidSafe function
-            if candyText == "40" then
-                print("Candy reached 40, triggering VoidSafe.")
-                task.wait(1)
-                getgenv().FullBag = true
-                VoidSafe()  -- Call VoidSafe function
-            end
+                if candyGui and coinBagGui then
+                    local candyText = candyGui.Text
+                    local coinBagText = coinBagGui.Text
 
-            -- If Coin Bag reaches 40, trigger CoinBagSafe function
-            if coinBagText == "40" then
-                print("Coin Bag reached 40, triggering CoinBagSafe.")
-                task.wait(1)
-                getgenv().FullBag = true
-                CoinBagSafe()  -- Call hypothetical CoinBagSafe function
+                    print("Current Candy:", candyText)  -- Debug print for current candy count
+                    print("Current Coin Bag:", coinBagText)  -- Debug print for current coin bag count
+
+                    -- If Candy reaches 40, trigger VoidSafe function
+                    if candyText == "40" then
+                        print("Candy reached 40, triggering VoidSafe.")
+                        task.wait(1)
+                        getgenv().FullBag = true
+                        VoidSafe()  -- Call VoidSafe function
+                    end
+
+                    -- If Coin Bag reaches 40, trigger CoinBagSafe function
+                    if coinBagText == "40" then
+                        print("Coin Bag reached 40, triggering CoinBagSafe.")
+                        task.wait(1)
+                        getgenv().FullBag = true
+                        CoinBagSafe()  -- Call CoinBagSafe function
+                    end
+                else
+                    print("Candy or Coin GUI elements are missing.")
+                end
+            else
+                print("Main GUI is missing.")
             end
         else
             print("Void is not defined or is false.")
         end
-        
+
         task.wait(1)  -- Wait for 1 second before checking again
     end
 end
 
 -- Start the continuous checking in a coroutine
 coroutine.wrap(continuouslyCheckCandyAndCoins)()
+
 
 
 -- Function to teleport the player to the map with a delay
