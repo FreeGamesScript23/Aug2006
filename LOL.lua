@@ -3026,12 +3026,12 @@ if value then
             end
         
             -- Initial check for GunDrop in the Workspace
+            updateButtonText()  -- Call it initially to set the correct text
+        
+            -- Continuously check for GunDrop's presence in the Workspace
             coroutine.wrap(function()
                 while true do
                     updateButtonText() -- Update button text based on current state
-                    if workspace:FindFirstChild("GunDrop") then
-                        break
-                    end
                     task.wait(0.1) -- Check every 0.1 seconds
                 end
             end)()
@@ -3055,7 +3055,8 @@ if value then
             end)
         
             workspace.ChildRemoved:Connect(updateButtonText) -- Update button text when anything is removed from Workspace
-        end        
+        end
+        
         
         button.TextSize = InputTSize.Value
         button.TextColor3 = Color3.new(1, 1, 1)
