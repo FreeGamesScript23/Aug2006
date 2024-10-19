@@ -2340,20 +2340,41 @@ end)
 
 Options.TPtoVoid:SetValue(false)
 
--- Function to check the Candy status from the phone device
+local LocalPlayer = game.Players.LocalPlayer
+local mainGui = LocalPlayer.PlayerGui.MainGUI
+
+local candyGui, coinBagGui
+local Mobile = false
+
+-- Check for the existence of the appropriate GUI based on the device
+if mainGui.Game:FindFirstChild("CoinBags") ~= nil then
+    -- Tablet GUI
+    coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = false
+else
+    -- Phone GUI
+    candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = true
+end
+
+-- Function to check the Candy status
 local function checkCandyStatus()
     while true do
-        -- Attempt to access the Candy text value from the phone GUI
-        local candyGui = mainGui:FindFirstChild("Lobby"):FindFirstChild("Dock"):FindFirstChild("CoinBags"):FindFirstChild("Container"):FindFirstChild("Candy"):FindFirstChild("CurrencyFrame"):FindFirstChild("Icon"):FindFirstChild("Coins")
+        local candyText, coinBagText
 
-        -- Since you are using the phone emulator, we are not looking for the tablet's CoinBag GUI
-        local candyText = candyGui and candyGui.Text or nil
+        -- Get Candy text from the appropriate GUI based on the device
+        if Mobile then
+            candyText = candyGui and candyGui.Text or nil
+        else
+            coinBagText = coinBagGui and coinBagGui.Text or nil
+        end
 
         -- Print for debugging purposes
         print("Candy Text: ", candyText)
+        print("Coin Bag Text: ", coinBagText)
 
-        -- Check if Candy text equals "40"
-        if candyText == "40" then
+        -- Check if Candy text or Coin Bag text equals "40"
+        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
             getgenv().FullBag = true
         else
             getgenv().FullBag = false
@@ -2382,6 +2403,7 @@ Toggle:OnChanged(function(isEnabled)
 end)
 
 Options.KillFull:SetValue(false)
+
 
 local moveSpeed = 50
 local delay = math.random(1.7, 2.1)
