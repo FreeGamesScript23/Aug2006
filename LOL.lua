@@ -2203,7 +2203,7 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 0
+local distanceM = 20
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
