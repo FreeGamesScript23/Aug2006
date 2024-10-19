@@ -2340,23 +2340,20 @@ end)
 
 Options.TPtoVoid:SetValue(false)
 
--- Function to check the Candy status from both devices
+-- Function to check the Candy status from the phone device
 local function checkCandyStatus()
     while true do
-        -- Attempt to access the Candy text value from both devices
+        -- Attempt to access the Candy text value from the phone GUI
         local candyGui = mainGui:FindFirstChild("Lobby"):FindFirstChild("Dock"):FindFirstChild("CoinBags"):FindFirstChild("Container"):FindFirstChild("Candy"):FindFirstChild("CurrencyFrame"):FindFirstChild("Icon"):FindFirstChild("Coins")
-        local coinBagGui = mainGui:FindFirstChild("Game"):FindFirstChild("CoinBags"):FindFirstChild("Container"):FindFirstChild("Candy"):FindFirstChild("CurrencyFrame"):FindFirstChild("Icon"):FindFirstChild("Coins")
 
-        -- Check if both GUI elements exist before accessing their Text property
+        -- Since you are using the phone emulator, we are not looking for the tablet's CoinBag GUI
         local candyText = candyGui and candyGui.Text or nil
-        local coinBagText = coinBagGui and coinBagGui.Text or nil
 
         -- Print for debugging purposes
         print("Candy Text: ", candyText)
-        print("Coin Bag Text: ", coinBagText)
 
-        -- Check if either Candy text equals "40"
-        if candyText == "40" or coinBagText == "40" then
+        -- Check if Candy text equals "40"
+        if candyText == "40" then
             getgenv().FullBag = true
         else
             getgenv().FullBag = false
