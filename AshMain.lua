@@ -44,6 +44,7 @@ local games = {
     [142823291] = 'Silent',
     [335132309] = 'Silent',
     [636649648] = 'Silent',
+    [73210641948512] = 'Silent',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
