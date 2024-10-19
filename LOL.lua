@@ -467,7 +467,7 @@ local function GrabGun()
                 task.wait()
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
-            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
+            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 1.5
             
             Player.Character.HumanoidRootPart.CFrame = oldpos
             Player.Character.Humanoid:ChangeState(1)
@@ -477,6 +477,7 @@ local function GrabGun()
         end
     end
 end
+
 
 
 
@@ -3050,6 +3051,7 @@ if value then
                 end
             end)
         end
+        
         
         
         button.TextSize = InputTSize.Value
