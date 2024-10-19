@@ -443,15 +443,24 @@ local function IsPlayerEligible()
 end
 
 
-local function GrabGun()
+function GrabGun()
+    -- Check if the player is eligible to grab the gun
     if not IsPlayerEligible() then return end
 
+    -- Ensure the player's character exists
     if Player.Character then
         local gundr = nil
 
-        -- Search for GunDrop in the entire Workspace
+        -- Search for GunDrop in the entire Workspace, including folders
         for _, item in pairs(workspace:GetChildren()) do
-            if item:IsA("Part") and item.Name == "GunDrop" then
+            if item:IsA("Folder") or item:IsA("Model") then
+                -- Check for GunDrop within the folder or model
+                local gunDropPart = item:FindFirstChild("GunDrop")
+                if gunDropPart then
+                    gundr = gunDropPart
+                    break
+                end
+            elseif item:IsA("Part") and item.Name == "GunDrop" then
                 gundr = item
                 break
             end
@@ -459,24 +468,31 @@ local function GrabGun()
 
         if gundr then
             -- Perform the gun grabbing process
-            local oldpos = Player.Character.HumanoidRootPart.CFrame
+            local oldPos = Player.Character.HumanoidRootPart.CFrame
             local startTime = os.clock()
 
+            -- Animate the grabbing process
             repeat
+                -- Move to GunDrop position and back
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                task.wait()
+                task.wait(0.1) -- Short wait before moving back
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                task.wait()
+                task.wait(0.1) -- Short wait before the next loop
             until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 1.5
-            
-            Player.Character.HumanoidRootPart.CFrame = oldpos
-            Player.Character.Humanoid:ChangeState(1)
+
+            -- Reset position and change the humanoid state
+            Player.Character.HumanoidRootPart.CFrame = oldPos
+            Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Freefall) -- Changed to Freefall for clarity
+
+            -- Notify the player
             SendNotif("Grab Gun", "Gotcha.", 3)
         else
+            -- Notify if the gun is not found
             SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
         end
     end
 end
+
 
 
 
@@ -3417,51 +3433,34 @@ if value then
         button.BackgroundTransparency = 1
         button.Text = buttonTitle
 
-        if button.Text == "Grab Gun" then
-            -- Function to update the button text
-            local function updateButtonText()
-                local gunDropFound = false
-        
-                -- Search for GunDrop in the entire Workspace
-                for _, item in pairs(workspace:GetChildren()) do
-                    if item:IsA("Part") and item.Name == "GunDrop" then
-                        gunDropFound = true
-                        break
-                    end
-                end
-        
-                -- Update button text based on the presence of GunDrop
-                if gunDropFound then
-                    button.Text = "Grab Gun (🟢)"
-                else
-                    button.Text = "Grab Gun (🔴)"
-                end
+local function updateButtonText()
+    local gunDropFound = false
+
+    -- Iterate through all children of the Workspace
+    for _, folder in pairs(workspace:GetChildren()) do
+        -- Check if the child is a Folder (or Model)
+        if folder:IsA("Folder") or folder:IsA("Model") then
+            -- Check if there is a GunDrop part inside the folder
+            local gunDrop = folder:FindFirstChild("GunDrop")
+            if gunDrop then
+                gunDropFound = true
+                break -- Exit the loop if GunDrop is found
             end
-        
-            -- Initial check for GunDrop in the Workspace
-            updateButtonText()  -- Call it initially to set the correct text
-        
-            -- Continuously check for GunDrop's presence in the Workspace
-            coroutine.wrap(function()
-                while true do
-                    updateButtonText() -- Update button text based on current state
-                    task.wait(0.1) -- Check every 0.1 seconds
-                end
-            end)()
-        
-            -- Connect the function to update the button text when a child is added or removed in the Workspace
-            workspace.ChildAdded:Connect(function(child)
-                if child:IsA("Part") and child.Name == "GunDrop" then
-                    updateButtonText()
-                end
-            end)
-        
-            workspace.ChildRemoved:Connect(function(child)
-                if child:IsA("Part") and child.Name == "GunDrop" then
-                    updateButtonText()  -- Update button text when GunDrop is removed
-                end
-            end)
         end
+    end
+
+    -- Update button text based on the presence of GunDrop
+    if gunDropFound then
+        button.Text = "Grab Gun (🟢)"
+    else
+        button.Text = "Grab Gun (🔴)"
+    end
+end
+
+-- Only connect the function to RenderStepped if the button text is "Grab Gun"
+if button.Text == "Grab Gun" then
+    RunService.RenderStepped:Connect(updateButtonText)
+end
         
         
         
