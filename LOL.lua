@@ -2403,17 +2403,16 @@ local function findNearestUntappedCoin()
     if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local workspace = game:GetService("Workspace")
 
-        -- Search for all CoinContainers in the workspace
+        -- Search through all CoinContainers in the workspace
         for _, map in ipairs(workspace:GetChildren()) do
-            if map:IsA("Model") then  -- Check if the child is a Model (potential map)
+            if map:IsA("Model") then  -- Check if the child is a Model (map)
                 local coinContainer = map:FindFirstChild("CoinContainer")
                 if coinContainer then
                     local coins = coinContainer:GetChildren()
 
-                    -- Find the nearest "Coin_Server" part that hasn't been touched yet
+                    -- Find the nearest "Coin_Server" part with both "TouchInterest" and "CoinVisual"
                     for _, coin in ipairs(coins) do
                         if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
-                            -- Check for TouchInterest and CoinVisual children
                             if coin:FindFirstChild("TouchInterest") and coin:FindFirstChild("CoinVisual") then
                                 local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
                                 if distance < nearestDistance then
@@ -2428,93 +2427,92 @@ local function findNearestUntappedCoin()
         end
     end
 
-    return nearestCoin
+    return nearestCoin, nearestDistance
 end
 
--- Function to move to the nearest untapped Coin_Server part with smooth transition
+-- Function to move to the nearest untapped Coin_Server part
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part
-    local nearestCoin = findNearestUntappedCoin()
+    local nearestCoin, nearestDistance = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Candy.")
-        isMovingToCoin = true
-
-        local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
-        local distanceToCoin = (nearestCoin.Position - player.Character.HumanoidRootPart.Position).magnitude
-
-        -- Teleport if too far
-        if distanceToCoin > TELEPORT_DISTANCE_THRESHOLD then
+        -- Teleport if too far, otherwise walk towards it smoothly
+        if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            wait(0.1)  -- Wait briefly to ensure character updates position
-        else
-            -- Move the character towards the nearest untapped "Coin_Server" part gradually
+            task.wait(0.1)  -- Small delay to allow teleport update
+        end
+
+        if isAutoFarming then
+            print("Moving towards Coin")
+            isMovingToCoin = true
+
+            -- Smooth transition to the nearest untapped Coin_Server part
+            local targetPosition = nearestCoin.Position
+            local arrivalThreshold = 3  -- Distance at which we consider the player has arrived at the coin
+
+            -- Move towards the target gradually
             while isAutoFarming and isMovingToCoin do
-                if not player.Character or not player.Character.HumanoidRootPart then
+                if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
                     isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
                     break
                 end
 
+                -- Get current position of player
                 local currentPos = player.Character.HumanoidRootPart.Position
-                local direction = (targetPosition - currentPos).unit
-                local distanceToTarget = (targetPosition - currentPos).magnitude
+                local distanceToTarget = (targetPosition - currentPos).Magnitude
 
+                -- If the player is close enough, stop moving
                 if distanceToTarget <= arrivalThreshold then
-                    print("Arrived at Candy")
+                    print("Arrived at Coin")
                     isMovingToCoin = false
                     break
                 end
 
-                -- Move towards the target
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+                -- Calculate the direction to move in
+                local direction = (targetPosition - currentPos).Unit
+                local nextPosition = currentPos + direction * moveSpeed * RunService.Heartbeat:Wait()
+
+                -- Move the player towards the coin by updating their CFrame
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nextPosition)
+
+                -- Small delay to ensure smooth movement
+                RunService.Heartbeat:Wait()
+            end
+
+            -- Mark the coin as touched and wait for the next move
+            touchedCoins[nearestCoin] = true
+            task.wait(delay)
+
+            -- Continue to the next untapped Coin_Server if auto farming is still enabled
+            if isAutoFarming and not isMovingToCoin then
+                coroutine.wrap(moveToCoinServer)()
             end
         end
-
-        -- Mark the coin as touched
-        touchedCoins[nearestCoin] = true
-
-        wait(delay)
-
-        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
-        if isAutoFarming and not isMovingToCoin then
-            -- Use coroutine to prevent blocking
-            coroutine.wrap(moveToCoinServer)()
-        end
     else
-        print("Candy not found. Searching for Coin_Server...")
+        print("Coin not Found.. Searching again...")
         isMovingToCoin = false
-        
-        -- Call VoidSafe() if there are no Coins available
-        if Void then
-            task.wait(1)
-            VoidSafe()
-        end
-        task.wait(1)
 
-        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        task.wait(1)
+        if Void then
+            VoidSafe()
+            task.wait(1)
+        end
+
+        -- If auto farming is enabled and no coin is found, restart the search
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
     end
 end
 
--- Function to teleport the player to the map with a delay
-local function teleportToMapWithDelay(delay)
-    wait(delay)
-    coroutine.wrap(moveToCoinServer)()
-end
-
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
     player.Character = character
-    touchedCoins = {}  -- Reset touchedCoins table when character resets
-    isMovingToCoin = false  -- Reset moving to coin flag
+    touchedCoins = {}  -- Reset touchedCoins when character resets
+    isMovingToCoin = false  -- Reset moving status
     if isAutoFarming then
-        -- Teleport to the map with a delay before starting auto farming again
-        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
-        if not isMovingToCoin then
-            coroutine.wrap(moveToCoinServer)()
-        end
+        -- Resume auto farming after teleporting
+        teleportToMapWithDelay(5)  -- Teleport after a delay before starting auto farm
     end
 end
 
@@ -2522,39 +2520,34 @@ end
 local function onCharacterRemoving()
     if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
-        isAutoFarming = false  -- Stop auto farming when character dies
-        isMovingToCoin = false  -- Stop moving towards the coin
-        teleportToMapWithDelay(5)  -- Teleport to map with a delay of 5 seconds
-        isAutoFarming = true  -- Resume auto farming after teleporting (if toggle is still on)
-        if not isMovingToCoin then
-            coroutine.wrap(moveToCoinServer)()
-        end
+        isAutoFarming = false  -- Stop auto farming when the character is removed
+        isMovingToCoin = false  -- Stop moving
+        teleportToMapWithDelay(5)  -- Resume teleporting after delay
     end
 end
 
--- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Candy", Default = false })
+-- Example toggle integration for AutoFarm
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Candy Only", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
     if isAutoFarming then
-        print("Auto Farm Candy enabled.")
-        -- Connect the character added event handler only when auto farming is enabled
+        print("Auto Farm Coin enabled.")
+        -- Character events for respawn and removal
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-        -- Connect the character removing event handler only when auto farming is enabled
         characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
+        -- Start moving to the nearest coin
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Auto Farm Candy disabled.")
-        isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
-        -- Disconnect the character added event handler when auto farming is disabled
+        print("Auto Farm Coin disabled.")
+        isMovingToCoin = false  -- Stop moving when farming is disabled
+        -- Disconnect event listeners
         if characterAddedConnection then
             characterAddedConnection:Disconnect()
             characterAddedConnection = nil
         end
-        -- Disconnect the character removing event handler when auto farming is disabled
         if characterRemovingConnection then
             characterRemovingConnection:Disconnect()
             characterRemovingConnection = nil
@@ -2562,14 +2555,11 @@ Toggle:OnChanged(function(isEnabled)
     end
 end)
 
--- Listen for new coins spawning
+-- Listen for new Coin_Server parts spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
-        -- Check for TouchInterest and CoinVisual children
-        if child:FindFirstChild("TouchInterest") and child:FindFirstChild("CoinVisual") then
-            coroutine.wrap(moveToCoinServer)()
-        end
+    if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("TouchInterest") and child:FindFirstChild("CoinVisual") and isAutoFarming and not isMovingToCoin then
+        coroutine.wrap(moveToCoinServer)()
     end
 end)
 
