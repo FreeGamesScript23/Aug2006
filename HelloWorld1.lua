@@ -2428,7 +2428,7 @@ local function findNearestUntappedCoin()
         end
     end
 
-    return nearestCoin
+    return nearestCoin, nearestDistance
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
