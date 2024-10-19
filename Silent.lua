@@ -1450,59 +1450,84 @@ Toggle:OnChanged(function(SeeGun)
         SSeeGun = true
         spawn(function()
             while SSeeGun do
-                repeat task.wait() until workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop")
-                local normal = workspace:FindFirstChild("Normal")
-                if normal then
-                    local gunDrop = normal:FindFirstChild("GunDrop")
-                    if gunDrop and not gunDrop:FindFirstChild("Esp_gun") then
-                        SendNotif("Gun Found", "Gun has been Drop", 3)
-                        
-                        -- Create the Highlight instance
-                        local espgunhigh = Instance.new("Highlight", gunDrop)
-                        espgunhigh.Name = "Esp_gun"
-                        espgunhigh.FillColor = Color3.fromRGB(0, 255, 0)
-                        espgunhigh.OutlineTransparency = 1
-                        espgunhigh.FillTransparency = 0
+                task.wait()
 
-                        -- Create the BillboardGui instance
-                        local billboardGui = Instance.new("BillboardGui")
-                        billboardGui.Name = "GunBillboardGui"
-                        billboardGui.Adornee = gunDrop
-                        billboardGui.Size = UDim2.new(0, 50, 0, 25)
-                        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
-                        billboardGui.AlwaysOnTop = true
-
-                        -- Create a TextLabel for the BillboardGui
-                        local textLabel = Instance.new("TextLabel")
-                        textLabel.Size = UDim2.new(1, 0, 1, 0)
-                        textLabel.BackgroundTransparency = 1
-                        textLabel.Text = "Gun Here"
-                        textLabel.TextColor3 = Color3.fromRGB(97, 62, 167)
-                        textLabel.TextScaled = true
-                        textLabel.Font = Enum.Font.SourceSansBold
-                        textLabel.TextStrokeTransparency = 0
-                        textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-                        textLabel.Parent = billboardGui
-
-                        billboardGui.Parent = gunDrop
+                local gunDrop = nil
+                -- Search for GunDrop in the entire workspace
+                for _, item in pairs(workspace:GetChildren()) do
+                    if item:IsA("Folder") or item:IsA("Model") then
+                        -- Check if GunDrop exists inside the folder/model
+                        local foundGunDrop = item:FindFirstChild("GunDrop")
+                        if foundGunDrop then
+                            gunDrop = foundGunDrop
+                            break
+                        end
+                    elseif item:IsA("Part") and item.Name == "GunDrop" then
+                        -- In case GunDrop is directly under the workspace
+                        gunDrop = item
+                        break
                     end
+                end
+
+                -- If a GunDrop is found and doesn't already have ESP
+                if gunDrop and not gunDrop:FindFirstChild("Esp_gun") then
+                    SendNotif("Gun Found", "Gun has been dropped", 3)
+
+                    -- Create the Highlight instance
+                    local espgunhigh = Instance.new("Highlight", gunDrop)
+                    espgunhigh.Name = "Esp_gun"
+                    espgunhigh.FillColor = Color3.fromRGB(0, 255, 0)
+                    espgunhigh.OutlineTransparency = 1
+                    espgunhigh.FillTransparency = 0
+
+                    -- Create the BillboardGui instance
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "GunBillboardGui"
+                    billboardGui.Adornee = gunDrop
+                    billboardGui.Size = UDim2.new(0, 50, 0, 25)
+                    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                    billboardGui.AlwaysOnTop = true
+
+                    -- Create a TextLabel for the BillboardGui
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Text = "Gun Here"
+                    textLabel.TextColor3 = Color3.fromRGB(97, 62, 167)
+                    textLabel.TextScaled = true
+                    textLabel.Font = Enum.Font.SourceSansBold
+                    textLabel.TextStrokeTransparency = 0
+                    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                    textLabel.Parent = billboardGui
+
+                    billboardGui.Parent = gunDrop
                 end
             end
         end)
     else
         SSeeGun = false
         task.wait(0.2)
-        local normal = workspace:FindFirstChild("Normal")
-        if normal then
-            local gunDrop = normal:FindFirstChild("GunDrop")
+
+        -- Clean up ESP when toggled off
+        for _, item in pairs(workspace:GetChildren()) do
+            local gunDrop = nil
+
+            if item:IsA("Folder") or item:IsA("Model") then
+                gunDrop = item:FindFirstChild("GunDrop")
+            elseif item:IsA("Part") and item.Name == "GunDrop" then
+                gunDrop = item
+            end
+
             if gunDrop and gunDrop:FindFirstChild("Esp_gun") then
-                gunDrop.Esp_gun:Destroy()
+                gunDrop.Esp_gun:Destroy() -- Remove the ESP
+                gunDrop:FindFirstChild("GunBillboardGui"):Destroy() -- Remove the BillboardGui
             end
         end
     end
 end)
 
 Options.ESPGun:SetValue(false)
+
 
 
 local Toggle = Tabs.Visual:AddToggle("Xray", {Title = "Xray", Default = false})
