@@ -2254,6 +2254,7 @@ end)
 
 Options.AutoFEInvi:SetValue(false)
 
+
 -- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
     if LocalPlayer.Name == Murder then
@@ -2339,16 +2340,22 @@ end)
 
 Options.TPtoVoid:SetValue(false)
 
-local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when full bag (Murder Only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
 
-Toggle:OnChanged(function(value)
-
-
+Toggle:OnChanged(function(killall)
+    
+    if LocalPlayer.Name == Murder then  
+            killall = true  
+            Options.AutoKillAll:SetValue(true)
+        else
+            killall = false
+            Options.AutoKillAll:SetValue(false)
+        end
 
 end)
 
-
 Options.KillFull:SetValue(false)
+
 
 local moveSpeed = 50
 local delay = math.random(1.7, 2.1)
