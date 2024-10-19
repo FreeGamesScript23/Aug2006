@@ -2467,11 +2467,25 @@ local function moveToCoinServer()
             
         end
     else
-        print("Candy not found. Searching for Coin_Server...")
-        isMovingToCoin = false
+        while true do  -- Infinite loop
+            print("Checking for Candy...")  -- For debugging purposes
+            isMovingToCoin = false
+            
+            -- Check if Void is defined and true
+            if Void then
+                local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
+                local coinText = playerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
         
-        wait(1)  -- Wait for a short period before searching again (customize as needed)
-
+                -- If the coin count is equal to "40"
+                if coinText == "40" then
+                    task.wait(1)  -- Wait for another second
+                    VoidSafe()    -- Call the VoidSafe function
+                end
+            end
+            
+            wait(1)  -- Wait for 1 second before checking again
+        end        
+        
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
