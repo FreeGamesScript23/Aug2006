@@ -2686,19 +2686,27 @@ local function continuouslyCheckCandyAndCoins()
             -- Get Candy and Coin counts
             local candyText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
             local coinBagText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+            
+            print("Current Candy:", candyText)  -- Debug print for current candy count
+            print("Current Coin Bag:", coinBagText)  -- Debug print for current coin bag count
 
-            -- If Candy or Coin bag reaches 40, trigger corresponding functions
+            -- If Candy reaches 40, trigger VoidSafe function
             if candyText == "40" then
+                print("Candy reached 40, triggering VoidSafe.")
                 task.wait(1)
                 getgenv().FullBag = true
                 VoidSafe()  -- Call VoidSafe function
             end
 
+            -- If Coin Bag reaches 40, trigger CoinBagSafe function
             if coinBagText == "40" then
+                print("Coin Bag reached 40, triggering CoinBagSafe.")
                 task.wait(1)
                 getgenv().FullBag = true
                 CoinBagSafe()  -- Call hypothetical CoinBagSafe function
             end
+        else
+            print("Void is not defined or is false.")
         end
         
         task.wait(1)  -- Wait for 1 second before checking again
