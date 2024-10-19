@@ -2717,10 +2717,10 @@ local function moveToCoinServer()
         if Void then
         task.wait(1)
         VoidSafe()
-
+            if getgenv().FullBag then
         if Mobile and candyGui then candyGui.Text = "0" end
         if not Mobile and coinBagGui then coinBagGui.Text = "0" end
-
+            end
         end
         task.wait(1)  -- Wait for a short period before searching again (customize as needed)
 
