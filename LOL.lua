@@ -2385,7 +2385,6 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- Movement parameters
--- Adjusted move speed for faster movement
 local arrivalThreshold = 1  -- Distance threshold to stop moving
 local touchedCoins = {}  -- Table to track touched Coin_Server parts
 local isAutoFarming = false  -- Flag to track if auto farming is enabled
@@ -2402,7 +2401,7 @@ local function findNearestUntappedCoin()
     -- Check if player and player.Character are valid
     if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local workspace = game:GetService("Workspace")
-        
+
         -- Search for all CoinContainers in the workspace
         for _, map in ipairs(workspace:GetChildren()) do
             if map:IsA("Model") then  -- Check if the child is a Model (potential map)
@@ -2484,6 +2483,7 @@ local function moveToCoinServer()
         print("Candy not found. Searching for Coin_Server...")
         isMovingToCoin = false
         
+        -- Call VoidSafe() if there are no Coins available
         if Void then
             task.wait(1)
             VoidSafe()
@@ -2558,7 +2558,6 @@ Toggle:OnChanged(function(isEnabled)
             characterRemovingConnection:Disconnect()
             characterRemovingConnection = nil
         end
-        -- Optionally, you could stop the character here
     end
 end)
 
@@ -2572,6 +2571,7 @@ workspace.ChildAdded:Connect(function(child)
         end
     end
 end)
+
 
 
 
