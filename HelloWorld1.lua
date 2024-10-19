@@ -2318,7 +2318,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Beachball only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void If Done Collecting Candies", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
