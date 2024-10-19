@@ -2273,7 +2273,7 @@ local function checkLocalPlayerRole()
             Options.FEInvisible:SetValue(false)
         else
             -- Enable AutoFEInvi if AutoFarmCandy or AutoFarmEggs is true
-            if Options.AutoFarmCandy.Value then
+            if Options.AutoFarmCandy.Value then 
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
