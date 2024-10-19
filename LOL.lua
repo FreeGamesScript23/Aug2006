@@ -2430,60 +2430,51 @@ local function findNearestUntappedCoin()
     return nearestCoin, nearestDistance
 end
 
--- Function to move to the nearest untapped Coin_Server part
+-- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part
     local nearestCoin, nearestDistance = findNearestUntappedCoin()
 
     if nearestCoin then
-        -- Teleport if too far, otherwise walk towards it smoothly
         if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
+            -- Teleport to the nearest coin if it's too far away
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Small delay to allow teleport update
+            task.wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
+        -- After teleporting, we smoothly move the character towards the coin
         if isAutoFarming then
             print("Moving towards Coin")
             isMovingToCoin = true
 
-            -- Smooth transition to the nearest untapped Coin_Server part
-            local targetPosition = nearestCoin.Position
-            local arrivalThreshold = 3  -- Distance at which we consider the player has arrived at the coin
-
-            -- Move towards the target gradually
+            -- Start the smooth movement loop
             while isAutoFarming and isMovingToCoin do
                 if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                    isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
-                    break
+                    isMovingToCoin = false
+                    break  -- Stop moving if character or HumanoidRootPart is nil
                 end
 
-                -- Get current position of player
                 local currentPos = player.Character.HumanoidRootPart.Position
-                local distanceToTarget = (targetPosition - currentPos).Magnitude
+                local targetPos = nearestCoin.Position
+                local direction = (targetPos - currentPos).Unit
+                local distanceToTarget = (targetPos - currentPos).Magnitude
 
-                -- If the player is close enough, stop moving
+                -- Check if we've arrived at the coin
                 if distanceToTarget <= arrivalThreshold then
                     print("Arrived at Coin")
                     isMovingToCoin = false
                     break
                 end
 
-                -- Calculate the direction to move in
-                local direction = (targetPosition - currentPos).Unit
-                local nextPosition = currentPos + direction * moveSpeed * RunService.Heartbeat:Wait()
-
-                -- Move the player towards the coin by updating their CFrame
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(nextPosition)
-
-                -- Small delay to ensure smooth movement
-                RunService.Heartbeat:Wait()
+                -- Move the character smoothly towards the coin
+                player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + direction * moveSpeed * RunService.Heartbeat:Wait()
             end
 
-            -- Mark the coin as touched and wait for the next move
+            -- Mark the coin as touched after reaching it
             touchedCoins[nearestCoin] = true
             task.wait(delay)
 
-            -- Continue to the next untapped Coin_Server if auto farming is still enabled
+            -- Continue searching for the next nearest coin if auto farming is still enabled
             if isAutoFarming and not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
@@ -2493,6 +2484,7 @@ local function moveToCoinServer()
         isMovingToCoin = false
 
         task.wait(1)
+        -- If Void exists, call VoidSafe and wait briefly
         if Void then
             VoidSafe()
             task.wait(1)
@@ -2504,6 +2496,7 @@ local function moveToCoinServer()
         end
     end
 end
+
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
