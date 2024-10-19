@@ -2062,160 +2062,6 @@ getgenv().FLINGTARGET = Sheriff
 end)
 
 Options.Fling:SetValue(false)
-
-
-local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Not Working)")
-
-
--- Function to create the dropdown menu
-local function CreateDropdown()
-Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
-        Title = "Select Player",
-        Values = GetOtherPlayersAll(),
-        Multi = false,
-        Default = "All",
-})
-
-Dropdown:OnChanged(function(Value)
-        selectedPlayer = Value  -- Update selectedPlayer when selection changes
-        ChangeLoopTarget = Value  -- Update ChangeLoopTarget when selection changes
-end)
-end
-
--- Initial creation of the dropdown
-CreateDropdown()
-
--- Function to update the dropdown values
-function UpdateDropdown()
-local newValues = GetOtherPlayersAll()
-Dropdown.Values = newValues  -- Update the dropdown values
-Dropdown:SetValue("All")  -- Reset selected value to default
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-Players.PlayerAdded:Connect(UpdateDropdown)
-Players.PlayerRemoving:Connect(UpdateDropdown)
-
-local ToggleTrapAll = Tabs.Troll:AddToggle("TrapAll", {Title = "Loop Trap Selected Player", Default = false })
-local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Trap Sheriff", Default = false })
-local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
-
-function placeTrapForPlayer(Player)
-    local localUserId = game.Players.LocalPlayer.UserId
-    local targetUserId = Player.UserId
-
-    if (monarchs[localUserId] or (premiums[localUserId] and not monarchs[targetUserId]) or (not premiums[localUserId] and not monarchs[localUserId])) then
-        local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-        if HumanoidRootPart then
-            pcall(function()
-                PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
-            end)
-        end
-    end
-end
-
-function ChangeLoopTrapPlayerFix()
-    if ChangeLoopTarget == "All" then
-        for _, v in pairs(Players:GetChildren()) do
-            if v ~= LocalPlayer then
-                placeTrapForPlayer(v)
-            end
-        end
-    else
-        local Target = Players:FindFirstChild(ChangeLoopTarget)
-        if Target then
-            placeTrapForPlayer(Target)
-        end
-    end
-end
-
-function ChangeLoopTrapSheriffFix()
-    if Sheriff then
-        local SheriffPlayer = Players:FindFirstChild(Sheriff)
-        if SheriffPlayer then
-            placeTrapForPlayer(SheriffPlayer)
-        end
-    end
-end
-
-function ChangeLoopTrapMurdererFix()
-    if Murder then
-        local MurderPlayer = Players:FindFirstChild(Murder)
-        if MurderPlayer then
-            placeTrapForPlayer(MurderPlayer)
-        end
-    end
-end
-
-ToggleTrapAll:OnChanged(function(Value)
-    ChangeLoopTrapPlayer = Value
-
-    spawn(function()
-        while ChangeLoopTrapPlayer do
-            pcall(ChangeLoopTrapPlayerFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-ToggleTrapSheriff:OnChanged(function(Value)
-    ChangeLoopTrapSheriff = Value
-
-    spawn(function()
-        while ChangeLoopTrapSheriff do
-            pcall(ChangeLoopTrapSheriffFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-ToggleTrapMurderer:OnChanged(function(Value)
-    ChangeLoopTrapMurderer = Value
-
-    spawn(function()
-        while ChangeLoopTrapMurderer do
-            pcall(ChangeLoopTrapMurdererFix)
-            task.wait(0.1)  -- Reduce wait time for faster trap placement
-        end
-    end)
-end)
-
-Options.TrapAll:SetValue(false)
-Options.TrapSheriff:SetValue(false)
-Options.TrapMurderer:SetValue(false)
-
--- Start role updater in a separate thread
-spawn(updateRoles)
-
-Tabs.Troll:AddButton({
-        Title = "Get Trap Tool",
-        Description = "Give you trap tool that u can place anywhere you want loll",
-        Callback = function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/UmF5dmVuScript/main/TrapTool",true))()
-end
-})
-
-local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
-
-function AntiTrapFix()
-local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
-        Humanoid.WalkSpeed = 16
-end
-end
-
-ToggleAntiTrap:OnChanged(function(Value)
-ChangeAntiTrap = Value
-
-spawn(function()
-        while ChangeAntiTrap do
-            pcall(AntiTrapFix)
-            task.wait(0.1)  -- Check more frequently for traps
-        end
-end)
-end)
-
-Options.AntiTrap:SetValue(false)
         
         
         Tabs.Troll:AddParagraph({
@@ -2363,6 +2209,9 @@ local autoInvisible = false
 local isinvisible = false -- assuming this variable controls invisibility
 
 AutoToggle:OnChanged(function(value)
+    if LocalPlayer.Name == Murder then
+        return
+    end
     autoInvisible = value
 
     if autoInvisible and Murder then
@@ -2411,6 +2260,9 @@ end
 
 -- Function to check the distance between the local player and the murderer
 local function checkDistance()
+    if LocalPlayer.Name == Murder then
+        return
+    end
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
         local localCharacter = Players.LocalPlayer.Character
