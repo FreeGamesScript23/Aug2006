@@ -2474,10 +2474,10 @@ local function moveToCoinServer()
         isMovingToCoin = false
         
         if Void then
-        task.wait(1)
-        VoidSafe()
+            task.wait(1)
+            VoidSafe()
         end
-        task.wait(1)
+            task.wait(1)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
