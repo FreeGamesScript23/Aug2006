@@ -2273,7 +2273,7 @@ local function checkLocalPlayerRole()
             Options.FEInvisible:SetValue(false)
         else
             -- Enable AutoFEInvi if AutoFarmCandy or AutoFarmEggs is true
-            if Options.AutoFarmCandy.Value then 
+            if Options.AutoFarmCandy.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -2340,16 +2340,22 @@ end)
 
 Options.TPtoVoid:SetValue(false)
 
-local candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
-local coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
-
--- Function to check the bag status continuously
-local function checkBagStatus()
+-- Function to check the Candy status from both devices
+local function checkCandyStatus()
     while true do
-        local candyText = candyGui.Text
-        local coinBagText = coinBagGui.Text 
+        -- Attempt to access the Candy text value from both devices
+        local candyGui = mainGui:FindFirstChild("Lobby"):FindFirstChild("Dock"):FindFirstChild("CoinBags"):FindFirstChild("Container"):FindFirstChild("Candy"):FindFirstChild("CurrencyFrame"):FindFirstChild("Icon"):FindFirstChild("Coins")
+        local coinBagGui = mainGui:FindFirstChild("Game"):FindFirstChild("CoinBags"):FindFirstChild("Container"):FindFirstChild("Candy"):FindFirstChild("CurrencyFrame"):FindFirstChild("Icon"):FindFirstChild("Coins")
 
-        -- Check if candy or coin bag is full
+        -- Check if both GUI elements exist before accessing their Text property
+        local candyText = candyGui and candyGui.Text or nil
+        local coinBagText = coinBagGui and coinBagGui.Text or nil
+
+        -- Print for debugging purposes
+        print("Candy Text: ", candyText)
+        print("Coin Bag Text: ", coinBagText)
+
+        -- Check if either Candy text equals "40"
         if candyText == "40" or coinBagText == "40" then
             getgenv().FullBag = true
         else
@@ -2361,13 +2367,13 @@ local function checkBagStatus()
 end
 
 -- Start the continuous checking in a coroutine
-coroutine.wrap(checkBagStatus)()
+coroutine.wrap(checkCandyStatus)()
 
 local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     local player = game.Players.LocalPlayer
-    local murderPlayerName = Murder
+    local murderPlayerName = "Murder"  -- Ensure this matches the correct name of the player acting as Murderer
 
     if player.Name == murderPlayerName then
         if getgenv().FullBag then
