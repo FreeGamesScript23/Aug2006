@@ -2420,36 +2420,6 @@ local function findNearestUntappedCoin()
     return nearestCoin
 end
 
--- Function to continuously check the candy and coin bag status
-local function continuouslyCheckCandyAndCoins()
-    while true do  -- Infinite loop
-        print("Checking for Candy and Coin Bag...")  -- For debugging purposes
-
-        -- Check if Void is defined and true
-        if Void then
-            -- Check the candy status
-            local candyText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
-
-            -- Check the coin bag status
-            local coinBagText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
-
-            -- If the candy count is equal to "40"
-            if candyText == "40" then
-                task.wait(1)  -- Wait for another second
-                VoidSafe()    -- Call the VoidSafe function
-            end
-
-            -- If the coin bag count is equal to "40" (example condition)
-            if coinBagText == "40" then
-                task.wait(1)  -- Wait for another second
-                CoinBagSafe()  -- Call a hypothetical CoinBagSafe function
-            end
-        end
-        
-        wait(1)  -- Wait for 1 second before checking again
-    end
-end
-
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part
@@ -2503,9 +2473,11 @@ local function moveToCoinServer()
         print("Candy not found. Searching for Coin_Server...")
         isMovingToCoin = false
         
-        wait(1)  
-        -- Wait for a short period before searching again (customize as needed)
-
+        if Void then
+            task.wait(1)
+            VoidSafe()
+            end
+            task.wait(1)
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
