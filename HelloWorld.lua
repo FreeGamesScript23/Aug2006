@@ -2456,7 +2456,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Candy", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2561,7 +2561,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin or Candy.")
+        print("Moving towards Candy.")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
@@ -2584,7 +2584,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin or Candy")
+                print("Arrived at Candy")
                 isMovingToCoin = false
                 break
             end
@@ -2605,7 +2605,7 @@ local function moveToCoinServer()
             
         end
     else
-        print("Coin not found. Searching for Coin_Server...")
+        print("Candy not found. Searching for Coin_Server...")
         isMovingToCoin = false
         
         wait(1)  -- Wait for a short period before searching again (customize as needed)
@@ -2652,12 +2652,12 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Candy", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
 if isAutoFarming then
-        print("Auto Farm Coin enabled.")
+        print("Auto Farm Candy enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         -- Connect the character removing event handler only when auto farming is enabled
@@ -2666,7 +2666,7 @@ if isAutoFarming then
             coroutine.wrap(moveToCoinServer)()
         end
 else
-        print("Auto Farm Coin disabled.")
+        print("Auto Farm Candy disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
@@ -2998,7 +2998,7 @@ local toggles = {
     FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
     FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
     InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false}),
-    AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
+    AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Candy Button Toggle", Default = false})
 }
 
 local toggleOptions = {
@@ -3018,7 +3018,7 @@ for buttonType, toggle in pairs(toggles) do
         buttonText = "FE Invisible is"
         remoteEvent = "Stealth"
     elseif buttonType == "AFCoinButton" then
-        buttonText = "Auto Farm Coin is"
+        buttonText = "Auto Farm Candy is"
         remoteEvent = nil
     elseif buttonType == "InviButton" then
         buttonText = "Invisible is"
@@ -3046,7 +3046,7 @@ Player.CharacterAdded:Connect(function()
                 buttonText = "FE Invisible is"
                 remoteEvent = "Stealth"
             elseif buttonType == "AFCoinButton" then
-                buttonText = "Auto Farm Coin is"
+                buttonText = "Auto Farm Candy is"
                 remoteEvent = false
             elseif buttonType == "InviButton" then
                 buttonText = "Invisible is"
