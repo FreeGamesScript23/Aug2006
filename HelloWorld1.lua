@@ -2259,8 +2259,8 @@ local function checkLocalPlayerRole()
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
         else
-            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+            -- Enable AutoFEInvi if AutoFarmCandy or AutoFarmEggs is true
+            if Options.AutoFarmCandy.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -2417,6 +2417,36 @@ local function findNearestUntappedCoin()
     return nearestCoin
 end
 
+-- Function to continuously check the candy and coin bag status
+local function continuouslyCheckCandyAndCoins()
+    while true do  -- Infinite loop
+        print("Checking for Candy and Coin Bag...")  -- For debugging purposes
+
+        -- Check if Void is defined and true
+        if Void then
+            -- Check the candy status
+            local candyText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+
+            -- Check the coin bag status
+            local coinBagText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+
+            -- If the candy count is equal to "40"
+            if candyText == "40" then
+                task.wait(1)  -- Wait for another second
+                VoidSafe()    -- Call the VoidSafe function
+            end
+
+            -- If the coin bag count is equal to "40" (example condition)
+            if coinBagText == "40" then
+                task.wait(1)  -- Wait for another second
+                CoinBagSafe()  -- Call a hypothetical CoinBagSafe function
+            end
+        end
+        
+        wait(1)  -- Wait for 1 second before checking again
+    end
+end
+
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part
@@ -2467,25 +2497,12 @@ local function moveToCoinServer()
             
         end
     else
-        while true do  -- Infinite loop
-            print("Checking for Candy...")  -- For debugging purposes
-            isMovingToCoin = false
-            
-            -- Check if Void is defined and true
-            if Void then
-                local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
-                local coinText = playerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+        print("Candy not found. Searching for Coin_Server...")
+        isMovingToCoin = false
         
-                -- If the coin count is equal to "40"
-                if coinText == "40" then
-                    task.wait(1)  -- Wait for another second
-                    VoidSafe()    -- Call the VoidSafe function
-                end
-            end
-            
-            wait(1)  -- Wait for 1 second before checking again
-        end        
-        
+        wait(1)  
+        -- Wait for a short period before searching again (customize as needed)
+
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
@@ -2528,7 +2545,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Candy", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Candy", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
@@ -2879,7 +2896,7 @@ local toggles = {
 local toggleOptions = {
     FEInviButtonPerk = Options.FEInvisible,
     FEInviButton = Options.FEInvisible,
-    AFCoinButton = Options.AutoFarmCoin,
+    AFCoinButton = Options.AutoFarmCandy,
 }
 
 -- Connect toggle state changes to handleToggle
