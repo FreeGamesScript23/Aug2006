@@ -2343,15 +2343,15 @@ Options.TPtoVoid:SetValue(false)
 local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
 
 Toggle:OnChanged(function(killall)
-    
-    if LocalPlayer.Name == Murder then  
+    if LocalPlayer.Name == Murder then
+        if getgenv().FullBag then
             killall = true  
             Options.AutoKillAll:SetValue(true)
         else
             killall = false
             Options.AutoKillAll:SetValue(false)
         end
-
+    end 
 end)
 
 Options.KillFull:SetValue(false)
@@ -2619,23 +2619,24 @@ local function moveToCoinServer()
     local nearestCoin, nearestDistance = findNearestUntappedCoin()
 
     if nearestCoin then
+        -- Teleport to the nearest coin if it's too far away
         if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
-            -- Teleport to the nearest coin if it's too far away
             player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
             task.wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
-        -- Check again if auto farming is still enabled after teleportation
+        -- Ensure auto farming is still enabled after teleportation
         if isAutoFarming then
             print("Moving towards Candy")
             isMovingToCoin = true
 
             local targetPosition = nearestCoin.Position
 
-            -- Move the character towards the nearest untapped "Coin_Server" part gradually
+            -- Smooth movement towards the target
             while isAutoFarming and isMovingToCoin do
+                -- Exit if character or HumanoidRootPart is missing
                 if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                    isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                    isMovingToCoin = false
                     break
                 end
 
@@ -2643,13 +2644,14 @@ local function moveToCoinServer()
                 local direction = (targetPosition - currentPos).Unit
                 local distanceToTarget = (targetPosition - currentPos).Magnitude
 
+                -- Stop moving if we have arrived at the Candy
                 if distanceToTarget <= arrivalThreshold then
                     print("Arrived at Candy")
                     isMovingToCoin = false
                     break
                 end
 
-                -- Move towards the target
+                -- Move towards the target gradually
                 player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
             end
 
@@ -2658,28 +2660,54 @@ local function moveToCoinServer()
 
             task.wait(delay)
 
-            -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+            -- Continue searching for the next nearest untapped Coin_Server part
             if isAutoFarming and not isMovingToCoin then
-                -- Use coroutine to prevent blocking
                 coroutine.wrap(moveToCoinServer)()
             end
         end
     else
-        print("Candy not Found.. Searching again...")
-        isMovingToCoin = false
+        print("Candy not found.. Searching again...")
         
-        if Void then
-        task.wait(1)
-        VoidSafe()
-        end
-        task.wait(1)  -- Wait for a short period before searching again (customize as needed)
-
-        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        -- Start searching again after a delay
+        task.wait(1)  -- Wait for a short period before searching again
+        
+        -- Continue searching if auto farming is still enabled
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
     end
 end
+
+-- Function to continuously check the Candy and Coin status
+local function continuouslyCheckCandyAndCoins()
+    while isAutoFarming do  -- Use isAutoFarming as the exit condition for this loop
+        -- Ensure Void is defined and true
+        if Void then
+            -- Get Candy and Coin counts
+            local candyText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+            local coinBagText = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins.Text
+
+            -- If Candy or Coin bag reaches 40, trigger corresponding functions
+            if candyText == "40" then
+                task.wait(1)
+                getgenv().FullBag = true
+                VoidSafe()  -- Call VoidSafe function
+            end
+
+            if coinBagText == "40" then
+                task.wait(1)
+                getgenv().FullBag = true
+                CoinBagSafe()  -- Call hypothetical CoinBagSafe function
+            end
+        end
+        
+        task.wait(1)  -- Wait for 1 second before checking again
+    end
+end
+
+-- Start the continuous checking in a coroutine
+coroutine.wrap(continuouslyCheckCandyAndCoins)()
+
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
