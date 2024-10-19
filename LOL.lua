@@ -3041,20 +3041,13 @@ if value then
                 if child:IsA("Part") and child.Name == "GunDrop" then
                     updateButtonText()
                 end
-        
-                -- If a new random map is added, check for GunDrop within it
-                if child:IsA("Model") then
-                    child.ChildAdded:Connect(function(grandChild)
-                        if grandChild:IsA("Part") and grandChild.Name == "GunDrop" then
-                            updateButtonText()
-                        end
-                    end)
-        
-                    child.ChildRemoved:Connect(updateButtonText) -- Update when GunDrop is removed
-                end
             end)
         
-            workspace.ChildRemoved:Connect(updateButtonText) -- Update button text when anything is removed from Workspace
+            workspace.ChildRemoved:Connect(function(child)
+                if child:IsA("Part") and child.Name == "GunDrop" then
+                    updateButtonText()  -- Update button text when GunDrop is removed
+                end
+            end)
         end
         
         
