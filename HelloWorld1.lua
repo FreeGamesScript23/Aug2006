@@ -2492,7 +2492,11 @@ local function moveToCoinServer()
         print("Coin not Found.. Searching again...")
         isMovingToCoin = false
 
-        task.wait(1)  -- Wait briefly before re-searching
+        task.wait(1)
+        if Void then
+            VoidSafe()
+            task.wait(1)
+        end
 
         -- If auto farming is enabled and no coin is found, restart the search
         if isAutoFarming and not isMovingToCoin then
