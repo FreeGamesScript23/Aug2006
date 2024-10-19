@@ -2444,7 +2444,7 @@ local function moveToCoinServer()
 
         -- After teleporting, we smoothly move the character towards the coin
         if isAutoFarming then
-            print("Moving towards Coin")
+            print("Moving towards Candy")
             isMovingToCoin = true
 
             -- Start the smooth movement loop
@@ -2461,7 +2461,7 @@ local function moveToCoinServer()
 
                 -- Check if we've arrived at the coin
                 if distanceToTarget <= arrivalThreshold then
-                    print("Arrived at Coin")
+                    print("Arrived at Candy")
                     isMovingToCoin = false
                     break
                 end
@@ -2480,7 +2480,7 @@ local function moveToCoinServer()
             end
         end
     else
-        print("Coin not Found.. Searching again...")
+        print("Candy not Found.. Searching again...")
         isMovingToCoin = false
 
         task.wait(1)
@@ -2497,6 +2497,12 @@ local function moveToCoinServer()
     end
 end
 
+
+-- Function to teleport the player to the map with a delay
+local function teleportToMapWithDelay(delay)
+    task.wait(delay)
+    coroutine.wrap(moveToCoinServer)()
+    end
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
@@ -2525,7 +2531,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Cand
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
     if isAutoFarming then
-        print("Auto Farm Coin enabled.")
+        print("Auto Farm Candy enabled.")
         -- Character events for respawn and removal
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
@@ -2534,7 +2540,7 @@ Toggle:OnChanged(function(isEnabled)
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Auto Farm Coin disabled.")
+        print("Auto Farm Candy disabled.")
         isMovingToCoin = false  -- Stop moving when farming is disabled
         -- Disconnect event listeners
         if characterAddedConnection then
