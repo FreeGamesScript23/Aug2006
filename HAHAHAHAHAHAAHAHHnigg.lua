@@ -2357,36 +2357,6 @@ else
     Mobile = true
 end
 
--- Function to check the Candy status
-local function checkCandyStatus()
-    while true do
-        local candyText, coinBagText
-
-        -- Get Candy text from the appropriate GUI based on the device
-        if Mobile then
-            candyText = candyGui and candyGui.Text or nil
-            print("Candy", candyText)
-        else
-            coinBagText = coinBagGui and coinBagGui.Text or nil
-            print("Coin: ", coinBagText)
-        end
-
-        -- Check if Candy text or Coin Bag text equals "40"
-        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
-            getgenv().FullBag = true
-            print("FullBag is True")
-        else
-            getgenv().FullBag = false
-            print("FullBag is False")
-        end
-
-        task.wait(1)  -- Check every second (adjust as needed)
-    end
-end
-
--- Start the continuous checking in a coroutine
-coroutine.wrap(checkCandyStatus)()
-
 local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
@@ -2453,6 +2423,40 @@ local TELEPORT_DISTANCE_THRESHOLD = 1000
 local isMovingToCoin = false  -- Flag to track if currently moving towards a coin
 local characterAddedConnection = nil  -- Variable to store the CharacterAdded connection
 local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
+
+-- Function to check the Candy status
+local function checkCandyStatus()
+    while isAutoFarming do
+        local candyText, coinBagText
+
+        -- Get Candy text from the appropriate GUI based on the device
+        if Mobile then
+            candyText = candyGui and candyGui.Text or nil
+            print("Candy", candyText)
+        else
+            coinBagText = coinBagGui and coinBagGui.Text or nil
+            print("Coin: ", coinBagText)
+        end
+
+        -- Check if Candy text or Coin Bag text equals "40"
+        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
+            getgenv().FullBag = true
+            print("FullBag is True")
+        else
+            getgenv().FullBag = false
+            print("FullBag is False")
+        end
+
+        task.wait(1)  -- Check every second (adjust as needed)
+    end
+end
+
+-- Start the continuous checking in a coroutine
+coroutine.wrap(checkCandyStatus)()
+
+
+
+
 
 -- Function to find the nearest untapped Coin_Server part
 local function findNearestUntappedCoin()
@@ -2717,9 +2721,10 @@ local function moveToCoinServer()
         if Void then
         task.wait(1)
         VoidSafe()
+
             if getgenv().FullBag then
-        if Mobile and candyGui then candyGui.Text = "0" end
-        if not Mobile and coinBagGui then coinBagGui.Text = "0" end
+                if Mobile and candyGui then candyGui.Text = "0" end
+                if not Mobile and coinBagGui then coinBagGui.Text = "0" end
             end
         end
         task.wait(1)  -- Wait for a short period before searching again (customize as needed)
