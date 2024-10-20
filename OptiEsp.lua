@@ -3,28 +3,28 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local premiums = {
-        [6069697086] = true,
-        [4072731377] = true,
-        [6150337449] = true,
-        [1571371222] = true,
-        [2911976621] = true,
-        [2729297689] = true,
-        [6150320395] = true,
-        [301098121] = true,
-        [773902683] = true,
-        [671905963] = true,
-        [3129701628] = true,
-        [3063352401] = true,
-        [7007834038] = true,
-        [4767937607] = true,
-        [3129413184] = true
-    }
+    [6069697086] = true,
+    [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
+    [2911976621] = true,
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [7007834038] = true,
+    [4767937607] = true,
+    [3129413184] = true
+}
 
-    local monarchs = {
-        [129215104] = true,
-        [6135258891] = true,
-        [290931] = true
-    }
+local monarchs = {
+    [129215104] = true,
+    [6135258891] = true,
+    [290931] = true
+}
 
 local Config = {
     Names = true,
@@ -61,6 +61,17 @@ local function IsAlive(Player)
     return false
 end
 
+local function hasWeapon(player, weaponName)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        for _, tool in ipairs(player.Character:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == weaponName then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function getRoleColor(player)
     local playerData = roles[player.Name]
 
@@ -71,10 +82,18 @@ local function getRoleColor(player)
     end
 
     if playerData then
-        if playerData.Role == "Murderer" then
-            return Color3.fromRGB(225, 0, 0) -- Red color
-        elseif playerData.Role == "Sheriff" then
-            return Color3.fromRGB(0, 0, 225) -- Blue color
+        if playerData.Role == "Murderer" or playerData.Role == "Vampire" then
+            if hasWeapon(player, "Knife") then
+                return Color3.fromRGB(225, 0, 0) -- Red color for Murderer or Vampire with Knife
+            else
+                return Color3.fromRGB(255, 128, 128) -- Lighter red if no Knife
+            end
+        elseif playerData.Role == "Sheriff" or playerData.Role == "Hunter" then
+            if hasWeapon(player, "Gun") then
+                return Color3.fromRGB(0, 0, 255) -- Blue color for Sheriff or Hunter with Gun
+            else
+                return Color3.fromRGB(128, 128, 128) -- Gray color if no Gun
+            end
         elseif playerData.Role == "Hero" then
             return Color3.fromRGB(255, 255, 0) -- Yellow color
         end
