@@ -86,13 +86,13 @@ local function getRoleColor(player)
             if hasWeapon(player, "Knife") then
                 return Color3.fromRGB(139, 0, 0) -- Red color for Murderer or Vampire with Knife
             else
-                return Color3.fromRGB(255, 128, 128) -- Lighter red if no Knife
+                return Color3.fromRGB(139, 0, 0) -- Lighter red if no Knife
             end
         elseif playerData.Role == "Sheriff" or playerData.Role == "Hunter" then
             if hasWeapon(player, "Gun") then
                 return Color3.fromRGB(0, 0, 255) -- Blue color for Sheriff or Hunter with Gun
             else
-                return Color3.fromRGB(128, 128, 128) -- Gray color if no Gun
+                return Color3.fromRGB(0, 0, 255) -- Gray color if no Gun
             end
         elseif playerData.Role == "Hero" then
             return Color3.fromRGB(255, 255, 0) -- Yellow color
