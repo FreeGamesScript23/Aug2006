@@ -46,6 +46,8 @@ getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 local placeId = game.PlaceId
 local MarketplaceService = game:GetService("MarketplaceService")
 
+getgenv().FullBag = false
+
 -- Declare GameName outside the pcall block
 local GameName
 
@@ -174,58 +176,90 @@ function CreateHighlight()
 	end
 end
 
-local function roleupdaterfix()
-while true do
-        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-        for i, v in pairs(roles) do
-            if v.Role == "Murderer" then
-                Murder = i
-            elseif v.Role == "Sheriff" then
-                Sheriff = i
-            elseif v.Role == "Hero" then
-                Hero = i
-            end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local roles = {}
+local lastUpdate = 0
+
+local function updateRoles()
+    if os.time() - lastUpdate > 2 then
+        local success, result = pcall(function()
+            return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        end)
+        if success then
+            roles = result
+            lastUpdate = os.time()
         end
-        UpdateHighlights() -- Call UpdateHighlights after updating roles
-        task.wait(1) -- Update every second
-end
+    end
 end
 
-function UpdateHighlights()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-            
-            if monarchs[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                Highlight.FillTransparency = applyesptrans
-            elseif premiums[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(0, 255, 225) -- Dark Blue color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Sheriff and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Murder and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif not IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                Highlight.FillTransparency = applyesptrans
-            else
-                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                Highlight.FillTransparency = applyesptrans
+RunService.RenderStepped:Connect(updateRoles)
+
+local function IsAlive(Player)
+    local playerData = roles[Player.Name]
+    if playerData then
+        return not (playerData.Killed or playerData.Dead)
+    end
+    return false
+end
+
+local function hasWeapon(player, weaponName)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        for _, tool in ipairs(player.Character:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == weaponName then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function UpdateHighlights()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = player.Character:FindFirstChild("ESP_Highlight")
+
+            if Highlight then
+                local playerData = roles[player.Name]
+
+                if not IsAlive(player) then
+                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray for dead players
+                elseif monarchs[player.UserId] then
+                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple for monarchs
+                elseif premiums[player.UserId] then
+                    Highlight.FillColor = Color3.fromRGB(0, 255, 255) -- Cyan for premiums
+                elseif playerData then
+                    if playerData.Role == "Murderer" or playerData.Role == "Vampire" then
+                        if hasWeapon(player, "Knife") then
+                            Highlight.FillColor = Color3.fromRGB(139, 0, 0) -- Red for Murderer/Vampire with Knife
+                        else
+                            Highlight.FillColor = Color3.fromRGB(139, 0, 0) -- Lighter red if no Knife
+                        end
+                    elseif playerData.Role == "Sheriff" or playerData.Role == "Hunter" then
+                        if hasWeapon(player, "Gun") then
+                            Highlight.FillColor = Color3.fromRGB(0, 0, 255) -- Blue for Sheriff/Hunter with Gun
+                        else
+                             Highlight.FillColor = Color3.fromRGB(0, 0, 255)
+                        end
+                    elseif playerData.Role == "Hero" then
+                        Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow for Hero
+                    else
+                        Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green for others
+                    end
+                else
+                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green for alive players
+                end
+
+                Highlight.FillTransparency = applyesptrans -- Set the transparency for the highlight
             end
         end
     end
 end
 
--- Start the role updater in a separate coroutine
-spawn(function()
-    pcall(roleupdaterfix)
-end)
+-- Call UpdateHighlights at regular intervals
+RunService.RenderStepped:Connect(UpdateHighlights)
 
 function HideHighlights()
 	for _, v in pairs(game.Players:GetPlayers()) do
@@ -359,9 +393,34 @@ setreadonly(mt,true)
 -- Define global variables
 getgenv().SheriffAim = false
 getgenv().GunAccuracy = 3.5
+local Murder = nil  -- Initialize Murder variable
+ -- Function to update the nearest Murder player
+ function updateNearestMurder()
+    local closestDistance = 500  -- Distance threshold
+    local nearestMurderer = nil
 
--- Define Players service
-local Players = game:GetService("Players")
+    for _, player in ipairs(Players:GetPlayers()) do
+        -- Ensure the player is not the local player, and their character and PrimaryPart exist
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("PrimaryPart") then
+            local primaryPart = player.Character.PrimaryPart
+            if primaryPart then
+                local distance = (primaryPart.Position - Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude
+                -- Check if this player matches the Murder target
+                if player.Name == Murder and distance <= closestDistance then
+                    nearestMurderer = player
+                    break  -- Exit the loop once the nearest Murder is found
+                end
+            end
+        end
+    end
+
+    if nearestMurderer then
+        Murder = nearestMurderer.Name  -- Update the Murder variable
+    end
+end
+
+-- Call updateNearestMurder periodically to keep updating the target
+RunService.RenderStepped:Connect(updateNearestMurder)
 
 -- Define hook to modify gun shooting behavior
 local GunHook
@@ -376,8 +435,9 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
 
             if parent and parent.Name == "CreateBeam" and grandparent and grandparent.Name == "KnifeLocal" and method == "InvokeServer" then
                 -- Predict the position based on velocity and accuracy if Sheriff aiming
-                if getgenv().GunAccuracy and getgenv().SheriffAim then
-                    local targetPlayer = Players[Murder]
+                if getgenv().GunAccuracy and getgenv().SheriffAim and Murder then
+                    local targetPlayer = Players[Murder]  -- Get the target player using the Murder variable
+
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
                         local Velocity = Root.AssemblyLinearVelocity
@@ -397,14 +457,14 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
                             Position = Position + verticalVelocity * (getgenv().GunAccuracy / 200)
                         end
 
-                        args[2] = Position
+                        args[2] = Position  -- Set the predicted position as the target for the gun
                     end
                 end
             end
         end
     end
 
-    return GunHook(self, unpack(args))
+    return GunHook(self, unpack(args))  -- Call the original function with modified args
 end)
 
 
@@ -1391,32 +1451,44 @@ Options.DistanceTog:SetValue(false)
 local Toggle = Tabs.Visual:AddToggle("ChamsRoles", {Title = "Chams Roles", Default = false })
 local Toggle1 = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Name Roles", Default = false })
 
+local roles = {}
+local lastUpdate = 0
+
 Toggle:OnChanged(function(SeeRoles)
-if SeeRoles then
+    if SeeRoles then
         SSeeRoles = true
-        while SSeeRoles == true do
-            rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(rolesAsh) do
-                if v.Role == "Murderer" then
-                    Murder = i
-                elseif v.Role == "Sheriff" then
-                    Sheriff = i
-                elseif v.Role == "Hero" then
-                    Hero = i
+        while SSeeRoles do
+            if os.time() - lastUpdate > 2 then
+                local success, result = pcall(function()
+                    return game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
+                end)
+                if success then
+                    roles = result
+                    lastUpdate = os.time()
+
+                    for i, v in pairs(roles) do
+                        if v.Role == "Murderer" or v.Role == "Vampire" then
+                            Murder = i
+                        elseif v.Role == "Sheriff" or v.Role == "Hunter" then
+                            Sheriff = i
+                        elseif v.Role == "Hero" or v.Role == "Villager" then
+                            Hero = i
+                        end
+                    end
+
+                    CreateHighlight()
+                    UpdateHighlights()
+                    loadesp()
                 end
             end
-            CreateHighlight()
-            UpdateHighlights()
-            loadesp()
-        
+            task.wait(1) -- Optional wait to prevent a tight loop
         end
-else
+    else
         SSeeRoles = false
         task.wait(0.2)
         loadesp()
-        
         HideHighlights()
-end
+    end
 end)
 
 Toggle1:OnChanged(function(SeeNames)
@@ -2372,6 +2444,7 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
+
 local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void If Done Collecting Candies", Default = false })
 
 Toggle:OnChanged(function(value)
@@ -2400,25 +2473,30 @@ end
 
 -- Function to check the Candy status
 local function checkCandyStatus()
-    while isAutoFarming do
+    while true do
         local candyText, coinBagText
 
         -- Get Candy text from the appropriate GUI based on the device
         if Mobile then
             candyText = candyGui and candyGui.Text or nil
-            print("Candy", candyText)
+            print("Candy:", candyText)
         else
             coinBagText = coinBagGui and coinBagGui.Text or nil
-            print("Coin: ", coinBagText)
+            print("Coin:", coinBagText)
         end
 
         -- Check if Candy text or Coin Bag text equals "40"
         if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
-            getgenv().FullBag = true
-            print("FullBag is True")
-        else
-            getgenv().FullBag = false
-            print("FullBag is False")
+            -- Check if LocalPlayer is the Murderer and KillFull is true
+            if LocalPlayer.Name == Murder and getgenv().KillFull then
+                Options.AutoKillAll:SetValue(true)
+                getgenv().FullBag = true
+                print("FullBag is True. AutoKillAll enabled.")
+            else
+                Options.AutoKillAll:SetValue(false)
+                getgenv().FullBag = false
+                print("FullBag is False. AutoKillAll disabled.")
+            end
         end
 
         task.wait(1)  -- Check every second (adjust as needed)
@@ -2432,9 +2510,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when 
 
 Toggle:OnChanged(function(isEnabled)
     
-    if LocalPlayer.Name == Murder and isEnabled and getgenv().FullBag then
-        Options.AutoKillAll:SetValue(true)
-    end 
+    getgenv().KillFull = isEnabled
 end)
 
 Options.KillFull:SetValue(false)
@@ -2704,8 +2780,10 @@ local function moveToCoinServer()
     if nearestCoin then
         if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
             -- Teleport to the nearest coin if it's too far away
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Wait briefly to ensure character updates position
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+                task.wait(0.1)  -- Wait briefly to ensure character updates position
+            end
         end
 
         -- Check again if auto farming is still enabled after teleportation
@@ -2743,32 +2821,42 @@ local function moveToCoinServer()
 
             -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
             if isAutoFarming and not isMovingToCoin then
-                -- Use coroutine to prevent blocking
                 coroutine.wrap(moveToCoinServer)()
             end
         end
     else
         print("Candy not Found.. Searching again...")
         isMovingToCoin = false
+            -- Ensure LocalPlayer and Murder are valid before accessing them
+            if LocalPlayer and LocalPlayer.Name == Murder and getgenv().FullBagl then
+                    if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
+            print("Bag is Full initiating Killing All")
+                Options.AutoKillAll:SetValue(true)
+            else
+                Options.AutoKillAll:SetValue(false)
+                print("Bag is not full of not a Murderer")
+            end
 
-        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
-            getgenv().FullBag = true
-        
             -- Reset the Candy or Coin Bag value to 0
             if Mobile and candyGui then candyGui.Text = "0" end
             if not Mobile and coinBagGui then coinBagGui.Text = "0" end
+        else
+            print("Bag is not full enough: " .. candyText)
         end
-        
+
+        -- Void handling (optional for safety)
         if Void then
-        task.wait(1)
-        VoidSafe() 
+            task.wait(1)
+            VoidSafe() 
         end
-        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+
+        -- Continue searching for the nearest coin if auto farming is enabled
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
     end
 end
+
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
