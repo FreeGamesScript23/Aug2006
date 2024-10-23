@@ -150,10 +150,6 @@ function CreateHighlight()
 	end
 end
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
 local roles = {}
 local lastUpdate = 0
 
@@ -388,8 +384,6 @@ local function updateCurrentTarget()
                 -- Add name to the concatenated list of Murderers
                 allMurdererNames = allMurdererNames .. player.Name .. ", "
                 
-                print("Murderers Found: " .. allMurdererNames)
-
                 -- Check distance if player has a HumanoidRootPart
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     local targetRoot = player.Character.HumanoidRootPart
