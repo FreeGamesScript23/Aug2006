@@ -116,20 +116,6 @@ function GetOtherPlayers()
         return players
 end
 
-function IsAlive(Player)
-        for i, v in pairs(roles) do
-            if Player.Name == i then
-                if not v.Killed and not v.Dead then
-                    return true
-                else
-                    return false
-                end
-            end
-        end
-end
-
-
-
 
 function EquipTool()
 for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
@@ -144,24 +130,12 @@ function Stab()
 game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
 end
 
-local function TeleportToPlayer(playerName)
+function TeleportToPlayer(playerName)
 local targetPlayer = game.Players:FindFirstChild(playerName)
 if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
         game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
 end
-end
-
-function IsAlive(Player)
-	for i, v in pairs(roles) do
-		if Player.Name == i then
-			if not v.Killed and not v.Dead then
-				return true
-			else
-				return false
-			end
-		end
-	end
 end
 
 function CreateHighlight()
@@ -183,7 +157,7 @@ local RunService = game:GetService("RunService")
 local roles = {}
 local lastUpdate = 0
 
-local function updateRoles()
+function updateRoles()
     if os.time() - lastUpdate > 2 then
         local success, result = pcall(function()
             return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
@@ -197,7 +171,7 @@ end
 
 RunService.RenderStepped:Connect(updateRoles)
 
-local function IsAlive(Player)
+function IsAlive(Player)
     local playerData = roles[Player.Name]
     if playerData then
         return not (playerData.Killed or playerData.Dead)
@@ -205,7 +179,7 @@ local function IsAlive(Player)
     return false
 end
 
-local function hasWeapon(player, weaponName)
+function hasWeapon(player, weaponName)
     if player.Character and player.Character:FindFirstChild("Humanoid") then
         for _, tool in ipairs(player.Character:GetChildren()) do
             if tool:IsA("Tool") and tool.Name == weaponName then
@@ -216,7 +190,7 @@ local function hasWeapon(player, weaponName)
     return false
 end
 
-local function UpdateHighlights()
+function UpdateHighlights()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = player.Character:FindFirstChild("ESP_Highlight")
@@ -374,53 +348,92 @@ local Tabs = {
 
 
 -------------------------EXTRAS---------------------------
-
-mt.__namecall = newcclosure(function(...)
-        local method = tostring(getnamecallmethod());
-        local args = {...}
-
-        if method == 'FireServer' and args[1].Name == 'SayMessageRequest' then 
-            if alwaysalivechat == true then
-                args[3] = "Alive"
-            end
-            return old.__namecall(unpack(args));
-        end
-        return old.__namecall(...)
-end)
-
-setreadonly(mt,true)
-
 -- Define global variables
 getgenv().SheriffAim = false
 getgenv().GunAccuracy = 3.5
-local Murder = nil  -- Initialize Murder variable
- -- Function to update the nearest Murder player
- function updateNearestMurder()
-    local closestDistance = 500  -- Distance threshold
-    local nearestMurderer = nil
+getgenv().CurrentTarget = nil  -- Store the current target player
+
+-- Define Players and RunService services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Function to calculate distance between two positions
+local function getDistance(pos1, pos2)
+    return (pos1 - pos2).Magnitude
+end
+
+local function updateCurrentTarget()
+    local closestTarget = nil  -- To store the nearest Murderer/Vampire
+    local closestDistance = math.huge  -- Start with an infinitely large distance
+    local allMurdererNames = ""  -- Concatenated string of all Murderer/Vampire names
+
+    local localPlayer = Players.LocalPlayer  -- Get the local player
+    local localPlayerRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+    -- If the local player doesn't have a HumanoidRootPart, return early
+    if not localPlayerRoot then
+        getgenv().CurrentTarget = nil
+        return
+    end
+
+    -- Return early if LocalPlayer is the Murderer
+    if localPlayer.Name == Murder then
+        return
+    end
 
     for _, player in ipairs(Players:GetPlayers()) do
-        -- Ensure the player is not the local player, and their character and PrimaryPart exist
-        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("PrimaryPart") then
-            local primaryPart = player.Character.PrimaryPart
-            if primaryPart then
-                local distance = (primaryPart.Position - Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude
-                -- Check if this player matches the Murder target
-                if player.Name == Murder and distance <= closestDistance then
-                    nearestMurderer = player
-                    break  -- Exit the loop once the nearest Murder is found
+        local playerData = roles[player.Name]  -- Assume roles table is populated elsewhere
+        if playerData and (playerData.Role == "Murderer" or playerData.Role == "Vampire") then
+            if IsAlive(player) then
+                -- Add name to the concatenated list of Murderers
+                allMurdererNames = allMurdererNames .. player.Name .. ", "
+                
+                print("Murderers Found: " .. allMurdererNames)
+
+                -- Check distance if player has a HumanoidRootPart
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local targetRoot = player.Character.HumanoidRootPart
+                    local distance = getDistance(localPlayerRoot.Position, targetRoot.Position)
+
+                    -- Update the closest target if a shorter distance is found
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestTarget = player
+                    end
                 end
             end
         end
     end
 
-    if nearestMurderer then
-        Murder = nearestMurderer.Name  -- Update the Murder variable
+    -- Remove trailing comma and space from allMurdererNames
+    if #allMurdererNames > 0 then
+        allMurdererNames = allMurdererNames:sub(1, -3)  -- Remove the last ", "
+    end
+
+    -- Print the concatenated list of all Murderers/Vampires
+    print("All Murderers/Vampires: " .. allMurdererNames)
+
+    -- If there's a valid closest target, set it
+    if closestTarget then
+        getgenv().CurrentTarget = closestTarget
+    else
+        getgenv().CurrentTarget = nil  -- No valid targets
     end
 end
 
--- Call updateNearestMurder periodically to keep updating the target
-RunService.RenderStepped:Connect(updateNearestMurder)
+-- Function to check if a player is alive
+function IsAlive(Player)
+    local playerData = roles[Player.Name]  -- Assume roles table is populated elsewhere
+    if playerData then
+        return not (playerData.Killed or playerData.Dead)
+    end
+    return false
+end
+
+-- Continuously update the nearest target every frame
+RunService.RenderStepped:Connect(function()
+    updateCurrentTarget()  -- Keep checking and updating the nearest target every frame
+end)
 
 -- Define hook to modify gun shooting behavior
 local GunHook
@@ -435,9 +448,8 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
 
             if parent and parent.Name == "CreateBeam" and grandparent and grandparent.Name == "KnifeLocal" and method == "InvokeServer" then
                 -- Predict the position based on velocity and accuracy if Sheriff aiming
-                if getgenv().GunAccuracy and getgenv().SheriffAim and Murder then
-                    local targetPlayer = Players[Murder]  -- Get the target player using the Murder variable
-
+                if getgenv().GunAccuracy and getgenv().SheriffAim and getgenv().CurrentTarget then
+                    local targetPlayer = getgenv().CurrentTarget
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
                         local Velocity = Root.AssemblyLinearVelocity
@@ -457,14 +469,14 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
                             Position = Position + verticalVelocity * (getgenv().GunAccuracy / 200)
                         end
 
-                        args[2] = Position  -- Set the predicted position as the target for the gun
+                        args[2] = Position
                     end
                 end
             end
         end
     end
 
-    return GunHook(self, unpack(args))  -- Call the original function with modified args
+    return GunHook(self, unpack(args))
 end)
 
 
@@ -483,7 +495,7 @@ do
 local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
 
-local function IsPlayerEligible()
+function IsPlayerEligible()
     local currentTime = tick() -- get current time
     
     if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
@@ -563,24 +575,30 @@ Tabs.Combat:AddButton({
     Callback = GrabGun
 })
 
--- Assuming Tabs.Combat and Options.AutoGrab are defined elsewhere in your script
 local Toggle = Tabs.Combat:AddToggle("AutoGrab", {Title = "Auto Grab Gun", Default = false})
 
--- Function to grab the gun if conditions are met
-local function checkAndGrabGun()
-    local normal = workspace:FindFirstChild("Normal")
-    if normal then
-        local gunDrop = normal:FindFirstChild("GunDrop")
-        if gunDrop then
-            GrabGun()
+function checkAndGrabGun()
+    for _, item in pairs(workspace:GetChildren()) do
+        if item:IsA("Folder") or item:IsA("Model") then
+            -- Check for GunDrop within the folder or model
+            local gunDropPart = item:FindFirstChild("GunDrop")
+            if gunDropPart then
+                gundr = gunDropPart
+                break
+            end
+        elseif item:IsA("Part") and item.Name == "GunDrop" then
+            gundr = item
+            break
         end
+    end
+    
+    if gundr then
+        GrabGun()
     end
 end
 
--- Handle toggle change
 Toggle:OnChanged(function(value)
     if value then
-        -- Continuous check for GunDrop
         while Toggle.Value do
             task.wait()
             checkAndGrabGun()
@@ -591,7 +609,7 @@ end)
 if identifyexecutor() == "Wave" then
 local Keybind = Tabs.Combat:AddKeybind("GrabGunKeybind", {
     Title = "Grab Gun V2 Keybind",
-    Mode = "Toggle", -- Always, Toggle, Hold
+    Mode = "Toggle",
     Default = "", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
 
     -- Occurs when the keybind is clicked, Value is `true`/`false`
@@ -1752,7 +1770,7 @@ end
 local ScreenGui
 local createdGui = false
 
-local function getWaitingImage()
+function getWaitingImage()
     return game.Players.LocalPlayer.PlayerGui:FindFirstChild("MainGUI") and
            game.Players.LocalPlayer.PlayerGui.MainGUI:FindFirstChild("Game") and
            game.Players.LocalPlayer.PlayerGui.MainGUI.Game:FindFirstChild("Waiting")
@@ -2454,58 +2472,6 @@ end)
 
 Options.TPtoVoid:SetValue(false)
 
-local LocalPlayer = game.Players.LocalPlayer
-local mainGui = LocalPlayer.PlayerGui.MainGUI
-
-local candyGui, coinBagGui
-local Mobile = false
-
--- Check for the existence of the appropriate GUI based on the device
-if mainGui.Game:FindFirstChild("CoinBags") ~= nil then
-    -- Tablet GUI
-    coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
-    Mobile = false
-else
-    -- Phone GUI
-    candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
-    Mobile = true
-end
-
--- Function to check the Candy status
-local function checkCandyStatus()
-    while true do
-        local candyText, coinBagText
-
-        -- Get Candy text from the appropriate GUI based on the device
-        if Mobile then
-            candyText = candyGui and candyGui.Text or nil
-            print("Candy:", candyText)
-        else
-            coinBagText = coinBagGui and coinBagGui.Text or nil
-            print("Coin:", coinBagText)
-        end
-
-        -- Check if Candy text or Coin Bag text equals "40"
-        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
-            -- Check if LocalPlayer is the Murderer and KillFull is true
-            if LocalPlayer.Name == Murder and getgenv().KillFull then
-                Options.AutoKillAll:SetValue(true)
-                getgenv().FullBag = true
-                print("FullBag is True. AutoKillAll enabled.")
-            else
-                Options.AutoKillAll:SetValue(false)
-                getgenv().FullBag = false
-                print("FullBag is False. AutoKillAll disabled.")
-            end
-        end
-
-        task.wait(1)  -- Check every second (adjust as needed)
-    end
-end
-
--- Start the continuous checking in a coroutine
-coroutine.wrap(checkCandyStatus)()
-
 local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
@@ -2772,6 +2738,59 @@ local function findNearestUntappedCoin()
     return nearestCoin, nearestDistance
 end
 
+local LocalPlayer = game.Players.LocalPlayer
+local mainGui = LocalPlayer.PlayerGui.MainGUI
+
+local candyGui, coinBagGui
+local Mobile = false
+
+-- Check for the existence of the appropriate GUI based on the device
+if mainGui.Game:FindFirstChild("CoinBags") ~= nil then
+    -- Tablet GUI
+    coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = false
+else
+    -- Phone GUI
+    candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = true
+end
+
+-- Function to check the Candy status
+local function checkCandyStatus()
+    while isAutoFarming do
+        local candyText, coinBagText
+
+        -- Get Candy text from the appropriate GUI based on the device
+        if Mobile then
+            candyText = candyGui and candyGui.Text or nil
+            
+        else
+            coinBagText = coinBagGui and coinBagGui.Text or nil
+            
+        end
+
+        -- Check if Candy text or Coin Bag text equals "40"
+        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
+            -- Check if LocalPlayer is the Murderer and KillFull is true
+            if LocalPlayer.Name == Murder and getgenv().KillFull then
+                Options.AutoKillAll:SetValue(true)
+                getgenv().FullBag = true
+                print("FullBag is True. AutoKillAll enabled.")
+            else
+                Options.AutoKillAll:SetValue(false)
+                getgenv().FullBag = false
+                print("FullBag is False. AutoKillAll disabled.")
+            end
+        end
+
+        task.wait(1)  -- Check every second (adjust as needed)
+    end
+end
+
+-- Start the continuous checking in a coroutine
+coroutine.wrap(checkCandyStatus)()
+
+
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part with MainCoin child
@@ -2827,24 +2846,6 @@ local function moveToCoinServer()
     else
         print("Candy not Found.. Searching again...")
         isMovingToCoin = false
-            -- Ensure LocalPlayer and Murder are valid before accessing them
-            if LocalPlayer and LocalPlayer.Name == Murder and getgenv().FullBagl then
-                    if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
-            print("Bag is Full initiating Killing All")
-                Options.AutoKillAll:SetValue(true)
-            else
-                Options.AutoKillAll:SetValue(false)
-                print("Bag is not full of not a Murderer")
-            end
-
-            -- Reset the Candy or Coin Bag value to 0
-            if Mobile and candyGui then candyGui.Text = "0" end
-            if not Mobile and coinBagGui then coinBagGui.Text = "0" end
-        else
-            print("Bag is not full enough: " .. candyText)
-        end
-
-        -- Void handling (optional for safety)
         if Void then
             task.wait(1)
             VoidSafe() 
