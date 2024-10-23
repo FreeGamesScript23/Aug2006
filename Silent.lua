@@ -405,7 +405,7 @@ local function updateCurrentTarget()
     end
 
     -- Print the concatenated list of all Murderers/Vampires
-    print("All Murderers/Vampires: " .. allMurdererNames)
+    
 
     -- If there's a valid closest target, set it
     if closestTarget then
