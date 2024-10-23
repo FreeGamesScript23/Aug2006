@@ -23,8 +23,6 @@ local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
 
-
-
 local mt = getrawmetatable(game);
 local old = {};
 for i, v in next, mt do old[i] = v end;
@@ -59,12 +57,6 @@ if success and info then
 else
     GameName = "Unknown Game"
 end
-
-
-local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
-local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
-
-
 
 local premiums = {
     [6069697086] = true,
@@ -118,20 +110,6 @@ function GetOtherPlayers()
         return players
 end
 
-function IsAlive(Player)
-        for i, v in pairs(roles) do
-            if Player.Name == i then
-                if not v.Killed and not v.Dead then
-                    return true
-                else
-                    return false
-                end
-            end
-        end
-end
-
-
-
 
 function EquipTool()
 for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
@@ -146,24 +124,12 @@ function Stab()
 game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
 end
 
-local function TeleportToPlayer(playerName)
+function TeleportToPlayer(playerName)
 local targetPlayer = game.Players:FindFirstChild(playerName)
 if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
         game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
 end
-end
-
-function IsAlive(Player)
-	for i, v in pairs(roles) do
-		if Player.Name == i then
-			if not v.Killed and not v.Dead then
-				return true
-			else
-				return false
-			end
-		end
-	end
 end
 
 function CreateHighlight()
@@ -178,80 +144,86 @@ function CreateHighlight()
 	end
 end
 
-local function roleupdaterfix()
-while true do
-        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-        for i, v in pairs(roles) do
-            if v.Role == "Murderer" then
-                Murder = i
-            elseif v.Role == "Sheriff" then
-                Sheriff = i
-            elseif v.Role == "Hero" then
-                Hero = i
+local roles = {}
+local lastUpdate = 0
+
+function updateRoles()
+    if os.time() - lastUpdate > 2 then
+        local success, result = pcall(function()
+            return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        end)
+        if success then
+            roles = result
+            lastUpdate = os.time()
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(updateRoles)
+
+function IsAlive(Player)
+    local playerData = roles[Player.Name]
+    if playerData then
+        return not (playerData.Killed or playerData.Dead)
+    end
+    return false
+end
+
+function hasWeapon(player, weaponName)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        for _, tool in ipairs(player.Character:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == weaponName then
+                return true
             end
         end
-        UpdateHighlights() -- Call UpdateHighlights after updating roles
-        task.wait(1) -- Update every second
-end
+    end
+    return false
 end
 
 function UpdateHighlights()
-    local premiums = {
-        [6069697086] = true,
-        [4072731377] = true,
-        [6150337449] = true,
-        [1571371222] = true,
-        [2911976621] = true,
-        [2729297689] = true,
-        [6150320395] = true,
-        [301098121] = true,
-        [773902683] = true,
-        [671905963] = true,
-        [3129701628] = true,
-        [3063352401] = true,
-        [3129413184] = true
-    }
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = player.Character:FindFirstChild("ESP_Highlight")
 
-    local monarchs = {
-        [129215104] = true,
-        [6135258891] = true,
-        [290931] = true
-    }
+            if Highlight then
+                local playerData = roles[player.Name]
 
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-            
-            if monarchs[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                Highlight.FillTransparency = applyesptrans
-            elseif premiums[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(0, 255, 225) -- Dark Blue color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Sheriff and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Murder and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif not IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                Highlight.FillTransparency = applyesptrans
-            else
-                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                Highlight.FillTransparency = applyesptrans
+                if not IsAlive(player) then
+                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray for dead players
+                elseif monarchs[player.UserId] then
+                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple for monarchs
+                elseif premiums[player.UserId] then
+                    Highlight.FillColor = Color3.fromRGB(0, 255, 255) -- Cyan for premiums
+                elseif playerData then
+                    if playerData.Role == "Murderer" or playerData.Role == "Vampire" then
+                        if hasWeapon(player, "Knife") then
+                            Highlight.FillColor = Color3.fromRGB(139, 0, 0) -- Red for Murderer/Vampire with Knife
+                        else
+                            Highlight.FillColor = Color3.fromRGB(139, 0, 0) -- Lighter red if no Knife
+                        end
+                    elseif playerData.Role == "Sheriff" or playerData.Role == "Hunter" then
+                        if hasWeapon(player, "Gun") then
+                            Highlight.FillColor = Color3.fromRGB(0, 0, 255) -- Blue for Sheriff/Hunter with Gun
+                        else
+                             Highlight.FillColor = Color3.fromRGB(0, 0, 255)
+                        end
+                    elseif playerData.Role == "Hero" then
+                        Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow for Hero
+                    else
+                        Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green for others
+                    end
+                else
+                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green for alive players
+                end
+
+                Highlight.FillTransparency = applyesptrans -- Set the transparency for the highlight
             end
         end
     end
 end
 
--- Start the role updater in a separate coroutine
-spawn(function()
-    pcall(roleupdaterfix)
-end)
+-- Call UpdateHighlights at regular intervals
+RunService.RenderStepped:Connect(UpdateHighlights)
 
 function HideHighlights()
 	for _, v in pairs(game.Players:GetPlayers()) do
@@ -390,9 +362,84 @@ local Tabs = {
 -- Define global variables
 getgenv().SheriffAim = false
 getgenv().GunAccuracy = 3.5
+getgenv().CurrentTarget = nil  -- Store the current target player
 
--- Define Players service
+-- Define Players and RunService services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Function to calculate distance between two positions
+local function getDistance(pos1, pos2)
+    return (pos1 - pos2).Magnitude
+end
+
+local function updateCurrentTarget()
+    local closestTarget = nil  -- To store the nearest Murderer/Vampire
+    local closestDistance = math.huge  -- Start with an infinitely large distance
+    local allMurdererNames = ""  -- Concatenated string of all Murderer/Vampire names
+
+    local localPlayer = Players.LocalPlayer  -- Get the local player
+    local localPlayerRoot = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+    -- If the local player doesn't have a HumanoidRootPart, return early
+    if not localPlayerRoot then
+        getgenv().CurrentTarget = nil
+        return
+    end
+
+    -- Return early if LocalPlayer is the Murderer
+    if localPlayer.Name == Murder then
+        return
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        local playerData = roles[player.Name]  -- Assume roles table is populated elsewhere
+        if playerData and (playerData.Role == "Murderer" or playerData.Role == "Vampire") then
+            if IsAlive(player) then
+                -- Add name to the concatenated list of Murderers
+                allMurdererNames = allMurdererNames .. player.Name .. ", "
+               
+                -- Check distance if player has a HumanoidRootPart
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local targetRoot = player.Character.HumanoidRootPart
+                    local distance = getDistance(localPlayerRoot.Position, targetRoot.Position)
+
+                    -- Update the closest target if a shorter distance is found
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestTarget = player
+                    end
+                end
+            end
+        end
+    end
+
+    -- Remove trailing comma and space from allMurdererNames
+    if #allMurdererNames > 0 then
+        allMurdererNames = allMurdererNames:sub(1, -3)  -- Remove the last ", "
+    end
+
+    -- If there's a valid closest target, set it
+    if closestTarget then
+        getgenv().CurrentTarget = closestTarget
+    else
+        getgenv().CurrentTarget = nil  -- No valid targets
+    end
+end
+
+-- Function to check if a player is alive
+function IsAlive(Player)
+    local playerData = roles[Player.Name]  -- Assume roles table is populated elsewhere
+    if playerData then
+        return not (playerData.Killed or playerData.Dead)
+    end
+    return false
+end
+
+-- Continuously update the nearest target every frame
+RunService.RenderStepped:Connect(function()
+    updateCurrentTarget()  -- Keep checking and updating the nearest target every frame
+end)
 
 -- Define hook to modify gun shooting behavior
 local GunHook
@@ -407,8 +454,8 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
 
             if parent and parent.Name == "CreateBeam" and grandparent and grandparent.Name == "KnifeLocal" and method == "InvokeServer" then
                 -- Predict the position based on velocity and accuracy if Sheriff aiming
-                if getgenv().GunAccuracy and getgenv().SheriffAim then
-                    local targetPlayer = Players[Murder]
+                if getgenv().GunAccuracy and getgenv().SheriffAim and getgenv().CurrentTarget then
+                    local targetPlayer = getgenv().CurrentTarget
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
                         local Velocity = Root.AssemblyLinearVelocity
@@ -575,7 +622,7 @@ local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 local cooldown = 5 -- cooldown time in seconds
 local lastNotifTime = 0
 
-local function IsPlayerEligible()
+function IsPlayerEligible()
     local currentTime = tick() -- get current time
     
     if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
@@ -594,31 +641,57 @@ local function IsPlayerEligible()
     return true
 end
 
-local function GrabGun()
+
+function GrabGun()
+    -- Check if the player is eligible to grab the gun
     if not IsPlayerEligible() then return end
 
+    -- Ensure the player's character exists
     if Player.Character then
-        local gundr = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("GunDrop")
+        local gundr = nil
+
+        -- Search for GunDrop in the entire Workspace, including folders
+        for _, item in pairs(workspace:GetChildren()) do
+            if item:IsA("Folder") or item:IsA("Model") then
+                -- Check for GunDrop within the folder or model
+                local gunDropPart = item:FindFirstChild("GunDrop")
+                if gunDropPart then
+                    gundr = gunDropPart
+                    break
+                end
+            elseif item:IsA("Part") and item.Name == "GunDrop" then
+                gundr = item
+                break
+            end
+        end
+
         if gundr then
             -- Perform the gun grabbing process
-            local oldpos = Player.Character.HumanoidRootPart.CFrame
+            local oldPos = Player.Character.HumanoidRootPart.CFrame
             local startTime = os.clock()
 
+            -- Animate the grabbing process
             repeat
+                -- Move to GunDrop position and back
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                task.wait()
+                task.wait(0.1) -- Short wait before moving back
                 Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                task.wait()
-            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
-            
-            Player.Character.HumanoidRootPart.CFrame = oldpos
-            Player.Character.Humanoid:ChangeState(1)
+                task.wait(0.1) -- Short wait before the next loop
+            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 1.5
+
+            -- Reset position and change the humanoid state
+            Player.Character.HumanoidRootPart.CFrame = oldPos
+            Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Freefall) -- Changed to Freefall for clarity
+
+            -- Notify the player
             SendNotif("Grab Gun", "Gotcha.", 3)
         else
+            -- Notify if the gun is not found
             SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
         end
     end
 end
+
 
 Tabs.Combat:AddButton({
     Title = "Grab Gun v2",
@@ -629,14 +702,23 @@ Tabs.Combat:AddButton({
 -- Assuming Tabs.Combat and Options.AutoGrab are defined elsewhere in your script
 local Toggle = Tabs.Combat:AddToggle("AutoGrab", {Title = "Auto Grab Gun", Default = false})
 
--- Function to grab the gun if conditions are met
-local function checkAndGrabGun()
-    local normal = workspace:FindFirstChild("Normal")
-    if normal then
-        local gunDrop = normal:FindFirstChild("GunDrop")
-        if gunDrop then
-            GrabGun()
+function checkAndGrabGun()
+    for _, item in pairs(workspace:GetChildren()) do
+        if item:IsA("Folder") or item:IsA("Model") then
+            -- Check for GunDrop within the folder or model
+            local gunDropPart = item:FindFirstChild("GunDrop")
+            if gunDropPart then
+                gundr = gunDropPart
+                break
+            end
+        elseif item:IsA("Part") and item.Name == "GunDrop" then
+            gundr = item
+            break
         end
+    end
+    
+    if gundr then
+        GrabGun()
     end
 end
 
@@ -1121,32 +1203,44 @@ Options.DistanceTog:SetValue(false)
 local Toggle = Tabs.Visual:AddToggle("ChamsRoles", {Title = "Chams Roles", Default = false })
 local Toggle1 = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Name Roles", Default = false })
 
+local roles = {}
+local lastUpdate = 0
+
 Toggle:OnChanged(function(SeeRoles)
-if SeeRoles then
+    if SeeRoles then
         SSeeRoles = true
-        while SSeeRoles == true do
-            rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(rolesAsh) do
-                if v.Role == "Murderer" then
-                    Murder = i
-                elseif v.Role == "Sheriff" then
-                    Sheriff = i
-                elseif v.Role == "Hero" then
-                    Hero = i
+        while SSeeRoles do
+            if os.time() - lastUpdate > 2 then
+                local success, result = pcall(function()
+                    return game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
+                end)
+                if success then
+                    roles = result
+                    lastUpdate = os.time()
+
+                    for i, v in pairs(roles) do
+                        if v.Role == "Murderer" or v.Role == "Vampire" then
+                            Murder = i
+                        elseif v.Role == "Sheriff" or v.Role == "Hunter" then
+                            Sheriff = i
+                        elseif v.Role == "Hero" or v.Role == "Villager" then
+                            Hero = i
+                        end
+                    end
+
+                    CreateHighlight()
+                    UpdateHighlights()
+                    loadesp()
                 end
             end
-            CreateHighlight()
-            UpdateHighlights()
-            loadesp()
-        
+            task.wait(1) -- Optional wait to prevent a tight loop
         end
-else
+    else
         SSeeRoles = false
         task.wait(0.2)
         loadesp()
-        
         HideHighlights()
-end
+    end
 end)
 
 Toggle1:OnChanged(function(SeeNames)
@@ -1314,7 +1408,7 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 0
+local distanceM = 20
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
@@ -1363,6 +1457,8 @@ end)
 
 Options.AutoFEInvi:SetValue(false)
 
+
+-- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
     if LocalPlayer.Name == Murder then
         return
@@ -1379,8 +1475,8 @@ local function checkLocalPlayerRole()
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
         else
-            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+            -- Enable AutoFEInvi if AutoFarmCandy or AutoFarmEggs is true
+            if Options.AutoFarmCandy.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -1438,7 +1534,8 @@ RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
+
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void If Done Collecting Candies", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -1446,6 +1543,16 @@ Void = value
 end)
 
 Options.TPtoVoid:SetValue(false)
+
+local Toggle = Tabs.AutoFarm:AddToggle("KillFull", {Title = "Auto Kill All when the bag is Full (Murder Only)", Default = false })
+
+Toggle:OnChanged(function(isEnabled)
+    
+    getgenv().KillFull = isEnabled
+end)
+
+Options.KillFull:SetValue(false)
+
 
 local moveSpeed = 50
 local delay = math.random(1.7, 2.1)
@@ -1476,11 +1583,6 @@ local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
     Rounding = 1,
     Callback = function(Value)
         delay = tonumber(Value)  -- Ensure the delay is treated as a number
-        if delay < 1.5 then
-            moveSpeed = math.random(10, 20)
-        else
-            moveSpeed = 50  -- or whatever your default value should be
-        end
     end
 })
 
@@ -1631,7 +1733,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and BeachBall", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and BeachBall (Not Available)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
@@ -1671,28 +1773,32 @@ end)
 
 
 
--- Function to find the nearest untapped Coin_Server
+-- Function to find the nearest untapped Coin_Server part with TouchInterest and CoinVisual
 local function findNearestUntappedCoin()
     local nearestCoin = nil
     local nearestDistance = math.huge
 
     -- Check if player and player.Character are valid
     if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local normalContainer = game.Workspace:FindFirstChild("Normal")
-        if normalContainer then
-            local coinContainer = normalContainer:FindFirstChild("CoinContainer")
-            if coinContainer then
-                local coins = coinContainer:GetChildren()
+        local workspace = game:GetService("Workspace")
 
-                -- Find the nearest "Coin_Server" part that has "MainCoin" child and hasn't been touched yet
-                for _, coinServer in ipairs(coins) do
-                    if coinServer:IsA("Part") and coinServer.Name == "Coin_Server" then
-                        local coinVisual = coinServer:FindFirstChild("CoinVisual")
-                        if coinVisual and coinVisual:FindFirstChild("MainCoin") and not touchedCoins[coinVisual.MainCoin] then
-                            local distance = (coinVisual.MainCoin.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                            if distance < nearestDistance then
-                                nearestCoin = coinVisual.MainCoin
-                                nearestDistance = distance
+        -- Search for all CoinContainers in the workspace
+        for _, map in ipairs(workspace:GetChildren()) do
+            if map:IsA("Model") then  -- Check if the child is a Model (potential map)
+                local coinContainer = map:FindFirstChild("CoinContainer")
+                if coinContainer then
+                    local coins = coinContainer:GetChildren()
+
+                    -- Find the nearest "Coin_Server" part that hasn't been touched yet
+                    for _, coin in ipairs(coins) do
+                        if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
+                            -- Check for TouchInterest and CoinVisual children
+                            if coin:FindFirstChild("TouchInterest") and coin:FindFirstChild("CoinVisual") then
+                                local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
+                                if distance < nearestDistance then
+                                    nearestCoin = coin
+                                    nearestDistance = distance
+                                end
                             end
                         end
                     end
@@ -1704,6 +1810,59 @@ local function findNearestUntappedCoin()
     return nearestCoin, nearestDistance
 end
 
+local LocalPlayer = game.Players.LocalPlayer
+local mainGui = LocalPlayer.PlayerGui.MainGUI
+
+local candyGui, coinBagGui
+local Mobile = false
+
+-- Check for the existence of the appropriate GUI based on the device
+if mainGui.Game:FindFirstChild("CoinBags") ~= nil then
+    -- Tablet GUI
+    coinBagGui = mainGui.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = false
+else
+    -- Phone GUI
+    candyGui = mainGui.Lobby.Dock.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+    Mobile = true
+end
+
+-- Function to check the Candy status
+local function checkCandyStatus()
+    while isAutoFarming do
+        local candyText, coinBagText
+
+        -- Get Candy text from the appropriate GUI based on the device
+        if Mobile then
+            candyText = candyGui and candyGui.Text or nil
+            
+        else
+            coinBagText = coinBagGui and coinBagGui.Text or nil
+            
+        end
+
+        -- Check if Candy text or Coin Bag text equals "40"
+        if (Mobile and candyText == "40") or (not Mobile and coinBagText == "40") then
+            -- Check if LocalPlayer is the Murderer and KillFull is true
+            if LocalPlayer.Name == Murder and getgenv().KillFull then
+                Options.AutoKillAll:SetValue(true)
+                getgenv().FullBag = true
+                print("FullBag is True. AutoKillAll enabled.")
+            else
+                Options.AutoKillAll:SetValue(false)
+                getgenv().FullBag = false
+                print("FullBag is False. AutoKillAll disabled.")
+            end
+        end
+
+        task.wait(1)  -- Check every second (adjust as needed)
+    end
+end
+
+-- Start the continuous checking in a coroutine
+coroutine.wrap(checkCandyStatus)()
+
+
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part with MainCoin child
@@ -1712,13 +1871,15 @@ local function moveToCoinServer()
     if nearestCoin then
         if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
             -- Teleport to the nearest coin if it's too far away
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-            task.wait(0.1)  -- Wait briefly to ensure character updates position
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+                task.wait(0.1)  -- Wait briefly to ensure character updates position
+            end
         end
 
         -- Check again if auto farming is still enabled after teleportation
         if isAutoFarming then
-            print("Moving towards Coin")
+            print("Moving towards Candy")
             isMovingToCoin = true
 
             local targetPosition = nearestCoin.Position
@@ -1735,7 +1896,7 @@ local function moveToCoinServer()
                 local distanceToTarget = (targetPosition - currentPos).Magnitude
 
                 if distanceToTarget <= arrivalThreshold then
-                    print("Arrived at Coin")
+                    print("Arrived at Candy")
                     isMovingToCoin = false
                     break
                 end
@@ -1751,26 +1912,24 @@ local function moveToCoinServer()
 
             -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
             if isAutoFarming and not isMovingToCoin then
-                -- Use coroutine to prevent blocking
                 coroutine.wrap(moveToCoinServer)()
             end
         end
     else
-        print("Coin not Found.. Searching again...")
+        print("Candy not Found.. Searching again...")
         isMovingToCoin = false
-        
         if Void then
-        task.wait(1)
-        VoidSafe()
+            task.wait(1)
+            VoidSafe() 
         end
-        task.wait(1)  -- Wait for a short period before searching again (customize as needed)
 
-        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        -- Continue searching for the nearest coin if auto farming is enabled
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
     end
 end
+
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
@@ -1807,12 +1966,12 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin Only", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCandy", {Title = "Auto Farm Candy Only (Working)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
 if isAutoFarming then
-        print("Auto Farm Coin enabled.")
+        print("Auto Farm Candy enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         -- Connect the character removing event handler only when auto farming is enabled
@@ -1821,7 +1980,7 @@ if isAutoFarming then
             coroutine.wrap(moveToCoinServer)()
         end
 else
-        print("Auto Farm Coin disabled.")
+        print("Auto Farm Candy disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
@@ -1837,14 +1996,16 @@ else
 end
 end)
 
--- Listen for new Coin_Server parts spawning
+-- Listen for new coins spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
-        coroutine.wrap(moveToCoinServer)()
-end
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+        -- Check for TouchInterest and CoinVisual children
+        if child:FindFirstChild("TouchInterest") and child:FindFirstChild("CoinVisual") then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
 end)
-
 
 -- Function to check if a part has TouchInterest and CoinVisual with WeldConstraint, and ignore parts with MainCoin
 local function hasTouchInterestAndCoinVisualWithWeldConstraint(part)
@@ -1989,7 +2150,7 @@ end
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm BeachBall Only ", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm BeachBall Only (Not Available)", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
 isAutoFarming = isEnabled
@@ -2026,7 +2187,6 @@ if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not i
         coroutine.wrap(moveToCoinServer)()
 end
 end)
-
 
 
 
