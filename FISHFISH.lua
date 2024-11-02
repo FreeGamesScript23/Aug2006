@@ -240,11 +240,11 @@ local function autoClick()
     end
   
     if button and button:IsA("ImageButton") and isAutoClicking then
-        -- Define the offsets (adjust these values as necessary)
-        local offsetX = 5  -- Move 5 pixels to the right
-        local offsetY = 0  -- No vertical adjustment
+        
+        local offsetX = 5  
+        local offsetY = 0  
 
-        -- Directly click the button using the defined function with offsets
+
         click_this_gui(button, offsetX, offsetY)
     end
 end
@@ -260,7 +260,7 @@ Toggle:OnChanged(function(value)
         autoClickCoroutine = coroutine.create(function()
             while isAutoClicking do
                 autoClick()
-                task.wait() -- Adjust the wait time if necessary
+                task.wait() 
             end
         end)
         coroutine.resume(autoClickCoroutine)
@@ -308,7 +308,7 @@ local runService = game:GetService("RunService")
 local player = game:GetService("Players").LocalPlayer
 
 local function isRodEquipped()
-    -- Check if the rod is equipped
+    
     if player.Character then
         return player.Character:FindFirstChildWhichIsA("Tool") and player.Character:FindFirstChildWhichIsA("Tool").Name:lower():find("rod")
     end
@@ -320,14 +320,14 @@ local function equipRod()
 
     for _, tool in ipairs(backpack:GetChildren()) do
         if tool:IsA("Tool") and string.find(tool.Name:lower(), "rod", 1, true) then
-            -- Equip the tool if it's not already equipped
+            
             if player.Character and player.Character:FindFirstChild(tool.Name) == nil then
                 player.Character.Humanoid:EquipTool(tool)
             end
-            return tool -- Return the equipped tool
+            return tool 
         end
     end
-    return nil -- No rod tool was found to equip
+    return nil 
 end
 
 local function reelCasting()
@@ -336,21 +336,21 @@ local function reelCasting()
     end
 
     if isAutoCasting then
-        -- Check if the rod is equipped; if not, equip it
+        
         local equippedTool = nil
         if not isRodEquipped() then
             equippedTool = equipRod()
         else
-            -- If the rod is already equipped, find it directly
+            
             equippedTool = player.Character:FindFirstChildWhichIsA("Tool")
         end
 
-        -- Proceed with casting regardless of whether we just equipped it or it was already equipped
+        
         if equippedTool then
             local castEvent = equippedTool:FindFirstChild("events") and equippedTool.events:FindFirstChild("cast")
             local resetEvent = equippedTool:FindFirstChild("events") and equippedTool.events:FindFirstChild("reset")
             if castEvent and not button then
-                castEvent:FireServer(100, 1) -- Fire the casting event with the equipped tool
+                castEvent:FireServer(100, 1)
                else
                 resetEvent:FireServer()
             end
@@ -369,18 +369,18 @@ Toggle:OnChanged(function(value)
     local rootPart = character:WaitForChild("HumanoidRootPart")
 
     if isAutoCasting then
-        -- Store the character's current position
+        
         local lockedPosition = rootPart.Position
 
-        -- Create a BodyPosition to hold the character in place
+        
         bodyPosition = Instance.new("BodyPosition")
         bodyPosition.Position = lockedPosition
-        bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)  -- Infinite force to lock position
-        bodyPosition.D = 1000  -- High damping to prevent drifting
-        bodyPosition.P = 10000 -- Strong force to maintain position
+        bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)  
+        bodyPosition.D = 1000  
+        bodyPosition.P = 10000 
         bodyPosition.Parent = rootPart
     else
-        -- Remove BodyPosition to unlock the character's position
+        
         if bodyPosition then
             bodyPosition:Destroy()
             bodyPosition = nil
@@ -442,31 +442,56 @@ local FischFrightPath = workspace.zones.fishing:FindFirstChild("FischFright24")
 local notified = false
 
 Toggle:OnChanged(function(value)
-    -- This function triggers when the toggle is changed
+    
     if value then
-        -- Start listening for FischFright24's existence if the toggle is on
+        
         game:GetService("RunService").Heartbeat:Connect(function()
-            -- Continuously check if the toggle is on and FischFright24 exists
+            
             if Toggle.Value then
                 local FischFrightExists = workspace.zones.fishing:FindFirstChild("FischFright24")
                 
                 if FischFrightExists and not notified then
-                    -- If FischFright24 exists and has not been notified, send notification
+                    
                     SendNotif("Event", "Frightful Pool has appear!! Hurry!!", 10)
                     notified = true
                 elseif not FischFrightExists then
-                    -- Reset notification status when FischFright24 is not present
+                    
                     notified = false
                 end
             end
         end)
     else
-        -- Reset notified if the toggle is off
+        
         notified = false
     end
 end)
 
 Options.EventPool:SetValue(false)
+
+local Toggle = Tabs.Fish:AddToggle("TMerchant", {Title = "Travelling Merchant Notifier", Default = false})
+local MerchantBoat = workspace.active:FindFirstChild("Merchant Boat").Boat
+local Mnotified = false
+
+Toggle:OnChanged(function(value)
+
+    if value then
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if Toggle.Value then
+                local MerchantBoat = workspace.zones.fishing:FindFirstChild("FischFright24")
+                if MerchantBoat and not Mnotified then
+                    SendNotif("Merchant Spawned", "Travelling Merchant has appeared!! Hurry!!", 10)
+                    Mnotified = true
+                elseif not MerchantBoat then
+                    Mnotified = false
+                end
+            end
+        end)
+    else
+        Mnotified = false
+    end
+end)
+
+Options.TMerchant:SetValue(false)
 
     local AshbornNig = Tabs.Fish:AddSection("Fully developed script by Ashbornn(Rayven)")
     
@@ -495,15 +520,50 @@ local subLocations = {
     ["Roslit Volcano"] = CFrame.new(-1907, 165, 316),
     ["Brinepool"] = CFrame.new(-1794, -143, -3315),
     ["Desolate Shop"] = CFrame.new(-994, -245, -2723),
-    ["Enchant Altar"] = CFrame.new(1312, -802, -87)
+    ["Enchant Altar"] = CFrame.new(1312, -802, -87),
+    ["Gamma"] = CFrame.new(2231, -792, 1012)
 }
 
 local NPCLocations = {
     ["Appraiser"] = CFrame.new(444, 151, 210),
     ["Witch (Event Pot)"] = CFrame.new(405, 135, 317),
-    ["Merchant MW"] = CFrame.new(467, 151, 231),
-    ["Merlin (Relic Seller)"] = CFrame.new(-932, 224, -988)
+    ["Merchant"] = CFrame.new(467, 151, 231),
+    ["Merlin (Relic Seller)"] = CFrame.new(-932, 224, -988),
+    ["Lantern Guy"] = CFrame.new(-39, -247, 1012),
 }
+
+local RodLocation = {
+    ["Trident"] = CFrame.new(-1384, -226, -2201),
+    ["Reinforced"] = CFrame.new(-991, -244, -2693),
+
+
+}
+
+local TotemLocation = {
+    ["Sundial (Day and Night)"] = CFrame.new(-1147, 135, -1074),
+    ["Smokescreen"] = CFrame.new(2793, 140, -629),
+    ["Windset (Weather)"] = CFrame.new(2852, 180, 2703),
+    ["Tempest (Aurora)"] = CFrame.new(36, 135, 1946)
+}
+
+
+--Combining both Names and Value of Names...
+local TotemLocationNames = {}
+for name in pairs(TotemLocation) do
+    table.insert(TotemLocationNames, name)
+end
+
+local RodLocationNames = {}
+for name in pairs(RodLocation) do
+    table.insert(RodLocationNames, name)
+end
+
+
+local RodLocationNames = {}
+for name in pairs(RodLocation) do
+    table.insert(RodLocationNames, name)
+end
+
 
 local subLocationsNames = {}
 for name in pairs(subLocations) do
@@ -529,7 +589,7 @@ Tabs.Teleport:AddButton({
     local selectedLocation = Dropdown.Value
     local PositionLoc = Locations[selectedLocation]
     if PositionLoc then
-        TeleportPlayer(PositionLoc, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(PositionLoc, CFrame.new(0, 0, 0)) 
     else 
         warn("Invalid location selected.")
     end
@@ -552,7 +612,7 @@ Tabs.Teleport:AddButton({
     local selectedSub = SubLocationsDD.Value
     local Position = subLocations[selectedSub]
     if Position then
-        TeleportPlayer(Position, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(Position, CFrame.new(0, 0, 0)) 
     else
         warn("Invalid location selected.")
     end
@@ -564,7 +624,7 @@ Tabs.Teleport:AddButton({
 Dropdown:OnChanged(function(Value)
     local PositionLoc = Locations[Value]
     if PositionLoc then
-        TeleportPlayer(PositionLoc, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(PositionLoc, CFrame.new(0, 0, 0)) 
     else 
         warn("Invalid location selected.")
     end
@@ -573,7 +633,7 @@ end)
 SubLocationsDD:OnChanged(function(Value)
     local Position = subLocations[Value]
     if Position then
-        TeleportPlayer(Position, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(Position, CFrame.new(0, 0, 0)) 
     else
         warn("Invalid location selected.")
     end
@@ -597,7 +657,7 @@ local NPCDrop = Tabs.Teleport:AddDropdown("TPLocation", {
 NPCDrop:OnChanged(function(Value)
     local Position = NPCLocations[Value]
     if Position then
-        TeleportPlayer(Position, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(Position, CFrame.new(0, 0, 0)) 
     else
         warn("Invalid location selected.")
     end
@@ -610,7 +670,7 @@ Tabs.Teleport:AddButton({
     local selectedNPC = NPCDrop.Value
     local Position = NPCLocations[selectedNPC]
     if Position then
-        TeleportPlayer(Position, CFrame.new(0, 0, 0)) -- Adjust Offset if needed
+        TeleportPlayer(Position, CFrame.new(0, 0, 0)) 
     else
         warn("Invalid location selected.")
     end
@@ -650,6 +710,38 @@ Tabs.Teleport:AddButton({
     end
 })
 
+function TPMerchant()
+    local targetZone = workspace:FindFirstChild("active") and workspace.zones:FindFirstChild("Merchant Boat")
+    
+    if targetZone then
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            
+            if humanoidRootPart then
+                humanoidRootPart.CFrame = targetZone.CFrame * CFrame.new(0, 50, 0)
+                SendNotif("AshbornnHub", "Sucessfully Teleported", 1)
+            else
+                warn("HumanoidRootPart not found.")
+            end
+        else
+            warn("Player character not available.")
+        end
+    else
+        SendNotif("AshbornnHub", "Travelling Merchant is not available", 2)
+    end
+end
+
+Tabs.Teleport:AddButton({
+Title = "Teleport to Travelling Merchant",
+Description = "Teleport above Travelling Merchant if available",
+Callback = function()
+    TPMerchant()
+end
+})
+
 --------------------------------------------------------------------------------TELEPORT------------------------------------------------------------------------------------------
 
 
@@ -662,7 +754,6 @@ Tabs.Teleport:AddButton({
 
 local Toggle = Tabs.Misc:AddToggle("FishingCollide", {Title = "Water Walk", Default = false})
 
--- Function to update CanCollide property based on toggle
 local function updateCanCollide(value)
     local fishingZone = workspace:FindFirstChild("zones"):FindFirstChild("fishing")
     if fishingZone then
@@ -788,42 +879,39 @@ Tabs.Server:AddButton({
     
 end
         
--- Create a ScreenGui object to hold the button
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "Gui"
 gui.Parent = game.CoreGui
 
--- Create the button as a TextButton
+
 local button = Instance.new("TextButton")
 button.Name = "ToggleButton"
-button.Text = "Close" -- Initial text set to "Close"
-button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
-button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-button.BackgroundTransparency = 0.7 -- Set transparency to 50%
-button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
-button.BorderSizePixel = 2 -- Add black stroke
-button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
-button.TextColor3 = Color3.new(1, 1, 1) -- White text color
-button.FontSize = Enum.FontSize.Size12 -- Adjust text size
-button.TextScaled = false -- Allow text to scale with button size
-button.TextWrapped = true -- Wrap text if it's too long
-button.TextStrokeTransparency = 0 -- Make text fully visible
-button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.Text = "Close" 
+button.Size = UDim2.new(0, 70, 0, 30) 
+button.Position = UDim2.new(0, 10, 0, 10) 
+button.BackgroundTransparency = 0.7 
+button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) 
+button.BorderSizePixel = 2 
+button.BorderColor3 = Color3.new(0, 0, 0) 
+button.TextColor3 = Color3.new(1, 1, 1) 
+button.FontSize = Enum.FontSize.Size12 -
+button.TextScaled = false 
+button.TextWrapped = true 
+button.TextStrokeTransparency = 0 
+button.TextStrokeColor3 = Color3.new(0, 0, 0) 
 button.Parent = gui
 
--- Apply blur effect
 local blur = Instance.new("BlurEffect")
 blur.Parent = button
-blur.Size = 5 -- Adjust blur size as needed
+blur.Size = 5 
 
--- Variable to keep track of button state
 local isOpen = false
 local isDraggable = false
 local dragConnection
 
--- Functionality for the button
 button.MouseButton1Click:Connect(function()
-        isOpen = not isOpen -- Toggle button state
+        isOpen = not isOpen 
         
         if isOpen then
             button.Text = "Open"
@@ -834,10 +922,8 @@ button.MouseButton1Click:Connect(function()
         Window:Minimize()
 end)
 
--- Function to make the button draggable
 function setDraggable(draggable)
         if draggable then
-            -- Connect events for dragging
             dragConnection = button.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.Touch then
                     local dragStart = input.Position
@@ -864,15 +950,14 @@ function setDraggable(draggable)
                 end
             end)
         else
-            -- Disconnect events if not draggable
+            
             if dragConnection then
                 dragConnection:Disconnect()
-                dragConnection = nil -- Reset dragConnection
+                dragConnection = nil 
             end
         end
 end
 
--- Function to toggle button visibility
 function toggleButtonVisibility(visible)
         button.Visible = visible
 end
@@ -883,23 +968,23 @@ Tabs.Settings:AddParagraph({
         })
 
 
-        -- Function to fetch avatar URL using Roblox API
+
 local function fetchAvatarUrl(userId)
     local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
     local response = HttpService:JSONDecode(game:HttpGet(url))
     if response and response.data and #response.data > 0 then
         return response.data[1].imageUrl
     else
-        return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
+        return "https://www.example.com/default-avatar.png" 
     end
     end
     
-    -- Fetch avatar URL for LocalPlayer
+
     local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
     
-    -- Function to get current timestamp in a specific format
+
     local function getCurrentTime()
-    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) 
     local minute = os.date("!%M", os.time() + 8 * 3600)
     local second = os.date("!%S", os.time() + 8 * 3600)
     local day = os.date("!%d", os.time() + 8 * 3600)
@@ -919,15 +1004,15 @@ local function fetchAvatarUrl(userId)
     return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
     end
     
-    -- Define the Input field for user feedback
+
     local Input = Tabs.Settings:AddInput("Input", {
     Title = "Send FeedBack",
     Default = "",
     Placeholder = "Send your feedback to Ashbornn",
-    Numeric = false, -- Only allows numbers
-    Finished = false, -- Only calls callback when you press enter
+    Numeric = false, 
+    Finished = false, 
     Callback = function(Value)
-        -- This function can be used for validation or other callback logic if needed
+        
     end
     })
     
@@ -945,7 +1030,7 @@ local function fetchAvatarUrl(userId)
                 description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
                 color = 16711935,
                 footer = { text = "Timestamp: " .. getCurrentTime() },
-                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
+                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  
                 fields = {
                     { name = "Feedback: ", value = feedbackMessage, inline = true }
                 },
@@ -963,22 +1048,22 @@ local function fetchAvatarUrl(userId)
     end
     end
     
-    -- Define a variable to track the last time feedback was sent
+
     local lastFeedbackTime = 0
-    local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+    local cooldownDuration = 60  
     
-    -- Function to check if enough time has passed since last feedback
+
     local function canSendFeedback()
     local currentTime = os.time()
     return (currentTime - lastFeedbackTime >= cooldownDuration)
     end
     
-    -- Update lastFeedbackTime after sending feedback
+
     local function updateLastFeedbackTime()
     lastFeedbackTime = os.time()
     end
     
-    -- Define the button to send feedback
+
     Tabs.Settings:AddButton({
     Title = "Send FeedBack",
     Description = "Tap to Send",
@@ -988,21 +1073,18 @@ local function fetchAvatarUrl(userId)
             return
         end
         
-        local feedbackMessage = Input.Value  -- Get the value directly from Input
+        local feedbackMessage = Input.Value  
         
-        -- Check if feedbackMessage is non-empty before sending
+
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
-            updateLastFeedbackTime()  -- Update cooldown timestamp
+            updateLastFeedbackTime()  
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
         end
     end
     })
     
-
-
--- Create the toggle for draggable button
 local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
 
 DraggableToggle:OnChanged(function(value)
@@ -1010,7 +1092,6 @@ DraggableToggle:OnChanged(function(value)
         setDraggable(isDraggable)
 end)
 
--- Create another toggle for button visibility
 local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
 
 VisibilityToggle:OnChanged(function(value)
