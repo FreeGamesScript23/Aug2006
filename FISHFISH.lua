@@ -433,8 +433,6 @@ end
 runService.RenderStepped:Connect(centerButton)
 
 
-
-
 local EventsSection = Tabs.Fish:AddSection("Notifier")
 
 local Toggle = Tabs.Fish:AddToggle("EventPool", {Title = "Frightful Pool Notifier", Default = false})
@@ -534,9 +532,7 @@ local NPCLocations = {
 
 local RodLocation = {
     ["Trident"] = CFrame.new(-1384, -226, -2201),
-    ["Reinforced"] = CFrame.new(-991, -244, -2693),
-
-
+    ["Reinforced"] = CFrame.new(-991, -244, -2693)
 }
 
 local TotemLocation = {
