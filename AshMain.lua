@@ -175,27 +175,6 @@ Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
                 Duration = 3
             })
     end
-    if identifyexecutor() == "Delta" and game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648  then
-    if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/SilentBackup.lua", true))()
-    else
-        Fluent:Notify({
-            Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
-            Content = "Game is not supported. 😔",
-            Duration = 3
-        })
-    end
-elseif identifyexecutor() == "Wave" and game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
-    if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Silent.lua",true))()
-    else
-        Fluent:Notify({
-            Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
-            Content = "Game is not supported. 😔",
-            Duration = 3
-        })
-    end
-else
     if selectedGames[game.PlaceId] then
         loadstring(game:HttpGet('https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
     else
@@ -205,8 +184,6 @@ else
             Duration = 3
         })
     end
-end
-    
 else
     sendnotification("Game not supported. 😔", false)
     if not ownerUserIds[LocalPlayer.UserId] then
