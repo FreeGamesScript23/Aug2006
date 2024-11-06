@@ -186,7 +186,7 @@ Title = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98),
         })
     end
 elseif identifyexecutor() == "Wave" then
-    if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
+    if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 or game.PlaceId == 16732694052 then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Silent.lua",true))()
     else
         Fluent:Notify({
