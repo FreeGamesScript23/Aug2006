@@ -47,7 +47,7 @@ local games = {
     [73210641948512] = 'Silent',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
-    [16732694052] = 'Fischk',
+    [16732694052] = 'aintnowaybro',
 }
 
 local gamesPc = {
