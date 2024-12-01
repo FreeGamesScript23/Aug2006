@@ -243,7 +243,7 @@ local aa = {
         end
         function x.ToggleTransparency(C, D)
             if x.Window then
-                x.Window.AcrylicPaint.Frame.Background.BackgroundTransparency = D and 0.35 or 0
+                x.Window.AcrylicPaint.Frame.Background.BackgroundTransparency = D and 0.4 or 0
             end
         end
         function x.Notify(C, D)
