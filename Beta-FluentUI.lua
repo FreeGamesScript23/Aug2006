@@ -117,10 +117,10 @@ local aa = {
             game:GetService "UserInputService",
             game:GetService "TweenService",
             game:GetService "Workspace".CurrentCamera
-            local AshNotif = e(s.InteractableNotif)
         local n, o = j:GetMouse(), d
         local p, q, r, s = e(o.Creator), e(o.Elements), e(o.Acrylic), o.Components
         local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
+        local AshNotif = e(s.InteractableNotif)
                 end  
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
         w.Name = FluentUI
@@ -896,6 +896,254 @@ local aa = {
                 )
             end
             return q
+        end
+    end,
+    [100] = function()
+        local c, d, e, f, g = b(100)
+        local h = d.Parent.Parent
+        local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
+        local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
+    
+        function o.Init(p, q)
+            o.Holder =
+                n(
+                "Frame",
+                {
+                    Position = UDim2.new(0.5, -155, 0, 30), -- Position the frame near the top center
+                    Size = UDim2.new(0, 310, 0, 150), -- Set a fixed height for the frame
+                    AnchorPoint = Vector2.new(0.5, 0), -- Anchor to the top center
+                    BackgroundTransparency = 1,
+                    Parent = q
+                },
+                {
+                    n(
+                        "UIListLayout",
+                        {
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            VerticalAlignment = Enum.VerticalAlignment.Top,  -- Align items from top to bottom
+                            Padding = UDim.new(0, 10) -- Padding between items
+                        }
+                    )
+                }
+            )
+        end
+    
+        function o.New(p, q)
+            q.Title = q.Title or "Title"
+            q.Content = q.Content or "Content"
+            q.SubContent = q.SubContent or ""
+            q.Duration = q.Duration or nil
+            q.CallbackYes = q.CallbackYes or function() end
+            q.CallbackNo = q.CallbackNo or function() end
+    
+            local r = {Closed = false}
+            r.AcrylicPaint = k.AcrylicPaint()
+    
+            r.Title =
+                n(
+                "TextLabel",
+                {
+                    Position = UDim2.new(0, 14, 0, 17),
+                    Text = q.Title,
+                    RichText = true,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextTransparency = 0,
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                    TextSize = 13,
+                    TextXAlignment = "Left",
+                    TextYAlignment = "Center",
+                    Size = UDim2.new(1, -12, 0, 12),
+                    TextWrapped = true,
+                    BackgroundTransparency = 1,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            r.ContentLabel =
+                n(
+                "TextLabel",
+                {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                    Text = q.Content,
+                    TextColor3 = Color3.fromRGB(240, 240, 240),
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2.new(1, 0, 0, 14),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    TextWrapped = true,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            r.SubContentLabel =
+                n(
+                "TextLabel",
+                {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+                    Text = q.SubContent,
+                    TextColor3 = Color3.fromRGB(240, 240, 240),
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2.new(1, 0, 0, 14),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    TextWrapped = true,
+                    ThemeTag = {TextColor3 = "SubText"}
+                }
+            )
+    
+            r.LabelHolder =
+                n(
+                "Frame",
+                {
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(14, 40),
+                    Size = UDim2.new(1, -28, 0, 0)
+                },
+                {
+                    n(
+                        "UIListLayout",
+                        {
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            Padding = UDim.new(0, 3)
+                        }
+                    ),
+                    r.ContentLabel,
+                    r.SubContentLabel
+                }
+            )
+    
+            -- Yes Button
+            r.YesButton =
+                n(
+                "TextButton",
+                {
+                    Text = "Yes",
+                    Position = UDim2.new(0, 14, 1, -40),
+                    Size = UDim2.fromOffset(100, 30),
+                    BackgroundColor3 = Color3.fromRGB(0, 255, 0),
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    Font = Enum.Font.Gotham,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            -- No Button
+            r.NoButton =
+                n(
+                "TextButton",
+                {
+                    Text = "No",
+                    Position = UDim2.new(0, 120, 1, -40),
+                    Size = UDim2.fromOffset(100, 30),
+                    BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    Font = Enum.Font.Gotham,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            -- Close Button
+            r.CloseButton =
+                n(
+                "TextButton",
+                {
+                    Text = "",
+                    Position = UDim2.new(1, -14, 0, 13),
+                    Size = UDim2.fromOffset(20, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1
+                },
+                {
+                    n(
+                        "ImageLabel",
+                        {
+                            Image = e(d.Parent.Assets).Close,
+                            Size = UDim2.fromOffset(16, 16),
+                            Position = UDim2.fromScale(0.5, 0.5),
+                            AnchorPoint = Vector2.new(0.5, 0.5),
+                            BackgroundTransparency = 1,
+                            ThemeTag = {ImageColor3 = "Text"}
+                        }
+                    )
+                }
+            )
+    
+            r.Root =
+                n(
+                "Frame",
+                {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
+                {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.LabelHolder}
+            )
+    
+            if q.Content == "" then
+                r.ContentLabel.Visible = false
+            end
+            if q.SubContent == "" then
+                r.SubContentLabel.Visible = false
+            end
+    
+            r.Holder =
+                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
+    
+            local s = i.GroupMotor.new {Scale = 1, Offset = 60}
+            s:onStep(
+                function(t)
+                    r.Root.Position = UDim2.new(t.Scale, t.Offset, 0, 0)
+                end
+            )
+    
+            -- Button Click Callbacks
+            r.YesButton.MouseButton1Click:Connect(function()
+                q.CallbackYes()  -- Execute the Yes button callback
+                r:Close()        -- Close the notification
+            end)
+    
+            r.NoButton.MouseButton1Click:Connect(function()
+                q.CallbackNo()   -- Execute the No button callback
+                r:Close()        -- Close the notification
+            end)
+    
+            -- Close Button Click
+            j.AddSignal(
+                r.CloseButton.MouseButton1Click,
+                function()
+                    r:Close()
+                end
+            )
+    
+            function r.Open(t)
+                local u = r.LabelHolder.AbsoluteSize.Y
+                r.Holder.Size = UDim2.new(1, 0, 0, 58 + u)
+                s:setGoal {Scale = l(0, {frequency = 5}), Offset = l(0, {frequency = 5})}
+            end
+    
+            function r.Close(t)
+                if not r.Closed then
+                    r.Closed = true
+                    task.spawn(
+                        function()
+                            s:setGoal {Scale = l(1, {frequency = 5}), Offset = l(60, {frequency = 5})}
+                            task.wait(0.4)
+                            if e(h).UseAcrylic then
+                                r.AcrylicPaint.Model:Destroy()
+                            end
+                            r.Holder:Destroy()
+                        end
+                    )
+                end
+            end
+    
+            r:Open()
+    
+            return r
         end
     end,
     [12] = function()
@@ -5312,254 +5560,6 @@ local aa = {
             HoverChange = 0.04
         }        
     end,
-    [100] = function()
-        local c, d, e, f, g = b(100)
-        local h = d.Parent.Parent
-        local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
-        local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
-    
-        function o.Init(p, q)
-            o.Holder =
-                n(
-                "Frame",
-                {
-                    Position = UDim2.new(0.5, -155, 0, 30), -- Position the frame near the top center
-                    Size = UDim2.new(0, 310, 0, 150), -- Set a fixed height for the frame
-                    AnchorPoint = Vector2.new(0.5, 0), -- Anchor to the top center
-                    BackgroundTransparency = 1,
-                    Parent = q
-                },
-                {
-                    n(
-                        "UIListLayout",
-                        {
-                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                            SortOrder = Enum.SortOrder.LayoutOrder,
-                            VerticalAlignment = Enum.VerticalAlignment.Top,  -- Align items from top to bottom
-                            Padding = UDim.new(0, 10) -- Padding between items
-                        }
-                    )
-                }
-            )
-        end
-    
-        function o.New(p, q)
-            q.Title = q.Title or "Title"
-            q.Content = q.Content or "Content"
-            q.SubContent = q.SubContent or ""
-            q.Duration = q.Duration or nil
-            q.CallbackYes = q.CallbackYes or function() end
-            q.CallbackNo = q.CallbackNo or function() end
-    
-            local r = {Closed = false}
-            r.AcrylicPaint = k.AcrylicPaint()
-    
-            r.Title =
-                n(
-                "TextLabel",
-                {
-                    Position = UDim2.new(0, 14, 0, 17),
-                    Text = q.Title,
-                    RichText = true,
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
-                    TextTransparency = 0,
-                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                    TextSize = 13,
-                    TextXAlignment = "Left",
-                    TextYAlignment = "Center",
-                    Size = UDim2.new(1, -12, 0, 12),
-                    TextWrapped = true,
-                    BackgroundTransparency = 1,
-                    ThemeTag = {TextColor3 = "Text"}
-                }
-            )
-    
-            r.ContentLabel =
-                n(
-                "TextLabel",
-                {
-                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                    Text = q.Content,
-                    TextColor3 = Color3.fromRGB(240, 240, 240),
-                    TextSize = 14,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    Size = UDim2.new(1, 0, 0, 14),
-                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                    BackgroundTransparency = 1,
-                    TextWrapped = true,
-                    ThemeTag = {TextColor3 = "Text"}
-                }
-            )
-    
-            r.SubContentLabel =
-                n(
-                "TextLabel",
-                {
-                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-                    Text = q.SubContent,
-                    TextColor3 = Color3.fromRGB(240, 240, 240),
-                    TextSize = 14,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    Size = UDim2.new(1, 0, 0, 14),
-                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                    BackgroundTransparency = 1,
-                    TextWrapped = true,
-                    ThemeTag = {TextColor3 = "SubText"}
-                }
-            )
-    
-            r.LabelHolder =
-                n(
-                "Frame",
-                {
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(14, 40),
-                    Size = UDim2.new(1, -28, 0, 0)
-                },
-                {
-                    n(
-                        "UIListLayout",
-                        {
-                            SortOrder = Enum.SortOrder.LayoutOrder,
-                            VerticalAlignment = Enum.VerticalAlignment.Center,
-                            Padding = UDim.new(0, 3)
-                        }
-                    ),
-                    r.ContentLabel,
-                    r.SubContentLabel
-                }
-            )
-    
-            -- Yes Button
-            r.YesButton =
-                n(
-                "TextButton",
-                {
-                    Text = "Yes",
-                    Position = UDim2.new(0, 14, 1, -40),
-                    Size = UDim2.fromOffset(100, 30),
-                    BackgroundColor3 = Color3.fromRGB(0, 255, 0),
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
-                    Font = Enum.Font.Gotham,
-                    ThemeTag = {TextColor3 = "Text"}
-                }
-            )
-    
-            -- No Button
-            r.NoButton =
-                n(
-                "TextButton",
-                {
-                    Text = "No",
-                    Position = UDim2.new(0, 120, 1, -40),
-                    Size = UDim2.fromOffset(100, 30),
-                    BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
-                    Font = Enum.Font.Gotham,
-                    ThemeTag = {TextColor3 = "Text"}
-                }
-            )
-    
-            -- Close Button
-            r.CloseButton =
-                n(
-                "TextButton",
-                {
-                    Text = "",
-                    Position = UDim2.new(1, -14, 0, 13),
-                    Size = UDim2.fromOffset(20, 20),
-                    AnchorPoint = Vector2.new(1, 0),
-                    BackgroundTransparency = 1
-                },
-                {
-                    n(
-                        "ImageLabel",
-                        {
-                            Image = e(d.Parent.Assets).Close,
-                            Size = UDim2.fromOffset(16, 16),
-                            Position = UDim2.fromScale(0.5, 0.5),
-                            AnchorPoint = Vector2.new(0.5, 0.5),
-                            BackgroundTransparency = 1,
-                            ThemeTag = {ImageColor3 = "Text"}
-                        }
-                    )
-                }
-            )
-    
-            r.Root =
-                n(
-                "Frame",
-                {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
-                {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.LabelHolder}
-            )
-    
-            if q.Content == "" then
-                r.ContentLabel.Visible = false
-            end
-            if q.SubContent == "" then
-                r.SubContentLabel.Visible = false
-            end
-    
-            r.Holder =
-                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
-    
-            local s = i.GroupMotor.new {Scale = 1, Offset = 60}
-            s:onStep(
-                function(t)
-                    r.Root.Position = UDim2.new(t.Scale, t.Offset, 0, 0)
-                end
-            )
-    
-            -- Button Click Callbacks
-            r.YesButton.MouseButton1Click:Connect(function()
-                q.CallbackYes()  -- Execute the Yes button callback
-                r:Close()        -- Close the notification
-            end)
-    
-            r.NoButton.MouseButton1Click:Connect(function()
-                q.CallbackNo()   -- Execute the No button callback
-                r:Close()        -- Close the notification
-            end)
-    
-            -- Close Button Click
-            j.AddSignal(
-                r.CloseButton.MouseButton1Click,
-                function()
-                    r:Close()
-                end
-            )
-    
-            function r.Open(t)
-                local u = r.LabelHolder.AbsoluteSize.Y
-                r.Holder.Size = UDim2.new(1, 0, 0, 58 + u)
-                s:setGoal {Scale = l(0, {frequency = 5}), Offset = l(0, {frequency = 5})}
-            end
-    
-            function r.Close(t)
-                if not r.Closed then
-                    r.Closed = true
-                    task.spawn(
-                        function()
-                            s:setGoal {Scale = l(1, {frequency = 5}), Offset = l(60, {frequency = 5})}
-                            task.wait(0.4)
-                            if e(h).UseAcrylic then
-                                r.AcrylicPaint.Model:Destroy()
-                            end
-                            r.Holder:Destroy()
-                        end
-                    )
-                end
-            end
-    
-            r:Open()
-    
-            return r
-        end
-    end
 }
 do
     local ab, ac, ad, ae, af, ag, ah, aj, c, e, f, g, h, i, j, k =
