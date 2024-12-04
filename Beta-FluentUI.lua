@@ -120,7 +120,7 @@ local aa = {
         local n, o = j:GetMouse(), d
         local p, q, r, s = e(o.Creator), e(o.Elements), e(o.Acrylic), o.Components
         local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
-        local AshNotif = e(s.InteractableNotif)
+        getgenv().AshNotif = e(s.InteractableNotif)
                 end  
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
         w.Name = FluentUI
@@ -245,12 +245,15 @@ local aa = {
             return t:New(D)
         end
         function x.InteractNotify(C, D)
+            local AshNotif = getgenv().AshNotif
             if AshNotif then
+                print("AshNotif is available")
                 return AshNotif:New(D)
             else
                 warn("InteractableNotif is not available.")
+                print("AshNotif:", AshNotif)
             end
-        end
+        end        
         if getgenv then
             getgenv().Fluent = x
         end
