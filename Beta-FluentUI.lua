@@ -249,7 +249,8 @@ local aa = {
                 return AshNotif:New(D)
             else
                 warn("InteractableNotif is not available.")
-            end              
+            end
+        end
         if getgenv then
             getgenv().Fluent = x
         end
