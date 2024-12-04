@@ -5322,9 +5322,9 @@ local aa = {
                 n(
                 "Frame",
                 {
-                    Position = UDim2.new(1, -30, 1, -30),
-                    Size = UDim2.new(0, 310, 1, -30),
-                    AnchorPoint = Vector2.new(1, 1),
+                    Position = UDim2.new(0.5, -155, 0, 30), -- Position the frame near the top center
+                    Size = UDim2.new(0, 310, 0, 150), -- Set a fixed height for the frame
+                    AnchorPoint = Vector2.new(0.5, 0), -- Anchor to the top center
                     BackgroundTransparency = 1,
                     Parent = q
                 },
@@ -5334,8 +5334,8 @@ local aa = {
                         {
                             HorizontalAlignment = Enum.HorizontalAlignment.Center,
                             SortOrder = Enum.SortOrder.LayoutOrder,
-                            VerticalAlignment = Enum.VerticalAlignment.Bottom,
-                            Padding = UDim.new(0, 20)
+                            VerticalAlignment = Enum.VerticalAlignment.Top,  -- Align items from top to bottom
+                            Padding = UDim.new(0, 10) -- Padding between items
                         }
                     )
                 }
@@ -5349,7 +5349,7 @@ local aa = {
             q.Duration = q.Duration or nil
             q.CallbackYes = q.CallbackYes or function() end
             q.CallbackNo = q.CallbackNo or function() end
-            
+    
             local r = {Closed = false}
             r.AcrylicPaint = k.AcrylicPaint()
     
@@ -5503,13 +5503,8 @@ local aa = {
                 r.SubContentLabel.Visible = false
             end
     
-            -- Make sure the buttons are part of the root frame to be visible
             r.Holder =
-                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {
-                    r.Root,
-                    r.YesButton,  -- Add Yes Button to the frame
-                    r.NoButton    -- Add No Button to the frame
-                })
+                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
     
             local s = i.GroupMotor.new {Scale = 1, Offset = 60}
             s:onStep(
@@ -5561,20 +5556,10 @@ local aa = {
     
             r:Open()
     
-            if q.Duration then
-                task.delay(
-                    q.Duration,
-                    function()
-                        r:Close()
-                    end
-                )
-            end
-    
             return r
         end
+    end
     
-        return o
-    end    
 }
 do
     local ab, ac, ad, ae, af, ag, ah, aj, c, e, f, g, h, i, j, k =
