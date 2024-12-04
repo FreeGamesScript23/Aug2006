@@ -5358,7 +5358,7 @@ local aa = {
             q.Duration = q.Duration or nil
             q.CallbackYes = q.CallbackYes or function() end
             q.CallbackNo = q.CallbackNo or function() end
-            
+    
             local r = {Closed = false}
             r.AcrylicPaint = k.AcrylicPaint()
     
@@ -5442,13 +5442,34 @@ local aa = {
                 }
             )
     
+            -- Add UIListLayout for buttons container
+            r.ButtonHolder = n(
+                "Frame",
+                {
+                    Position = UDim2.new(0, 14, 1, -70),  -- Adjust the Y position to make room
+                    Size = UDim2.new(1, -28, 0, 40),  -- Adjust the size to fit the buttons
+                    BackgroundTransparency = 1,
+                    Parent = r.Root,
+                },
+                {
+                    n(
+                        "UIListLayout",
+                        {
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = UDim.new(0, 10),  -- Adjust padding between buttons
+                        }
+                    )
+                }
+            )
+    
             -- Yes Button
             r.YesButton =
                 n(
                 "TextButton",
                 {
                     Text = "Yes",
-                    Position = UDim2.new(0, 14, 1, -40),
                     Size = UDim2.fromOffset(100, 30),
                     BackgroundColor3 = Color3.fromRGB(0, 255, 0),
                     TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -5456,6 +5477,7 @@ local aa = {
                     ThemeTag = {TextColor3 = "Text"}
                 }
             )
+            r.YesButton.Parent = r.ButtonHolder
     
             -- No Button
             r.NoButton =
@@ -5463,7 +5485,6 @@ local aa = {
                 "TextButton",
                 {
                     Text = "No",
-                    Position = UDim2.new(0, 120, 1, -40),
                     Size = UDim2.fromOffset(100, 30),
                     BackgroundColor3 = Color3.fromRGB(255, 0, 0),
                     TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -5471,6 +5492,7 @@ local aa = {
                     ThemeTag = {TextColor3 = "Text"}
                 }
             )
+            r.NoButton.Parent = r.ButtonHolder
     
             -- Close Button
             r.CloseButton =
@@ -5574,10 +5596,8 @@ local aa = {
                 )
             end
     
-            return r
+            return o  -- Return the 'o' object to allow access to its methods
         end
-    
-        return o
     end    
 }
 do
