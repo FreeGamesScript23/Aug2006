@@ -113,6 +113,7 @@ function randomString()
 	end
 	return table.concat(array)
 end
+getgenv().FluentUI = randomString()
 local aa = {
     function()
         local c, d, e, f, g = b(1)
@@ -128,7 +129,7 @@ local aa = {
         local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
                 end
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
-        w.Name = randomString()
+        w.Name = FluentUI
         v(w)
         t:Init(w)
         local x = {
@@ -5163,7 +5164,7 @@ local aa = {
             SubText = Color3.fromRGB(180, 180, 180),
             Hover = Color3.fromRGB(140, 190, 190),
             HoverChange = 0.04
-        }        
+        }          
     end,
     [50] = function()
         local aa, ab, ac, ad, ae = b(50)
