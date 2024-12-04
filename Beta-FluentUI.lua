@@ -119,7 +119,7 @@ local aa = {
             game:GetService "Workspace".CurrentCamera
         local n, o = j:GetMouse(), d
         local p, q, r, s = e(o.Creator), e(o.Elements), e(o.Acrylic), o.Components
-        local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
+        local t, Inotif,u, v = e(s.Notification), e(s.InteractableNotif), p.New, protectgui or (syn and syn.protect_gui) or function()
                 end
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
         w.Name = FluentUI
@@ -244,7 +244,7 @@ local aa = {
             return t:New(D)
         end
         function x.InteractNotify(C, D)
-            return t:New(D)
+            return Inotif:New(D)
         end
         if getgenv then
             getgenv().Fluent = x
