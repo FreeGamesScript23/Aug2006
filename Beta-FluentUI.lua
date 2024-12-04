@@ -82,7 +82,7 @@ local a, b = {
                 {
                     {9, "ModuleScript", {"Button"}},
                     {12, "ModuleScript", {"Notification"}},
-                    {54, "ModuleScript", {"InteractableNotif"}},
+                    {100, "ModuleScript", {"InteractableNotif"}},
                     {13, "ModuleScript", {"Section"}},
                     {17, "ModuleScript", {"Window"}},
                     {14, "ModuleScript", {"Tab"}},
@@ -242,14 +242,10 @@ local aa = {
         end
         function x.Notify(C, D)
             return t:New(D)
-
-
         end
-
         function x.InteractNotify(C, D)
-            return InteractableNotif:New(D)
+            return InteractNotifComponent:New(D)
         end               
-
         if getgenv then
             getgenv().Fluent = x
         end
@@ -5315,8 +5311,8 @@ local aa = {
             HoverChange = 0.04
         }        
     end,
-    [54] = function()
-        local c, d, e, f, g = b(54)
+    [100] = function()
+        local c, d, e, f, g = b(100)
         local h = d.Parent.Parent
         local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
         local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
@@ -5563,7 +5559,6 @@ local aa = {
             return r
         end
     end
-    
 }
 do
     local ab, ac, ad, ae, af, ag, ah, aj, c, e, f, g, h, i, j, k =
