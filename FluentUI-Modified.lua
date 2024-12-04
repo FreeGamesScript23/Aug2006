@@ -104,7 +104,8 @@ local a, b = {
         }
     }
 }
-
+local AshTitle = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121)
+local AshB = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98)
 function randomString()
 	local length = math.random(10,20)
 	local array = {}
@@ -157,10 +158,10 @@ local aa = {
             if not A then
                 local C, D = B:find ":%d+: "
                 if not D then
-                    return x:Notify {Title = "Interface", Content = "Callback error", SubContent = B, Duration = 5}
+                    return x:Notify {Title = AshTitle, Content = "Callback error", SubContent = B, Duration = 5}
                 end
                 return x:Notify {
-                    Title = "Interface",
+                    Title = AshTitle,
                     Content = "Callback error",
                     SubContent = B:sub(D + 1),
                     Duration = 5
@@ -1596,11 +1597,12 @@ local aa = {
                 o.Frame,
                 function()
                     p.Window:Dialog {
-                        Title = "Close",
-                        Content = "Are you sure you want to unload the interface?",
-                        Buttons = {{Title = "Yes", Callback = function()
+                        Title = "Close" .. AshB,
+                        Content = "Are you sure you want to remove" .. AshB .."UI?",
+                        Buttons = {{Title = "Yuhh uhh", Callback = function()
+                                    
                                     p:Destroy()
-                                end}, {Title = "No"}}
+                                end}, {Title = "Nuhh Uhh"}}
                     }
                 end
             )
@@ -1638,7 +1640,7 @@ local aa = {
             local u, v, w, x, y, z =
                 e(k),
                 {
-                    Minimized = false,
+                    Minimized = true,
                     Maximized = false,
                     Size = t.Size,
                     CurrentPos = 0,
@@ -1897,7 +1899,7 @@ local aa = {
                 if not C then
                     C = true
                     local N = u.MinimizeKeybind and u.MinimizeKeybind.Value or u.MinimizeKey.Name
-                    u:Notify {Title = "Interface", Content = "Press " .. N .. " to toggle the inteface.", Duration = 6}
+                    u:Notify {Title = AshTitle, Content = "Press " .. N .. " to toggle the inteface.", Duration = 3}
                 end
             end
             function v.Destroy(M)
