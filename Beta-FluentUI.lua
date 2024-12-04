@@ -117,9 +117,10 @@ local aa = {
             game:GetService "UserInputService",
             game:GetService "TweenService",
             game:GetService "Workspace".CurrentCamera
+            local AshNotif = e(s.InteractableNotif)
         local n, o = j:GetMouse(), d
         local p, q, r, s = e(o.Creator), e(o.Elements), e(o.Acrylic), o.Components
-        local t, u, v, AshNotif = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function(), e(s.InteractableNotif)
+        local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
                 end  
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
         w.Name = FluentUI
