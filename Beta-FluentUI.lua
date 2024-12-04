@@ -1593,11 +1593,11 @@ local aa = {
                 function()
                     p.Window:Dialog {
                         Title = "Close " .. AshB,
-                        Content = "Are you sure you want to remove " .. AshB .."UI?",
-                        Buttons = {{Title = "Yuhh uhh", Callback = function()
+                        Content = "Are you sure you want to remove " .. AshB .." GUI?",
+                        Buttons = {{Title = "Yes", Callback = function()
                                     
                                     p:Destroy()
-                                end}, {Title = "Nuhh Uhh"}}
+                                end}, {Title = "No"}}
                     }
                 end
             )
