@@ -1,12 +1,3 @@
---[[
-    Fluent Interface Suite
-    This script is not intended to be modified.
-    To view the source code, see the 'src' folder on GitHub!
-
-    Author: dawid
-    License: MIT
-    GitHub: https://github.com/dawid-scripts/Fluent
---]]
 local a, b = {
     {
         1,
@@ -5512,8 +5503,13 @@ local aa = {
                 r.SubContentLabel.Visible = false
             end
     
+            -- Make sure the buttons are part of the root frame to be visible
             r.Holder =
-                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
+                n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {
+                    r.Root,
+                    r.YesButton,  -- Add Yes Button to the frame
+                    r.NoButton    -- Add No Button to the frame
+                })
     
             local s = i.GroupMotor.new {Scale = 1, Offset = 60}
             s:onStep(
@@ -5578,8 +5574,7 @@ local aa = {
         end
     
         return o
-    end
-    
+    end    
 }
 do
     local ab, ac, ad, ae, af, ag, ah, aj, c, e, f, g, h, i, j, k =
