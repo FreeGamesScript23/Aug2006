@@ -247,8 +247,8 @@ local aa = {
         end
 
         function x.InteractNotify(C, D)
-            return InteractNotifComponent.New(D)
-        end        
+            return InteractableNotif:New(D)
+        end               
 
         if getgenv then
             getgenv().Fluent = x
