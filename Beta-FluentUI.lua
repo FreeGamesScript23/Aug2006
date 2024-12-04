@@ -126,7 +126,7 @@ local aa = {
         w.Name = FluentUI
         v(w)
         t:Init(w)
-        AshNotif:Init(w)
+        getgenv().AshNotif:Init(w)
         local x = {
             Version = "9.1.1",
             OpenFrames = {},
