@@ -252,6 +252,9 @@ local aa = {
         function x.Notify(C, D)
             return t:New(D)
         end
+        function x.InteractNotify(C, D)
+            return t:New(D)
+        end
         if getgenv then
             getgenv().Fluent = x
         end
