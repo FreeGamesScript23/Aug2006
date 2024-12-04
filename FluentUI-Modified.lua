@@ -1597,8 +1597,8 @@ local aa = {
                 o.Frame,
                 function()
                     p.Window:Dialog {
-                        Title = "Close" .. AshB,
-                        Content = "Are you sure you want to remove" .. AshB .."UI?",
+                        Title = "Close " .. AshB,
+                        Content = "Are you sure you want to remove " .. AshB .."UI?",
                         Buttons = {{Title = "Yuhh uhh", Callback = function()
                                     
                                     p:Destroy()
