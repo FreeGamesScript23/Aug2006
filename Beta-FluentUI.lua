@@ -245,8 +245,11 @@ local aa = {
             return t:New(D)
         end
         function x.InteractNotify(C, D)
-            return AshNotif:New(D)
-        end               
+            if AshNotif then
+                return AshNotif:New(D)
+            else
+                warn("InteractableNotif is not available.")
+            end              
         if getgenv then
             getgenv().Fluent = x
         end
