@@ -1384,13 +1384,13 @@ Options.CollectCrab:SetValue(false)
 
      --------------------------------------------------------------------------------AUTOBUY------------------------------------------------------------------------------------------
      local TotemList = {
-        ["Aurora Totem(Luck)"] = 100, 
-        ["Eclipse (Eclipse)"] = 150, 
-        ["Smokescreen (Fog)"] = 120,
-        ["Sundial (Day/Night)"] = 130,
-        ["Tempest (Rainy)"] = 200,
-        ["Windset (Windy)"] = 180,
-        ["Meteor (Meteor)"] = 250
+        ["Aurora Totem(Luck)"] = 500000, 
+        ["Eclipse (Eclipse)"] = 250000, 
+        ["Smokescreen (Fog)"] = 2000,
+        ["Sundial (Day/Night)"] = 2000,
+        ["Tempest (Rainy)"] = 2000,
+        ["Windset (Windy)"] = 2000,
+        ["Meteor (Meteor)"] = 75000
     }
     
     local selectedTotem = "Aurora Totem(Luck)"
