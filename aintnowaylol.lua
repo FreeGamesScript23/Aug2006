@@ -3609,7 +3609,7 @@ Fluent:Notify({
     SubContent = "Tempest Totem?",
     Buttons = { 
         Yes = {Text = "Confirm", Callback = function() 
-            game:GetService('ReplicatedStorage').events.purchase:FireServer('Tempest Totem', 'Item', 1)
+            game:GetService('ReplicatedStorage').events.purchase:FireServer('Tempest Totem', 'Item', nil, 1)
             end},  
         No = {Text = "Cancel", Callback = function() 
                 SendNotif("Buying Notify", "Buying has been cancelled", 2)
