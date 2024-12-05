@@ -1383,7 +1383,52 @@ Options.CollectCrab:SetValue(false)
 
 
      --------------------------------------------------------------------------------AUTOBUY------------------------------------------------------------------------------------------
-
+     local TotemList = {
+        ["Aurora Totem(Luck)"] = 100, 
+        ["Eclipse (Eclipse)"] = 150, 
+        ["Smokescreen (Fog)"] = 120,
+        ["Sundial (Day/Night)"] = 130,
+        ["Tempest (Rainy)"] = 200,
+        ["Windset (Windy)"] = 180,
+        ["Meteor (Meteor)"] = 250
+    }
+    
+    local selectedTotem = "Aurora Totem(Luck)"
+    local purchaseAmount = 1
+    local purchaseButton
+    
+    Tabs.Purchase:AddDropdown("TotemListDD", {
+        Title = "Select Totem to Purchase",
+        Values = table.keys(TotemList),
+        Multi = false,
+        Default = selectedTotem,
+        Callback = function(selected)
+            selectedTotem = selected
+            purchaseButton:SetDesc("Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$")
+        end
+    })
+    
+    Tabs.Purchase:AddInput("TotemPurchaseAmount", {
+        Title = "How many totems to purchase",
+        Default = tostring(purchaseAmount), 
+        Placeholder = "Input number",
+        Numeric = true, 
+        Finished = true, 
+        Callback = function(Value)
+            purchaseAmount = tonumber(Value) or 1
+            purchaseButton:SetDesc("Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$")
+        end
+    })
+    
+    purchaseButton = Tabs.Purchase:AddButton({
+        Title = "Purchase Selected Totem",
+        Description = "Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$",
+        Callback = function()
+            game:GetService('ReplicatedStorage').events.purchase:FireServer(selectedTotem, 'Item', nil, purchaseAmount)
+            print("Purchase request sent for " .. purchaseAmount .. " " .. selectedTotem .. "(s).")
+        end
+    })
+    
      Tabs.Purchase:AddParagraph({
         Title = "IMPORTANT: PLEASE READ BEFORE USE",
         Content = "Auto Buying only works if you're near at the Product or Seller use Teleport also this doesnt auto stop your buying process unless because of Limiter walking away or untoggle to stop auto buying",
@@ -1660,6 +1705,8 @@ Tabs.Purchase:AddButton({
         TeleportPlayer(CFrame.new(-1646, -214, -2850))
     end
 })
+
+
         
       --------------------------------------------------------------------------------AUTOBUY------------------------------------------------------------------------------------------
 
