@@ -902,26 +902,26 @@ local aa = {
         function o.Init(p, q)
             o.Holder =
                 n(
-                    "Frame",
-                    {
-                        Position = UDim2.new(0.5, 0, 0, 30),
-                        AnchorPoint = Vector2.new(0.5, 0),
-                        Size = UDim2.new(0, 310, 1, -30),
-                        BackgroundTransparency = 1,
-                        Parent = q
-                    },
-                    {
-                        n(
-                            "UIListLayout",
-                            {
-                                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                                SortOrder = Enum.SortOrder.LayoutOrder,
-                                VerticalAlignment = Enum.VerticalAlignment.Bottom,
-                                Padding = UDim.new(0, 20)
-                            }
-                        )
-                    }
-                )
+                "Frame",
+                {
+                    Position = UDim2.new(1, -30, 1, -30),
+                    Size = UDim2.new(0, 310, 1, -30),
+                    AnchorPoint = Vector2.new(1, 1),
+                    BackgroundTransparency = 1,
+                    Parent = q
+                },
+                {
+                    n(
+                        "UIListLayout",
+                        {
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+                            Padding = UDim.new(0, 20)
+                        }
+                    )
+                }
+            )
         end
     
         function o.New(p, q)
@@ -930,154 +930,172 @@ local aa = {
             q.SubContent = q.SubContent or ""
             q.Duration = q.Duration or nil
             q.Buttons = q.Buttons or {}
+    
             local r = {Closed = false}
             r.AcrylicPaint = k.AcrylicPaint()
+    
             r.Title =
                 n(
-                    "TextLabel",
-                    {
-                        Position = UDim2.new(0, 14, 0, 17),
-                        Text = q.Title,
-                        RichText = true,
-                        TextColor3 = Color3.fromRGB(255, 255, 255),
-                        TextTransparency = 0,
-                        FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
-                        TextSize = 13,
-                        TextXAlignment = "Left",
-                        TextYAlignment = "Center",
-                        Size = UDim2.new(1, -12, 0, 12),
-                        TextWrapped = true,
-                        BackgroundTransparency = 1,
-                        ThemeTag = {TextColor3 = "Text"}
-                    }
-                )
+                "TextLabel",
+                {
+                    Position = UDim2.new(0, 14, 0, 17),
+                    Text = q.Title,
+                    RichText = true,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextTransparency = 0,
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    TextSize = 13,
+                    TextXAlignment = "Left",
+                    TextYAlignment = "Center",
+                    Size = UDim2.new(1, -12, 0, 12),
+                    TextWrapped = true,
+                    BackgroundTransparency = 1,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
             r.ContentLabel =
                 n(
-                    "TextLabel",
-                    {
-                        FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
-                        Text = q.Content,
-                        TextColor3 = Color3.fromRGB(240, 240, 240),
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        Size = UDim2.new(1, 0, 0, 14),
-                        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                        BackgroundTransparency = 1,
-                        TextWrapped = true,
-                        ThemeTag = {TextColor3 = "Text"}
-                    }
-                )
+                "TextLabel",
+                {
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    Text = q.Content,
+                    TextColor3 = Color3.fromRGB(240, 240, 240),
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2.new(1, 0, 0, 14),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    TextWrapped = true,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
             r.SubContentLabel =
                 n(
-                    "TextLabel",
-                    {
-                        FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
-                        Text = q.SubContent,
-                        TextColor3 = Color3.fromRGB(240, 240, 240),
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        Size = UDim2.new(1, 0, 0, 14),
-                        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                        BackgroundTransparency = 1,
-                        TextWrapped = true,
-                        ThemeTag = {TextColor3 = "SubText"}
-                    }
-                )
+                "TextLabel",
+                {
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    Text = q.SubContent,
+                    TextColor3 = Color3.fromRGB(240, 240, 240),
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2.new(1, 0, 0, 14),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    TextWrapped = true,
+                    ThemeTag = {TextColor3 = "SubText"}
+                }
+            )
+    
             r.LabelHolder =
                 n(
-                    "Frame",
-                    {
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                        BackgroundTransparency = 1,
-                        Position = UDim2.fromOffset(14, 40),
-                        Size = UDim2.new(1, -28, 0, 0)
-                    },
-                    {
-                        n(
-                            "UIListLayout",
-                            {
-                                SortOrder = Enum.SortOrder.LayoutOrder,
-                                VerticalAlignment = Enum.VerticalAlignment.Center,
-                                Padding = UDim.new(0, 3)
-                            }
-                        ),
-                        r.ContentLabel,
-                        r.SubContentLabel
-                    }
-                )
-    
-            r.YesButton =
-                n(
-                    "TextButton",
-                    {
-                        Text = "Yes",
-                        Size = UDim2.new(0, 100, 0, 30),
-                        BackgroundColor3 = Color3.fromRGB(0, 170, 0),
-                        TextColor3 = Color3.fromRGB(255, 255, 255),
-                        Font = Enum.Font.Gotham,
-                        Parent = r.LabelHolder
-                    }
-                )
-            r.NoButton =
-                n(
-                    "TextButton",
-                    {
-                        Text = "No",
-                        Size = UDim2.new(0, 100, 0, 30),
-                        BackgroundColor3 = Color3.fromRGB(170, 0, 0),
-                        TextColor3 = Color3.fromRGB(255, 255, 255),
-                        Font = Enum.Font.Gotham,
-                        Parent = r.LabelHolder
-                    }
-                )
+                "Frame",
+                {
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(14, 40),
+                    Size = UDim2.new(1, -28, 0, 0)
+                },
+                {
+                    n(
+                        "UIListLayout",
+                        {
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            Padding = UDim.new(0, 3)
+                        }
+                    ),
+                    r.ContentLabel,
+                    r.SubContentLabel
+                }
+            )
     
             r.CloseButton =
                 n(
-                    "TextButton",
-                    {
-                        Text = "",
-                        Position = UDim2.new(1, -14, 0, 13),
-                        Size = UDim2.fromOffset(20, 20),
-                        AnchorPoint = Vector2.new(1, 0),
-                        BackgroundTransparency = 1
-                    },
-                    {
-                        n(
-                            "ImageLabel",
-                            {
-                                Image = e(d.Parent.Assets).Close,
-                                Size = UDim2.fromOffset(16, 16),
-                                Position = UDim2.fromScale(0.5, 0.5),
-                                AnchorPoint = Vector2.new(0.5, 0.5),
-                                BackgroundTransparency = 1,
-                                ThemeTag = {ImageColor3 = "Text"}
-                            }
-                        )
-                    }
-                )
+                "TextButton",
+                {
+                    Text = "",
+                    Position = UDim2.new(1, -14, 0, 13),
+                    Size = UDim2.fromOffset(20, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1
+                },
+                {
+                    n(
+                        "ImageLabel",
+                        {
+                            Image = e(d.Parent.Assets).Close,
+                            Size = UDim2.fromOffset(16, 16),
+                            Position = UDim2.fromScale(0.5, 0.5),
+                            AnchorPoint = Vector2.new(0.5, 0.5),
+                            BackgroundTransparency = 1,
+                            ThemeTag = {ImageColor3 = "Text"}
+                        }
+                    )
+                }
+            )
+    
+            -- Adding Yes and No buttons
+            r.YesButton =
+                n(
+                "TextButton",
+                {
+                    Text = "Yes",
+                    Position = UDim2.new(1, -60, 0, 13),
+                    Size = UDim2.fromOffset(40, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(0, 255, 0),
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    TextSize = 13,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            r.NoButton =
+                n(
+                "TextButton",
+                {
+                    Text = "No",
+                    Position = UDim2.new(1, -105, 0, 13),
+                    Size = UDim2.fromOffset(40, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(255, 0, 0),
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    TextSize = 13,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
             r.Root =
                 n(
-                    "Frame",
-                    {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
-                    {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.LabelHolder}
-                )
+                "Frame",
+                {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
+                {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.YesButton, r.NoButton, r.LabelHolder}
+            )
+    
             if q.Content == "" then
                 r.ContentLabel.Visible = false
             end
             if q.SubContent == "" then
                 r.SubContentLabel.Visible = false
             end
+    
             r.Holder =
                 n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
+    
             local s = i.GroupMotor.new {Scale = 1, Offset = 60}
             s:onStep(
                 function(t)
                     r.Root.Position = UDim2.new(t.Scale, t.Offset, 0, 0)
                 end
             )
+    
             j.AddSignal(
                 r.CloseButton.MouseButton1Click,
                 function()
@@ -1085,8 +1103,23 @@ local aa = {
                 end
             )
     
-            j.AddSignal(r.YesButton.MouseButton1Click, function() print("Yes button clicked") end)
-            j.AddSignal(r.NoButton.MouseButton1Click, function() print("No button clicked") end)
+            j.AddSignal(
+                r.YesButton.MouseButton1Click,
+                function()
+                    print("Yes button clicked")
+                    -- Add any action you want for the "Yes" button here
+                    r:Close() -- Optionally close the notification
+                end
+            )
+    
+            j.AddSignal(
+                r.NoButton.MouseButton1Click,
+                function()
+                    print("No button clicked")
+                    -- Add any action you want for the "No" button here
+                    r:Close() -- Optionally close the notification
+                end
+            )
     
             function r.Open(t)
                 local u = r.LabelHolder.AbsoluteSize.Y
@@ -1109,7 +1142,9 @@ local aa = {
                     )
                 end
             end
+    
             r:Open()
+    
             if q.Duration then
                 task.delay(
                     q.Duration,
@@ -1118,12 +1153,12 @@ local aa = {
                     end
                 )
             end
+    
             return r
         end
     
         return o
-    end
-        
+    end,    
     [13] = function()
         local c, d, e, f, g = b(13)
         local h = d.Parent.Parent
