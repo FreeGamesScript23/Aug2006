@@ -1096,28 +1096,20 @@ local aa = {
                 end
             )
     
+            -- Connect the Yes and No button callbacks
+            if q.Buttons.Yes then
+                j.AddSignal(r.YesButton.MouseButton1Click, q.Buttons.Yes)
+            end
+    
+            if q.Buttons.No then
+                j.AddSignal(r.NoButton.MouseButton1Click, q.Buttons.No)
+            end
+    
+            -- Connect the Close button
             j.AddSignal(
                 r.CloseButton.MouseButton1Click,
                 function()
                     r:Close()
-                end
-            )
-    
-            j.AddSignal(
-                r.YesButton.MouseButton1Click,
-                function()
-                    print("Yes button clicked")
-                    -- Add any action you want for the "Yes" button here
-                    r:Close() -- Optionally close the notification
-                end
-            )
-    
-            j.AddSignal(
-                r.NoButton.MouseButton1Click,
-                function()
-                    print("No button clicked")
-                    -- Add any action you want for the "No" button here
-                    r:Close() -- Optionally close the notification
                 end
             )
     
