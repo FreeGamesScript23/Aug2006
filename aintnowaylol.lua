@@ -1399,7 +1399,7 @@ Options.CollectCrab:SetValue(false)
     
     Tabs.Purchase:AddDropdown("TotemListDD", {
         Title = "Select Totem to Purchase",
-        Values = table.keys(TotemList),
+        Values = TotemList,
         Multi = false,
         Default = selectedTotem,
         Callback = function(selected)
