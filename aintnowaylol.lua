@@ -2054,7 +2054,6 @@ Tabs.Teleport:AddButton({
     end
             end
         })
-
 --------------------------------------------------------------------------------TELEPORT------------------------------------------------------------------------------------------
 
 
@@ -3605,15 +3604,15 @@ Window:SelectTab(1)
 SaveManager:LoadAutoloadConfig()
 
 Fluent:Notify({
-    Title = "Are you sure?",
-    Content = "Do you want to delete this file?",
-    SubContent = "This action is permanent.",
+    Title = "Buy Tempest Totem",
+    Content = "Do you really want to Buy",
+    SubContent = "Tempest Totem?",
     Buttons = { 
         Yes = {Text = "Confirm", Callback = function() 
-                SendNotif("Teleport Notify", "Teleported to Megalodon", 2)
+            game:GetService('ReplicatedStorage').events.purchase:FireServer('Tempest Totem', 'Item', 1)
             end},  
         No = {Text = "Cancel", Callback = function() 
-                SendNotif("Teleport Notify", "Teleport has been cancelled", 2)
+                SendNotif("Buying Notify", "Buying has been cancelled", 2)
             end},
     }
 })
