@@ -2357,11 +2357,9 @@ AutoSundialTotemToggle:OnChanged(function(value)
 end)
 
 
-
 local AutoWeatherCycle = false
-local pickedWeather = "Foggy" 
+local pickedWeather = "Foggy"
 
--- Function to find the specific Weather Totem in the backpack or character
 local function getWeatherTotem()
     local totemMapping = {
         ["Foggy"] = "Smokescreen Totem",
@@ -2370,14 +2368,12 @@ local function getWeatherTotem()
     }
     local totemName = totemMapping[pickedWeather]
 
-    -- Check in the backpack
     for _, item in ipairs(player.Backpack:GetChildren()) do
         if item:IsA("Tool") and item.Name == totemName then
             return item
         end
     end
 
-    -- Check if it's equipped
     if player.Character then
         for _, item in ipairs(player.Character:GetChildren()) do
             if item:IsA("Tool") and item.Name == totemName then
@@ -2388,14 +2384,11 @@ local function getWeatherTotem()
     return nil
 end
 
--- Function to monitor and maintain the selected weather
 local function maintainWeather()
     local wasAutoCastEnabled = Options.AutoCast.Value
     if wasAutoCastEnabled and not isReelBarActive() and AutoWeatherCycle then
         Options.AutoCast:SetValue(false)
     end
-
-    local lastWeather = nil -- Track the last known weather to prevent spamming
 
     while AutoWeatherCycle do
         local weatherTotem = getWeatherTotem()
@@ -2410,43 +2403,33 @@ local function maintainWeather()
 
         local currentWeather = player.PlayerGui.hud.safezone.worldstatuses["2_weather"].label.Text
 
-        -- If the current weather doesn't match the picked weather
         if currentWeather ~= pickedWeather then
             repeat task.wait() until not isReelBarActive()
             Humanoid:EquipTool(weatherTotem)
             weatherTotem:Activate()
             SendNotif("Totem Notify", weatherTotem.Name .. " used to make it " .. pickedWeather .. "!", 3)
-            -- Wait a few seconds before checking again to avoid spamming
             task.wait(3)
         end
 
-        -- Update the last known weather after confirming it's correct
-        if currentWeather == pickedWeather then
-            lastWeather = currentWeather
-        end
-
-        task.wait(1) -- Small delay before checking again
+        task.wait(1)
     end
 
-    -- Re-enable AutoCast if it was initially enabled
     if wasAutoCastEnabled then
         Options.AutoCast:SetValue(true)
     end
 end
 
--- Dropdown for selecting the desired weather
 local WeatherDropdown = Tabs.Misc:AddDropdown("WeatherDropdown", {
     Title = "Desired Weather",
     Values = {"Foggy", "Rainy", "Windy"},
-    Default = "Foggy", -- Default to Foggy
+    Default = "Foggy",
     Multi = false
 })
 
 WeatherDropdown:OnChanged(function(value)
-    pickedWeather = value -- Update the picked weather
+    pickedWeather = value
 end)
 
--- Toggle for enabling or disabling the functionality
 local AutoWeatherCycleToggle = Tabs.Misc:AddToggle("AutoWeatherCycle", {
     Title = "Auto Weather Cycle",
     Default = false
@@ -2455,7 +2438,7 @@ local AutoWeatherCycleToggle = Tabs.Misc:AddToggle("AutoWeatherCycle", {
 AutoWeatherCycleToggle:OnChanged(function(value)
     AutoWeatherCycle = value
     if AutoWeatherCycle then
-        task.spawn(maintainWeather) -- Use task.spawn to keep the loop independent and uninterrupted
+        task.spawn(maintainWeather)
     end
 end)
 
@@ -3596,7 +3579,6 @@ local function sendWebhook(jobId)
     end
 end
 
--- Monitor workspace.zones.fishing for the specific child
 local fishingZone = workspace:WaitForChild("zones"):WaitForChild("fishing")
 
 fishingZone.ChildAdded:Connect(function(child)
