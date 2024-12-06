@@ -97,6 +97,7 @@ local a, b = {
 }
 local AshTitle = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121)
 local AshB = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98)
+local Ash = string.char(65, 115, 104, 98, 111, 114, 110, 110)
 function randomString()
 	local length = math.random(10,20)
 	local array = {}
@@ -149,11 +150,11 @@ local aa = {
             if not A then
                 local C, D = B:find ":%d+: "
                 if not D then
-                    return x:Notify {Title = AshTitle, Content = "Callback error please report this to me.", SubContent = B, Duration = 5}
+                    return x:Notify {Title = AshTitle, Content = "Callback error please report this to " .. Ash, SubContent = B, Duration = 5}
                 end
                 return x:Notify {
                     Title = AshTitle,
-                    Content = "Callback error Please Report this to me.",
+                    Content = "Callback error Please Report this to " .. Ash,
                     SubContent = B:sub(D + 1),
                     Duration = 5
                 }
@@ -898,7 +899,7 @@ local aa = {
         local h = d.Parent.Parent
         local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
         local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
-    
+        
         function o.Init(p, q)
             o.Holder =
                 n(
@@ -1044,7 +1045,7 @@ local aa = {
                 n(
                 "TextButton",
                 {
-                    Text = "Yes",
+                    Text = (q.Buttons.Yes and q.Buttons.Yes.Text) or "Yes",
                     Position = UDim2.new(1, -60, 0, 13),
                     Size = UDim2.fromOffset(40, 20),
                     AnchorPoint = Vector2.new(1, 0),
@@ -1060,7 +1061,7 @@ local aa = {
                 n(
                 "TextButton",
                 {
-                    Text = "No",
+                    Text = (q.Buttons.No and q.Buttons.No.Text) or "No",
                     Position = UDim2.new(1, -105, 0, 13),
                     Size = UDim2.fromOffset(40, 20),
                     AnchorPoint = Vector2.new(1, 0),
@@ -1079,6 +1080,17 @@ local aa = {
                 {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.YesButton, r.NoButton, r.LabelHolder}
             )
     
+            local function addUIStroke(button)
+                local uiStroke = Instance.new("UIStroke")
+                uiStroke.Parent = button
+                uiStroke.Thickness = 2
+                uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                uiStroke.Color = button.TextColor3
+            end
+    
+            addUIStroke(r.YesButton)
+            addUIStroke(r.NoButton)
+    
             if q.Content == "" then
                 r.ContentLabel.Visible = false
             end
@@ -1086,6 +1098,23 @@ local aa = {
                 r.SubContentLabel.Visible = false
             end
     
+            if not q.Buttons.Yes then
+                r.YesButton.Parent = nil
+            end
+            
+            if not q.Buttons.No then
+                r.NoButton.Parent = nil
+            end
+    
+            if q.Buttons.Yes or q.Buttons.No then
+                r.CloseButton.Parent = nil
+            end
+    
+            if q.Buttons.Yes or q.Buttons.No then
+                r.NoButton.Position = UDim2.new(1, -14, 0, 13)
+                r.YesButton.Position = UDim2.new(1, -14 - r.NoButton.Size.X.Offset - 10, 0, 13)
+            end
+            
             r.Holder =
                 n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
     
@@ -1096,22 +1125,35 @@ local aa = {
                 end
             )
     
-            -- Connect the Yes and No button callbacks
             if q.Buttons.Yes then
-                j.AddSignal(r.YesButton.MouseButton1Click, q.Buttons.Yes)
+                j.AddSignal(r.YesButton.MouseButton1Click, function()
+                    if type(q.Buttons.Yes.Callback) == "function" then
+                        q.Buttons.Yes.Callback()
+                    else
+                        
+                    end
+                    r:Close()
+                    -- Default value
+                end)
             end
-    
+            
             if q.Buttons.No then
-                j.AddSignal(r.NoButton.MouseButton1Click, q.Buttons.No)
-            end
-    
-            -- Connect the Close button
+                j.AddSignal(r.NoButton.MouseButton1Click, function()
+                    if type(q.Buttons.No.Callback) == "function" then
+                        q.Buttons.No.Callback()
+                    else
+                        
+                    end
+                    r:Close()
+                    -- Default Value
+                end)
+            end            
+            
             j.AddSignal(
                 r.CloseButton.MouseButton1Click,
                 function()
                     r:Close()
-                end
-            )
+                end)
     
             function r.Open(t)
                 local u = r.LabelHolder.AbsoluteSize.Y
@@ -1508,13 +1550,13 @@ local aa = {
         local h, i = d.Parent.Parent, e(d.Parent.Assets)
         local j, k = e(h.Creator), e(h.Packages.Flipper)
         local l, m = j.New, j.AddSignal
+    
         return function(n)
             local o, p, q =
                 {},
                 e(h),
                 function(o, p, q, r)
-                    local s = {Callback = r or function()
-                            end}
+                    local s = {Callback = r or function() end}
                     s.Frame =
                         l(
                         "TextButton",
@@ -1543,37 +1585,22 @@ local aa = {
                             )
                         }
                     )
+    
                     local t, u = j.SpringMotor(1, s.Frame, "BackgroundTransparency")
-                    m(
-                        s.Frame.MouseEnter,
-                        function()
-                            u(0.94)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseLeave,
-                        function()
-                            u(1, true)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseButton1Down,
-                        function()
-                            u(0.96)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseButton1Up,
-                        function()
-                            u(0.94)
-                        end
-                    )
+                    m(s.Frame.MouseEnter, function() u(0.94) end)
+                    m(s.Frame.MouseLeave, function() u(1, true) end)
+                    m(s.Frame.MouseButton1Down, function() u(0.96) end)
+                    m(s.Frame.MouseButton1Up, function() u(0.94) end)
                     m(s.Frame.MouseButton1Click, s.Callback)
+    
                     s.SetCallback = function(v)
                         s.Callback = v
                     end
+    
                     return s
                 end
+    
+            -- Frame for the entire Title + Subtitle + Icon setup
             o.Frame =
                 l(
                 "Frame",
@@ -1583,6 +1610,7 @@ local aa = {
                         "Frame",
                         {Size = UDim2.new(1, -16, 1, 0), Position = UDim2.new(0, 16, 0, 0), BackgroundTransparency = 1},
                         {
+                            -- UIListLayout to align the Icon, Title, and Subtitle horizontally
                             l(
                                 "UIListLayout",
                                 {
@@ -1591,36 +1619,47 @@ local aa = {
                                     SortOrder = Enum.SortOrder.LayoutOrder
                                 }
                             ),
+                            -- Icon (ImageLabel) on the left side of Title
+                            l(
+                                "ImageLabel",
+                                {
+                                    Image = "rbxassetid://104937882773234",
+                                    Size = UDim2.fromOffset(40, 40),
+                                    Position = UDim2.new(0.5, 0, 0.5, 3),
+                                    AnchorPoint = Vector2.new(0.5, 0.5),
+                                    BackgroundTransparency = 1,
+                                    Name = "Icon",
+                                    ThemeTag = {ImageColor3 = "Text"}
+                                },
+                             {
+                                l("UICorner", {CornerRadius = UDim.new(0, 5)})
+                             }
+                            ),
+                            -- Title TextLabel, placed next to Icon
                             l(
                                 "TextLabel",
                                 {
                                     RichText = true,
                                     Text = n.Title,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
+                                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
                                     TextSize = 12,
                                     TextXAlignment = "Left",
                                     TextYAlignment = "Center",
                                     Size = UDim2.fromScale(0, 1),
+                                    Position = UDim2.new(0, 4, 0, 0),  -- Slightly moved to the right to align properly with the Icon
                                     AutomaticSize = Enum.AutomaticSize.X,
                                     BackgroundTransparency = 1,
                                     ThemeTag = {TextColor3 = "Text"}
                                 }
                             ),
+                            -- Subtitle TextLabel, placed next to Title
                             l(
                                 "TextLabel",
                                 {
                                     RichText = true,
                                     Text = n.SubTitle,
                                     TextTransparency = 0.4,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
+                                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
                                     TextSize = 12,
                                     TextXAlignment = "Left",
                                     TextYAlignment = "Center",
@@ -1643,6 +1682,8 @@ local aa = {
                     )
                 }
             )
+    
+            -- Close button functionality
             o.CloseButton =
                 q(
                 i.Close,
@@ -1651,14 +1692,16 @@ local aa = {
                 function()
                     p.Window:Dialog {
                         Title = "Close " .. AshB,
-                        Content = "Are you sure you want to remove " .. AshB .." UI?",
-                        Buttons = {{Title = "Yes", Callback = function()
-                                    
-                                    p:Destroy()
-                                end}, {Title = "No"}}
+                        Content = "Are you sure you want to remove " .. AshB .. " UI?",
+                        Buttons = {
+                            {Title = "Yes", Callback = function() p:Destroy() end},
+                            {Title = "No"}
+                        }
                     }
                 end
             )
+    
+            -- Maximize button functionality
             o.MaxButton =
                 q(
                 i.Max,
@@ -1668,6 +1711,8 @@ local aa = {
                     n.Window.Maximize(not n.Window.Maximized)
                 end
             )
+    
+            -- Minimize button functionality
             o.MinButton =
                 q(
                 i.Min,
@@ -1677,9 +1722,10 @@ local aa = {
                     p.Window:Minimize()
                 end
             )
+    
             return o
         end
-    end,
+    end,    
     [17] = function()
         local c, d, e, f, g = b(17)
         local h, i, j, k =
