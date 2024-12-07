@@ -61,7 +61,7 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
         Main = Window:AddTab({ Title = "Main", Icon = "house" }),
         Fish = Window:AddTab({ Title = "Fishing", Icon = "fish" }),
-        Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
+        Purchase = Window:AddTab({ Title = "Purchase", Icon = "shopping-cart"}),
         Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand-sparkles" }),
         Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
         Misc = Window:AddTab({ Title = "Misc", Icon = "circle-alert" }),
@@ -544,6 +544,9 @@ function click_this_gui(to_click)
 
             local x = to_click.AbsolutePosition.X + offset.x
             local y = to_click.AbsolutePosition.Y + offset.y
+            
+            
+            to_click.Size = UDim2.new(0, 150, 0, 150)
 
             virtualInput:SendMouseButtonEvent(x + inset.X, y + inset.Y, 0, true, playerGui, 1)  -- Mouse down
             virtualInput:SendMouseButtonEvent(x + inset.X, y + inset.Y, 0, false, playerGui, 1) -- Mouse up
@@ -738,19 +741,14 @@ function equipRod()
     return nil
 end
 
-function unequipRod()
-repeat task.wait() until not isReelBarActive()
-    local character = player.Character
-    if character then
-        for _, tool in ipairs(character:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name:lower():find("rod") then
-                -- Unequip the rod by destroying it from the character
-                tool.Parent = player.Backpack
-                return tool
-            end
+-- Ensure the rod is always equipped during auto-casting
+function ensureRodEquipped()
+    while isAutoCasting do
+        if not isRodEquipped() then
+            equipRod()
         end
+        task.wait(0.1) -- Check frequently to maintain the rod's equipped state
     end
-    return nil
 end
 
 -- Simulate cursor-based casting
@@ -778,30 +776,26 @@ function reelCasting()
         repeat task.wait() until not isShakeUIActive()
 
         if not stopCasting then
-            local equippedTool
+            local equippedTool = player.Character:FindFirstChildWhichIsA("Tool")
 
-            if not isRodEquipped() then
+            if not equippedTool or not string.find(equippedTool.Name:lower(), "rod") then
                 equippedTool = equipRod()
-            else
-                equippedTool = player.Character:FindFirstChildWhichIsA("Tool")
             end
 
-            if equippedTool and string.find(equippedTool.Name, "Rod") then
+            if equippedTool and string.find(equippedTool.Name:lower(), "rod") then
                 if castingMethod == "Cursor" then
                     simulateCasting()
                 elseif castingMethod == "Instant" then
                     local events = equippedTool:FindFirstChild("events")
                     if events then
                         local castEvent = events:FindFirstChild("cast")
-                        if castEvent and not button then
+                        if castEvent then
                             pcall(function()
                                 castEvent:FireServer(100, 1)
                             end)
                         end
                     end
                 end
-            else
-                equippedTool = equipRod()
             end
 
             task.wait(castDelay)
@@ -811,9 +805,9 @@ function reelCasting()
     end
 end
 
-
+-- Monitor UI changes
 function monitorUIChanges()
-   playerGui.DescendantAdded:Connect(function(descendant)
+    playerGui.DescendantAdded:Connect(function(descendant)
         if descendant.Name == "playerbar" or descendant.Name == "reel" or descendant.Name == "shakeui" then
             stopCasting = true
         end
@@ -830,12 +824,13 @@ AutoCastToggle = Tabs.Fish:AddToggle("AutoCast", {Title = "Auto Rod Casting", De
 
 AutoCastToggle:OnChanged(function(value)
     isAutoCasting = value
+    AutoFreeze = value
     if value then
         monitorUIChanges()
         coroutine.wrap(reelCasting)()
-        else
+        coroutine.wrap(ensureRodEquipped)() -- Ensure the rod is always equipped during auto-casting
+    else
         repeat task.wait() until not isReelBarActive()
-        unequipRod()
     end
 end)
 
@@ -858,15 +853,6 @@ FreezeCharacterToggle = Tabs.Fish:AddToggle("FreezeCharacter", {Title = "Freeze 
 rememberConnection = nil 
 FreezeCharacterToggle:OnChanged(function(value)
     AutoFreeze = value
-    if value then
-        if not rememberConnection or not rememberConnection.Connected then
-            rememberConnection = runService.RenderStepped:Connect(rememberPosition)
-        end
-    else
-        if rememberConnection and rememberConnection.Connected then
-            rememberConnection:Disconnect()
-        end
-    end
 end)
 
 
@@ -1010,7 +996,7 @@ WaterZoneDropdown:OnChanged(function(value)
     updateSelectedZone()
 end)
 
-local function refreshWaterZoneNames()
+function refreshWaterZoneNames()
     WaterZoneNames = {}
     for _, zone in ipairs(workspace.zones.fishing:GetChildren()) do
         if not table.find(WaterZoneNames, zone.Name) then
@@ -1023,7 +1009,7 @@ local function refreshWaterZoneNames()
     updateSelectedZone()
 end
 
-local function enableNoclip()
+function enableNoclip()
     if heartbeatConnection then return end
     local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
 
@@ -1039,7 +1025,7 @@ local function enableNoclip()
     end)
 end
 
-local function disableNoclip()
+function disableNoclip()
     if heartbeatConnection then
         heartbeatConnection:Disconnect()
         heartbeatConnection = nil
@@ -1055,17 +1041,19 @@ local function disableNoclip()
     end
 end
 
-local initialPlayerCFrame = nil -- Renamed for clarity
+local initialPlayerCFrame = nil -- Store the initial CFrame outside the function
 
 ZoneFishingToggle:OnChanged(function(value)
     ZoneFishing = value
     isOverridingZone = value
+
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local rootPart = character:FindFirstChild("HumanoidRootPart")
 
     if value then
-        if not initialPlayerCFrame and rootPart then
+        -- Update the player's position each time the toggle is turned on
+        if rootPart then
             initialPlayerCFrame = rootPart.CFrame
         end
 
@@ -1106,6 +1094,7 @@ ZoneFishingToggle:OnChanged(function(value)
             renderSteppedConnection = nil
         end
 
+        -- Return the player to their initial position if it was stored
         if initialPlayerCFrame and rootPart then
             rootPart.CFrame = initialPlayerCFrame
         end
@@ -1183,6 +1172,57 @@ Tabs.Fish:AddButton({
 local SelectedBait = nil
 local EquipRandomBait = false
 
+-- Required services
+local RunService = game:GetService("RunService")
+local HeartbeatConnection
+
+RodSelectionDropdown = Tabs.Fish:AddDropdown("SelectRod", {
+    Title = "Select Rod to Spam",
+    Values = {
+        "Wisdom Rod",
+        "Rod Of The Eternal King",
+        "Rod Of The Forgotten Fang",
+    },
+    Default = "",
+})
+
+-- AddToggle UI for Spamming Rod Equip
+SpamEquipRodToggle = Tabs.Fish:AddToggle("SpamEquipRod", {
+    Title = "Spam Equip Rods",
+    Default = false,
+})
+
+
+-- Function to equip a specific rod
+function EquipRod(rodName)
+    local args = {
+        [1] = rodName
+    }
+    game:GetService("ReplicatedStorage").events.equiprod:FireServer(unpack(args))
+end
+
+-- Handle changes to the toggle
+SpamEquipRodToggle:OnChanged(function(value)
+    if value then
+        -- Start spamming the selected rod using Heartbeat
+        -- Start spamming both the selected rod and "Rod Of The Depths"
+HeartbeatConnection = RunService.Heartbeat:Connect(function()
+    EquipRod("Rod Of The Depths") -- Always equip "Rod Of The Depths"
+    local selectedRod = RodSelectionDropdown.Value -- Retrieve the selected rod
+    if selectedRod then
+        EquipRod(selectedRod) -- Equip the selected rod
+    end
+end)
+    else
+        -- Stop spamming
+        if HeartbeatConnection then
+            HeartbeatConnection:Disconnect()
+            HeartbeatConnection = nil
+        end
+    end
+end)
+
+local CrabRelated = Tabs.Fish:AddSection("Bait")
 local dropdown = Tabs.Fish:AddDropdown("SelectBaitEquip", {
     Title = "Select Bait to Equip",
     Values = {},
@@ -1383,329 +1423,152 @@ Options.CollectCrab:SetValue(false)
 
 
      --------------------------------------------------------------------------------AUTOBUY------------------------------------------------------------------------------------------
-     local TotemList = {
-        ["Aurora Totem(Luck)"] = 500000, 
-        ["Eclipse (Eclipse)"] = 250000, 
-        ["Smokescreen (Fog)"] = 2000,
-        ["Sundial (Day/Night)"] = 2000,
-        ["Tempest (Rainy)"] = 2000,
-        ["Windset (Windy)"] = 2000,
-        ["Meteor (Meteor)"] = 75000
-    }
-    
-    local selectedTotem = "Aurora Totem(Luck)"
-    local purchaseAmount = 1
-    local purchaseButton
-    
-    Tabs.Purchase:AddDropdown("TotemListDD", {
-        Title = "Select Totem to Purchase",
-        Values = TotemList,
-        Multi = false,
-        Default = selectedTotem,
-        Callback = function(selected)
-            selectedTotem = selected
-            purchaseButton:SetDesc("Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$")
-        end
-    })
-    
-    Tabs.Purchase:AddInput("TotemPurchaseAmount", {
-        Title = "How many totems to purchase",
-        Default = tostring(purchaseAmount), 
-        Placeholder = "Input number",
-        Numeric = true, 
-        Finished = true, 
-        Callback = function(Value)
-            purchaseAmount = tonumber(Value) or 1
-            purchaseButton:SetDesc("Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$")
-        end
-    })
-    
-    purchaseButton = Tabs.Purchase:AddButton({
-        Title = "Purchase Selected Totem",
-        Description = "Purchase " .. purchaseAmount .. " " .. selectedTotem .. "(s) for " .. (TotemList[selectedTotem] * purchaseAmount) .. " C$",
-        Callback = function()
-            game:GetService('ReplicatedStorage').events.purchase:FireServer(selectedTotem, 'Item', nil, purchaseAmount)
-            print("Purchase request sent for " .. purchaseAmount .. " " .. selectedTotem .. "(s).")
-        end
-    })
-    
-     Tabs.Purchase:AddParagraph({
-        Title = "IMPORTANT: PLEASE READ BEFORE USE",
-        Content = "Auto Buying only works if you're near at the Product or Seller use Teleport also this doesnt auto stop your buying process unless because of Limiter walking away or untoggle to stop auto buying",
+     local space = Tabs.Purchase:AddSection("Buy Totems")  
+-- Data for Totems and Items
+local TotemList = {
+    ["Aurora Totem"] = 500000,
+    ["Eclipse Totem"] = 250000,
+    ["Smokescreen Totem"] = 2000,
+    ["Sundial Totem"] = 2000,
+    ["Tempest Totem"] = 2000,
+    ["Windset Totem"] = 2000,
+    ["Meteor Totem"] = 75000,
+    ["Crab Cage"] = 45
+}
+local ItemList = {
+    ["Bait Crate"] = 120,
+    ["Common Crate"] = 128,
+    ["Coral Geode"] = 600,
+    ["Volcanic Geode"] = 600,
+    ["Carbon Crate"] = 490,
+    ["Quality Bait Crate"] = 525,
+    ["Fish Barrel"] = 80
+}
+
+-- Helper function to extract keys
+function extractKeys(data)
+    local keys = {}
+    for key, _ in pairs(data) do
+        table.insert(keys, key)
+    end
+    return keys
+end
+
+local TotemKeys = extractKeys(TotemList)
+local ItemKeys = extractKeys(ItemList)
+
+-- Initial variables
+local selectedTotem = TotemKeys[1] -- Default to first totem
+local selectedItem = ItemKeys[1] -- Default to first item
+local totemPurchaseAmount = 1
+local itemPurchaseAmount = 1
+
+-- Function to format numbers with commas
+function formatWithCommas(number)
+    return string.format("%s", tostring(number):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
+end
+
+-- Button references for dynamic updates
+local TotemPurchaseButton
+local ItemPurchaseButton
+
+-- Totem Purchase Section
+Tabs.Purchase:AddDropdown("TotemListDropdown", {
+    Title = "Select Totem to Purchase",
+    Values = TotemKeys,
+    Multi = false,
+    Default = selectedTotem,
+    Callback = function(selected)
+        selectedTotem = selected
+        -- Update button description
+        TotemPurchaseButton:SetDesc("Purchase " .. totemPurchaseAmount .. " " .. selectedTotem .. "(s) for " .. formatWithCommas(TotemList[selectedTotem] * totemPurchaseAmount) .. " C$")
+    end
+})
+
+Tabs.Purchase:AddInput("TotemAmountInput", {
+    Title = "How many totems to purchase",
+    Default = tostring(totemPurchaseAmount),
+    Placeholder = "Input number",
+    Numeric = true,
+    Finished = true,
+    Callback = function(value)
+        totemPurchaseAmount = tonumber(value) or 1
+        -- Update button description
+        TotemPurchaseButton:SetDesc("Purchase " .. totemPurchaseAmount .. " " .. selectedTotem .. "(s) for " .. formatWithCommas(TotemList[selectedTotem] * totemPurchaseAmount) .. " C$")
+    end
+})
+
+TotemPurchaseButton = Tabs.Purchase:AddButton({
+    Title = "Purchase Selected Totem",
+    Description = "Purchase " .. totemPurchaseAmount .. " " .. selectedTotem .. "(s) for " .. formatWithCommas(TotemList[selectedTotem] * totemPurchaseAmount) .. " C$",
+    Callback = function()
+        Window:Dialog({
+            Title = "Confirm Purchase",
+            Content = "Do you want to purchase " .. totemPurchaseAmount .. " " .. selectedTotem .. "(s) for " .. formatWithCommas(TotemList[selectedTotem] * totemPurchaseAmount) .. " C$?",
+            Buttons = {
+                {
+                    Title = "Confirm",
+                    Callback = function()
+                        game:GetService('ReplicatedStorage').events.purchase:FireServer(selectedTotem, 'Item', nil, totemPurchaseAmount)
+                    end
+                },
+                {
+                    Title = "Cancel",
+                    Callback = function() end
+                }
+            }
         })
-
-local BuyBaitCrates = 0
-Tabs.Purchase:AddInput("BaitCrateShopping", {
-    Title = "How many bait crates to purchase",
-    Default = BuyBaitCrates, 
-    Placeholder = "Input number",
-    Numeric = true, 
-    Finished = true, 
-    Callback = function(Value)
-        BuyBaitCrates = tonumber(Value) or 0
+    end
+})
+local space = Tabs.Purchase:AddSection("Buy Crates")
+-- Item Purchase Section
+Tabs.Purchase:AddDropdown("ItemListDropdown", {
+    Title = "Select Crate to Purchase",
+    Values = ItemKeys,
+    Multi = false,
+    Default = selectedItem,
+    Callback = function(selected)
+        selectedItem = selected
+        -- Update button description
+        ItemPurchaseButton:SetDesc("Purchase " .. itemPurchaseAmount .. " " .. selectedItem .. "(s) for " .. formatWithCommas(ItemList[selectedItem] * itemPurchaseAmount) .. " C$")
     end
 })
 
-AutoBuyBaitToggle = Tabs.Purchase:AddToggle("AutoBuyBait", {Title = "Auto Buy Bait Crate", Default = false})
-local autoBuyConnection
-
-local BaitCratePrice = 120
-
--- Function to get current coins from the text "2,866,032 C$"
-function getCurrentCoins()
-    local coinsText = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.coins.Text
-    local coinsAmount = tonumber(coinsText:gsub(",", ""):match("(%d+)")) or 0
-    return coinsAmount
-end
-
--- Function to check the number of Bait Crates in inventory
-function getCurrentBaitCratesInInventory()
-    local inventory = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.backpack.inventory.scroll.safezone
-    local baitCrate = inventory:FindFirstChild("Bait Crate")
-    if baitCrate and baitCrate.stack then
-        -- Extract number from "132 x" format, assuming the number is before ' x'
-        local currentStack = tonumber(baitCrate.stack.Text:match("^(%d+)"))
-        return currentStack or 0
-    end
-    return 0
-end
-
-AutoBuyBaitToggle:OnChanged(function(value)
-    if value then
-        local initialStack = getCurrentBaitCratesInInventory()
-        local targetStack = initialStack + BuyBaitCrates
-
-        autoBuyConnection = game:GetService("RunService").RenderStepped:Connect(function()
-            local currentCoins = getCurrentCoins()
-
-            -- Check if player has enough coins to buy Bait Crate
-            if currentCoins < BaitCratePrice then
-                -- Not enough coins, stop the purchase and toggle
-                Options.AutoBuyBait:SetValue(false)
-                return
-            end
-
-            local currentBaitCratesInInventory = getCurrentBaitCratesInInventory()
-
-            -- Stop the loop if the target stack is reached
-            if currentBaitCratesInInventory >= targetStack then
-                Options.AutoBuyBait:SetValue(false)
-                return
-            end
-
-            -- Attempt to buy more Bait Crates
-            local firstBaitCrate = workspace.world.interactables["Bait Crate"]
-            local baitCratePrompt = nil
-            
-            for _, child in pairs(firstBaitCrate:GetChildren()) do
-                if child:IsA("Model") and child:FindFirstChild("purchaserompt") then
-                    baitCratePrompt = child.purchaserompt
-                    break  
-                end
-            end
-            
-            if baitCratePrompt then
-                fireproximityprompt(baitCratePrompt, 1, true)
-                
-                local baitPurchaseButton = game:GetService("Players").LocalPlayer.PlayerGui.over.prompt:FindFirstChild("confirm")
-                if baitPurchaseButton then
-                    firesignal(baitPurchaseButton.MouseButton1Click, game.Players.LocalPlayer)
-                end
-            end
-        end)
-    else
-        if autoBuyConnection then
-            autoBuyConnection:Disconnect()
-            autoBuyConnection = nil
-        end
-    end
-end)
-
-     Tabs.Purchase:AddButton({
-        Title = "Teleport to Bait seller",
-        Description = "",
-        Callback = function()
-            TeleportPlayer(CFrame.new(386, 137, 332))
-        end
-    })
-
-
-
-local Buycrabcages = 0
-Tabs.Purchase:AddInput("CageShopping", {
-    Title = "How many crab cages to purchase",
-    Default = Buycrabcages, 
+Tabs.Purchase:AddInput("ItemAmountInput", {
+    Title = "How many Crate to purchase",
+    Default = tostring(itemPurchaseAmount),
     Placeholder = "Input number",
-    Numeric = true, 
-    Finished = true, 
-    Callback = function(Value)
-        Buycrabcages = tonumber(Value) or 0
+    Numeric = true,
+    Finished = true,
+    Callback = function(value)
+        itemPurchaseAmount = tonumber(value) or 1
+        -- Update button description
+        ItemPurchaseButton:SetDesc("Purchase " .. itemPurchaseAmount .. " " .. selectedItem .. "(s) for " .. formatWithCommas(ItemList[selectedItem] * itemPurchaseAmount) .. " C$")
     end
 })
 
-AutoBuyCrabCageToggle = Tabs.Purchase:AddToggle("AutoBuyCrab", {Title = "Auto Buy Crab Cage", Default = false})
-local autoBuyConnection
-
-function getCurrentStack()
-    -- Get the current stack count from the 'stack' text and extract the number
-    local stackText = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.backpack.inventory.scroll.safezone["Crab Cage"].stack.Text
-    local stackCount = tonumber(stackText:match("(%d+)")) or 0 -- Extract the number before " x"
-    return stackCount
-end
-
-AutoBuyCrabCageToggle:OnChanged(function(value)
-    if value then
-        -- Get the initial stack count and calculate the target stack count
-        local initialStack = getCurrentStack()
-        local targetStack = initialStack + Buycrabcages
-
-        autoBuyConnection = game:GetService("RunService").RenderStepped:Connect(function()
-            local currentStack = getCurrentStack()
-            
-            -- Stop the loop and toggle if the current stack reaches or exceeds the target
-            if currentStack >= targetStack then
-                Options.AutoBuyCrab:SetValue(false) -- Stop the toggle using the provided method
-                return
-            end
-            
-            local firstCrabCage = workspace.world.interactables["Crab Cage"]
-            local crabCagePrompt = nil
-            
-            for _, child in pairs(firstCrabCage:GetChildren()) do
-                if child:IsA("Model") and child:FindFirstChild("purchaserompt") then
-                    crabCagePrompt = child.purchaserompt
-                    break  
-                end
-            end
-            
-            if crabCagePrompt then
-                fireproximityprompt(crabCagePrompt, 1, true)
-                local crabPurchaseButton = game:GetService("Players").LocalPlayer.PlayerGui.over.prompt:FindFirstChild("confirm")
-                if crabPurchaseButton then
-                    firesignal(crabPurchaseButton.MouseButton1Click, game.Players.LocalPlayer)
-                end
-            end
-        end)
-    else
-        if autoBuyConnection then
-            autoBuyConnection:Disconnect()
-            autoBuyConnection = nil
-        end
-    end
-end)
-
-Options.AutoBuyCrab:SetValue(false)
-Tabs.Purchase:AddButton({
-    Title = "Teleport to Crab Cage seller",
-    Description = "",
+ItemPurchaseButton = Tabs.Purchase:AddButton({
+    Title = "Purchase Selected Crate",
+    Description = "Purchase " .. itemPurchaseAmount .. " " .. selectedItem .. "(s) for " .. formatWithCommas(ItemList[selectedItem] * itemPurchaseAmount) .. " C$",
     Callback = function()
-    
-        local cageObject = workspace.active:FindFirstChild(player.Name)
-
-        local cagePosition 
-
-        if cageObject then
-            local cage = cageObject:FindFirstChild("Cage")
-            local innerCage = cage and cage:FindFirstChild("cage")
-
-            if innerCage then
-                cagePosition = innerCage.Position 
-            end
-        end
-        if not cagePosition then
-            cagePosition = Vector3.new(474, 151, 234) 
-        end
-
-        TeleportPlayer(CFrame.new(cagePosition))
+        Window:Dialog({
+            Title = "Confirm Purchase",
+            Content = "Do you want to purchase " .. itemPurchaseAmount .. " " .. selectedItem .. "(s) for " .. formatWithCommas(ItemList[selectedItem] * itemPurchaseAmount) .. " C$?",
+            Buttons = {
+                {
+                    Title = "Confirm",
+                    Callback = function()
+                        game:GetService('ReplicatedStorage').events.purchase:FireServer(selectedItem, 'Fish', nil, itemPurchaseAmount)
+                    end
+                },
+                {
+                    Title = "Cancel",
+                    Callback = function() end
+                }
+            }
+        })
     end
 })
-
-local BuyCoralGeodes = 0
-Tabs.Purchase:AddInput("CoralGeodeShopping", {
-    Title = "How many Coral Geodes to purchase",
-    Default = BuyCoralGeodes, 
-    Placeholder = "Input number",
-    Numeric = true, 
-    Finished = true, 
-    Callback = function(Value)
-        BuyCoralGeodes = tonumber(Value) or 0
-    end
-})
-
-AutoBuyCoralGeodeToggle = Tabs.Purchase:AddToggle("AutoBuyCoralGeode", {Title = "Auto Buy Coral Geode", Default = false})
-local autoBuyConnection
-
-local CoralGeodePrice = 600  -- Price per Coral Geode
-
--- Function to get current coins
-function getCurrentCoins()
-    local coinsText = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.coins.Text
-    local coinsAmount = tonumber(coinsText:gsub(",", ""):match("(%d+)")) or 0
-    return coinsAmount
-end
-
--- Function to get current Coral Geode count in inventory
-function getCurrentCoralGeodesInInventory()
-    local inventory = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.backpack.inventory.scroll.safezone
-    local coralGeode = inventory:FindFirstChild("Coral Geode")
-    if coralGeode and coralGeode.stack then
-        local currentStack = tonumber(coralGeode.stack.Text:match("^(%d+)"))
-        return currentStack or 0
-    end
-    return 0
-end
-
-AutoBuyCoralGeodeToggle:OnChanged(function(value)
-    if value then
-        -- Determine the target stack based on the input amount and current stack in inventory
-        local initialStack = getCurrentCoralGeodesInInventory()
-        local targetStack = initialStack + BuyCoralGeodes
-
-        autoBuyConnection = game:GetService("RunService").RenderStepped:Connect(function()
-            local currentCoins = getCurrentCoins()
-            local currentStack = getCurrentCoralGeodesInInventory()
-
-            -- Stop buying if current stack reaches or exceeds target
-            if currentStack >= targetStack then
-                Options.AutoBuyCoralGeode:SetValue(false)
-                return
-            end
-
-            -- Stop if player doesn’t have enough coins to buy Coral Geode
-            if currentCoins < CoralGeodePrice then
-                Options.AutoBuyCoralGeode:SetValue(false)
-                return
-            end
-
-            -- Purchase Coral Geode if prompt exists
-            local coralGeodePrompt = workspace.world.interactables["Coral Geode"]:FindFirstChild("purchaserompt")
-            if coralGeodePrompt then
-                fireproximityprompt(coralGeodePrompt, 1, true)
-                
-                local coralGeodePurchaseButton = game:GetService("Players").LocalPlayer.PlayerGui.over.prompt:FindFirstChild("confirm")
-                if coralGeodePurchaseButton then
-                    firesignal(coralGeodePurchaseButton.MouseButton1Click, game.Players.LocalPlayer)
-                end
-            end
-        end)
-    else
-        if autoBuyConnection then
-            autoBuyConnection:Disconnect()
-            autoBuyConnection = nil
-        end
-    end
-end)
-
-Options.AutoBuyCoralGeode:SetValue(false)
-
-Tabs.Purchase:AddButton({
-    Title = "Teleport to Coral Geode seller",
-    Description = "",
-    Callback = function()
-        TeleportPlayer(CFrame.new(-1646, -214, -2850))
-    end
-})
-
 
         
       --------------------------------------------------------------------------------AUTOBUY------------------------------------------------------------------------------------------
@@ -1723,94 +1586,118 @@ Tabs.Purchase:AddButton({
 
 --------------------------------------------------------------------------------TELEPORT------------------------------------------------------------------------------------------
 local space = Tabs.Teleport:AddSection("Custom fishing position")
-local savedCFrame, spawnedPart = nil, nil
-local savedWithPart = false
-local saveFileName = "AshbornnHub/Fisch/lastPosition.txt"
+local savedPositions = {}
+local saveFileName = "AshbornnHub/Fisch/positions.json"
+local spawnedPart = nil
 
 if not isfolder("AshbornnHub/Fisch") then
     makefolder("AshbornnHub/Fisch")
 end
 
-function writePositionToFile(position, withPart)
-    if position then
-        local rotX, rotY, rotZ = position:ToOrientation()
-        local data = {
+function writePositionsToFile()
+    local data = game.HttpService:JSONEncode(savedPositions)
+    writefile(saveFileName, data)
+end
+
+function loadPositionsFromFile()
+    if isfile(saveFileName) then
+        local data = readfile(saveFileName)
+        local success, decodedData = pcall(function()
+            return game.HttpService:JSONDecode(data)
+        end)
+
+        if success then
+            return decodedData
+        else
+            return {}
+        end
+    else
+        return {}
+    end
+end
+
+savedPositions = loadPositionsFromFile()
+
+function savePosition(name, position, withPart)
+    local posData = {
+        Name = name,
+        Position = {
             X = position.Position.X,
             Y = position.Position.Y,
             Z = position.Position.Z,
-            RotX = rotX,
-            RotY = rotY,
-            RotZ = rotZ,
-            WithPart = withPart
-        }
-        writefile(saveFileName, game.HttpService:JSONEncode(data))
-        SendNotif("Teleport Notify", "Position saved successfully.", 2)
-    end
-end
+        },
+        Rot = { position:ToOrientation() },
+        WithPart = withPart
+    }
 
-function readPositionFromFile()
-    if isfile(saveFileName) then
-        local data = game.HttpService:JSONDecode(readfile(saveFileName))
-        return CFrame.new(data.X, data.Y, data.Z) * CFrame.Angles(data.RotX, data.RotY, data.RotZ), data.WithPart
-    else
-        SendNotif("Teleport Notify", "No saved position file found.", 2)
-        return nil, false
-    end
-end
-
--- Button to save position with part
-Tabs.Teleport:AddButton({
-    Title = "Save Position with Part",
-    Description = "Saves the player's position and spawns a 10x1x10 part",
-    Callback = function()
-    
-        
-
-        if not spawnedPart then
-            spawnedPart = Instance.new("Part")
-            spawnedPart.Size = Vector3.new(10, 1, 10)
-            spawnedPart.Anchored = true
-            spawnedPart.Parent = workspace
+    local positionExists = false
+    for i, pos in ipairs(savedPositions) do
+        if pos.Name == name then
+            savedPositions[i] = posData
+            positionExists = true
+            break
         end
-        spawnedPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, -character.HumanoidRootPart.Size.Y / 2 - 0.5, 0)
-        savedCFrame = spawnedPart.CFrame
-        savedWithPart = true
-        writePositionToFile(savedCFrame, savedWithPart)
     end
+
+    if not positionExists then
+        table.insert(savedPositions, posData)
+    end
+
+    writePositionsToFile()
+    updatePositionDropdown()
+    SendNotif("Teleport Notify", "Position '" .. name .. "' saved/updated successfully.", 2)
+end
+
+function updatePositionDropdown()
+    local TPPosData = {}
+    for _, pos in ipairs(savedPositions) do
+        table.insert(TPPosData, pos.Name)
+    end
+
+    if SelectTPPosName then
+        SelectTPPosName:SetValues(TPPosData)
+    end
+end
+
+SelectTPPosName = Tabs.Teleport:AddDropdown("SelectTPPosName", {
+    Title = "Select Teleport Position",
+    Values = {},
+    Multi = false,
 })
 
--- Button to save position without part
+updatePositionDropdown()
+
 Tabs.Teleport:AddButton({
-    Title = "Save Position without Part",
-    Description = "Saves the player's position without spawning a part",
+    Title = "Teleport to Saved Position",
+    Description = "Teleports the player to the selected saved position",
     Callback = function()
-    
-        
-        savedCFrame = character.HumanoidRootPart.CFrame
-        savedWithPart = false
-        writePositionToFile(savedCFrame, savedWithPart)
-    end
-})
+        local selectedName = SelectTPPosName.Value
+        if not selectedName or selectedName == "" then
+            SendNotif("Teleport Notify", "Please select a valid position to teleport to.", 2)
+            return
+        end
 
--- Button to teleport to the last saved position
-Tabs.Teleport:AddButton({
-    Title = "Teleport to Last Saved Position",
-    Description = "Teleports the player to the last saved position",
-    Callback = function()
-        local loadedCFrame, loadedWithPart = readPositionFromFile()
+        local selectedPosition = nil
+        for _, pos in ipairs(savedPositions) do
+            if pos.Name == selectedName then
+                if #pos.Rot == 3 then
+                    selectedPosition = CFrame.new(pos.Position.X, pos.Position.Y, pos.Position.Z) * CFrame.Angles(unpack(pos.Rot))
+                else
+                    selectedPosition = CFrame.new(pos.Position.X, pos.Position.Y, pos.Position.Z)
+                end
+                break
+            end
+        end
 
-        if loadedCFrame then
-        
-            
-
-            if loadedWithPart then
+        if selectedPosition then
+            if savedPositions[1].WithPart then
                 if not spawnedPart then
                     spawnedPart = Instance.new("Part")
                     spawnedPart.Size = Vector3.new(10, 1, 10)
                     spawnedPart.Anchored = true
                     spawnedPart.Parent = workspace
                 end
-                spawnedPart.CFrame = loadedCFrame
+                spawnedPart.CFrame = selectedPosition
             else
                 if spawnedPart then
                     spawnedPart:Destroy()
@@ -1818,12 +1705,86 @@ Tabs.Teleport:AddButton({
                 end
             end
 
-            -- Use the loaded CFrame directly for teleporting
-            TeleportPlayer(loadedCFrame)
-
-            SendNotif("Teleport Notify", "Teleported to the last saved position", 2)
+            TeleportPlayer(selectedPosition)
+            SendNotif("Teleport Notify", "Teleported to position: " .. selectedName, 2)
         else
-            SendNotif("Teleport Notify", "No saved position found.", 2)
+            SendNotif("Teleport Notify", "Position not found.", 2)
+        end
+    end
+})
+
+FavoriteFish = Tabs.Teleport:AddInput("TeleportPosName", {
+    Title = "Teleport Position Name",
+    Default = "",
+    Placeholder = "Enter a position name",
+    Numeric = false,
+    Finished = true,
+    Callback = function(Value)
+        TPPosName = Value
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "Save Position with Part",
+    Description = "Saves the player's position and spawns a 10x1x10 part",
+    Callback = function()
+        local name = TPPosName
+        if name == "" then
+            SendNotif("Teleport Notify", "Please enter a valid name.", 2)
+            return
+        end
+
+        if not spawnedPart then
+            spawnedPart = Instance.new("Part")
+            spawnedPart.Size = Vector3.new(10, 1, 10)
+            spawnedPart.Anchored = true
+            spawnedPart.Parent = workspace
+        end
+
+        spawnedPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, -character.HumanoidRootPart.Size.Y / 2 - 0.5, 0)
+        savePosition(name, spawnedPart.CFrame, true)
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "Save Position without Part",
+    Description = "Saves the player's position without spawning a part",
+    Callback = function()
+        local name = TPPosName
+        if name == "" then
+            SendNotif("Teleport Notify", "Please enter a valid name.", 2)
+            return
+        end
+
+        savePosition(name, character.HumanoidRootPart.CFrame, false)
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "Delete Saved Position",
+    Description = "Deletes the selected saved position",
+    Callback = function()
+        local selectedName = SelectTPPosName.Value
+        if not selectedName or selectedName == "" then
+            SendNotif("Teleport Notify", "Please select a valid position to delete.", 2)
+            return
+        end
+
+        local positionFound = false
+        for i, pos in ipairs(savedPositions) do
+            if pos.Name == selectedName then
+                table.remove(savedPositions, i)
+                positionFound = true
+                break
+            end
+        end
+
+        if positionFound then
+            writePositionsToFile()
+            updatePositionDropdown()
+            SendNotif("Teleport Notify", "Position '" .. selectedName .. "' deleted successfully.", 2)
+        else
+            SendNotif("Teleport Notify", "Position not found.", 2)
         end
     end
 })
@@ -1917,7 +1878,7 @@ local TotemLocation = {
 }
 
 -- Function to extract and sort location names alphabetically from each table
-local function extractLocationNames(locations)
+function extractLocationNames(locations)
     local names = {}
     for name in pairs(locations) do
         table.insert(names, name)
@@ -2228,7 +2189,7 @@ local WannaBeYours = Tabs.Misc:AddSection("Totem")
 local AutoAuroraTotem = false
 local AuroraActive = false
 
-local function totems()
+function totems()
     local sundialTotem, auroraTotem = nil, nil
     for _, item in ipairs(player.Backpack:GetChildren()) do
         if item:IsA("Tool") then
@@ -2242,7 +2203,7 @@ local function totems()
     return sundialTotem, auroraTotem
 end
 
-local function begin()
+function begin()
     local wasAutoCastEnabled = Options.AutoCast.Value
     if wasAutoCastEnabled and not isReelBarActive() and AutoAuroraTotem then
         Options.AutoCast:SetValue(false)
@@ -2323,7 +2284,7 @@ local AutoSundialTotem = false
 local pickedCycle = "Day" -- Default to Day
 
 -- Function to find Sundial Totem in the backpack or character
-local function getSundialTotem()
+function getSundialTotem()
     -- Check in the backpack
     for _, item in ipairs(player.Backpack:GetChildren()) do
         if item:IsA("Tool") and item.Name == "Sundial Totem" then
@@ -2341,7 +2302,7 @@ local function getSundialTotem()
     return nil
 end
 
-local function maintainCycle()
+function maintainCycle()
     local wasAutoCastEnabled = Options.AutoCast.Value
     if wasAutoCastEnabled and not isReelBarActive() and AutoSundialTotem then
         Options.AutoCast:SetValue(false)
@@ -2406,7 +2367,7 @@ end)
 local AutoWeatherCycle = false
 local pickedWeather = "Foggy"
 
-local function getWeatherTotem()
+function getWeatherTotem()
     local totemMapping = {
         ["Foggy"] = "Smokescreen Totem",
         ["Rainy"] = "Tempest Totem",
@@ -2430,7 +2391,7 @@ local function getWeatherTotem()
     return nil
 end
 
-local function maintainWeather()
+function maintainWeather()
     local wasAutoCastEnabled = Options.AutoCast.Value
     if wasAutoCastEnabled and not isReelBarActive() and AutoWeatherCycle then
         Options.AutoCast:SetValue(false)
@@ -2663,14 +2624,14 @@ end)
 local blacklistedKeywords = {"Rod", "Bag", "Radar", "GPS", "Gear", "Flipper", "Cage", "Bestiary", "Glider"}
 local priorityKeywords = {"Shiny", "Sparkling", "Mythical", "Aurora", "Relic"}
 
-local function isBlacklisted(itemName)
+function isBlacklisted(itemName)
     for _, keyword in ipairs(blacklistedKeywords) do
         if itemName:find(keyword) then return true end
     end
     return false
 end
 
-local function isPriorityItem(itemName)
+function isPriorityItem(itemName)
     for _, keyword in ipairs(priorityKeywords) do
         if itemName:find(keyword) then return true end
     end
@@ -2838,7 +2799,7 @@ Tabs.Appraise:AddParagraph({
                     local originalPosition = rootPart.CFrame
         
                     -- Proximity prompt trigger function
-                    local function triggerProximityPrompt(pp)
+                    function triggerProximityPrompt(pp)
                         local camera = workspace.CurrentCamera
                         local targetPart = pp.Parent:IsA("Model") and pp.Parent:FindFirstChild("Head") or pp.Parent:IsA("Part") and pp.Parent
                         if not targetPart then return end
@@ -2859,7 +2820,7 @@ Tabs.Appraise:AddParagraph({
                     end
         
                     -- Function to check if NPC is persistent
-                    local function isNpcPersistent(npc)
+                    function isNpcPersistent(npc)
                         return npc and npc.ModelStreamingMode == Enum.ModelStreamingMode.Persistent
                     end
         
@@ -3351,6 +3312,20 @@ Options.AutoSellAll:SetValue(false)
 -------------------------------APPRAISE
 
 ------------------------------------------------------------------------SERVER----------------------------------------------------------------------------
+
+
+local uptimeParagraph = Tabs.Server:AddParagraph({
+    Title = "-",
+    Description = "-"
+})
+
+runService.Heartbeat:Connect(function()
+    local uptime = game:GetService("Players").LocalPlayer.PlayerGui.serverInfo.serverInfo.uptime.Text
+    local region = game:GetService("Players").LocalPlayer.PlayerGui.serverInfo.serverInfo.region.Text
+    uptimeParagraph:SetTitle(uptime)
+    uptimeParagraph:SetDesc(region)
+end)
+
     Tabs.Server:AddButton({
     Title = "Rejoin",
     Description = "Rejoining on this current server",
@@ -3508,7 +3483,7 @@ game.Players.LocalPlayer.Chatted:Connect(function(message)
     if message == "huh" then Window:Minimize() end
 end)
 
-local function fetchAvatarUrl(userId)
+function fetchAvatarUrl(userId)
     local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
     local response = HttpService:JSONDecode(game:HttpGet(url))
     return response and response.data[1] and response.data[1].imageUrl or "https://www.example.com/default-avatar.png"
@@ -3516,7 +3491,7 @@ end
 
 local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
 
-local function getCurrentTime()
+function getCurrentTime()
     local timeData = os.date("!*t", os.time() + 8 * 3600)
     local hour = timeData.hour % 12
     local suffix = hour >= 12 and "PM" or "AM"
@@ -3532,7 +3507,7 @@ local Input = Tabs.Settings:AddInput("Input", {
     Callback = function(Value) end
 })
 
-local function sendFeedbackToDiscord(feedbackMessage)
+function sendFeedbackToDiscord(feedbackMessage)
     local response = request({
         Url = "https://discord.com/api/webhooks/1309349183123099719/14sv_fsNAfkcxuuAFlp7WcgGacEDmfBTwdsEPA41ibttd6Ugg7XAUG8QteROxMnptftV",
         Method = "POST",
@@ -3560,11 +3535,11 @@ end
 local lastFeedbackTime = 0
 local cooldownDuration = 60
 
-local function canSendFeedback()
+function canSendFeedback()
     return (os.time() - lastFeedbackTime >= cooldownDuration)
 end
 
-local function updateLastFeedbackTime()
+function updateLastFeedbackTime()
     lastFeedbackTime = os.time()
 end
 
@@ -3593,12 +3568,12 @@ local Players = game:GetService("Players")
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1313333209546756096/TGvM2olAND2TqYyyjevokTQgUJLPY4GFpMaqPisage26VNDWt4zEpuSwQlcUocnwwzdU"
 
 -- Function to get the current timestamp
-local function getCurrentTime()
+function getCurrentTime()
     return os.date("%Y-%m-%d %H:%M:%S")
 end
 
 -- Function to send a webhook
-local function sendWebhook(jobId)
+function sendWebhook(jobId)
     local success, errorMessage = pcall(function()
         request({
             Url = WEBHOOK_URL,
@@ -3649,20 +3624,6 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 SaveManager:LoadAutoloadConfig()
-
-Fluent:Notify({
-    Title = "Buy Tempest Totem",
-    Content = "Do you really want to Buy",
-    SubContent = "Tempest Totem?",
-    Buttons = { 
-        Yes = {Text = "Confirm", Callback = function() 
-            game:GetService('ReplicatedStorage').events.purchase:FireServer('Tempest Totem', 'Item', nil, 1)
-            end},  
-        No = {Text = "Cancel", Callback = function() 
-                SendNotif("Buying Notify", "Buying has been cancelled", 2)
-            end},
-    }
-})
 
 local TimeEnd = tick()
 local FormattedTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
