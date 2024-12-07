@@ -1,12 +1,3 @@
---[[
-    Fluent Interface Suite
-    This script is not intended to be modified.
-    To view the source code, see the 'src' folder on GitHub!
-
-    Author: dawid
-    License: MIT
-    GitHub: https://github.com/dawid-scripts/Fluent
---]]
 local a, b = {
     {
         1,
@@ -24,6 +15,7 @@ local a, b = {
                     {52, "ModuleScript", {"Light"}},
                     {51, "ModuleScript", {"Darker"}},
                     {53, "ModuleScript", {"Rose"}},
+                    {54, "ModuleScript", {"Dark Red"}},
                     {49, "ModuleScript", {"Aqua"}},
                     {48, "ModuleScript", {"Amethyst"}}
                 }
@@ -106,6 +98,7 @@ local a, b = {
 }
 local AshTitle = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121)
 local AshB = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98)
+local Ash = string.char(65, 115, 104, 98, 111, 114, 110, 110)
 function randomString()
 	local length = math.random(10,20)
 	local array = {}
@@ -128,7 +121,7 @@ local aa = {
         local n, o = j:GetMouse(), d
         local p, q, r, s = e(o.Creator), e(o.Elements), e(o.Acrylic), o.Components
         local t, u, v = e(s.Notification), p.New, protectgui or (syn and syn.protect_gui) or function()
-                end
+                end  
         local w = u("ScreenGui", {Parent = i:IsStudio() and j.PlayerGui or game:GetService("CoreGui")})
         w.Name = FluentUI
         v(w)
@@ -158,11 +151,11 @@ local aa = {
             if not A then
                 local C, D = B:find ":%d+: "
                 if not D then
-                    return x:Notify {Title = AshTitle, Content = "Callback error", SubContent = B, Duration = 5}
+                    return x:Notify {Title = AshTitle, Content = "Callback error please report this to " .. Ash, SubContent = B, Duration = 5}
                 end
                 return x:Notify {
                     Title = AshTitle,
-                    Content = "Callback error",
+                    Content = "Callback error Please Report this to " .. Ash,
                     SubContent = B:sub(D + 1),
                     Duration = 5
                 }
@@ -250,7 +243,7 @@ local aa = {
         end
         function x.Notify(C, D)
             return t:New(D)
-        end
+        end      
         if getgenv then
             getgenv().Fluent = x
         end
@@ -907,6 +900,7 @@ local aa = {
         local h = d.Parent.Parent
         local i, j, k = e(h.Packages.Flipper), e(h.Creator), e(h.Acrylic)
         local l, m, n, o = i.Spring.new, i.Instant.new, j.New, {}
+        
         function o.Init(p, q)
             o.Holder =
                 n(
@@ -931,14 +925,17 @@ local aa = {
                 }
             )
         end
+    
         function o.New(p, q)
             q.Title = q.Title or "Title"
             q.Content = q.Content or "Content"
             q.SubContent = q.SubContent or ""
             q.Duration = q.Duration or nil
             q.Buttons = q.Buttons or {}
+    
             local r = {Closed = false}
             r.AcrylicPaint = k.AcrylicPaint()
+    
             r.Title =
                 n(
                 "TextLabel",
@@ -958,6 +955,7 @@ local aa = {
                     ThemeTag = {TextColor3 = "Text"}
                 }
             )
+    
             r.ContentLabel =
                 n(
                 "TextLabel",
@@ -975,6 +973,7 @@ local aa = {
                     ThemeTag = {TextColor3 = "Text"}
                 }
             )
+    
             r.SubContentLabel =
                 n(
                 "TextLabel",
@@ -992,6 +991,7 @@ local aa = {
                     ThemeTag = {TextColor3 = "SubText"}
                 }
             )
+    
             r.LabelHolder =
                 n(
                 "Frame",
@@ -1015,6 +1015,7 @@ local aa = {
                     r.SubContentLabel
                 }
             )
+    
             r.CloseButton =
                 n(
                 "TextButton",
@@ -1039,37 +1040,127 @@ local aa = {
                     )
                 }
             )
+    
+            r.YesButton =
+                n(
+                "TextButton",
+                {
+                    Text = (q.Buttons.Yes and q.Buttons.Yes.Text) or "Yes",
+                    Position = UDim2.new(1, -60, 0, 13),
+                    Size = UDim2.fromOffset(40, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(0, 255, 0),
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    TextSize = 13,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
+            r.NoButton =
+                n(
+                "TextButton",
+                {
+                    Text = (q.Buttons.No and q.Buttons.No.Text) or "No",
+                    Position = UDim2.new(1, -105, 0, 13),
+                    Size = UDim2.fromOffset(40, 20),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(255, 0, 0),
+                    FontFace = Font.new "rbxasset://fonts/families/GothamSSm.json",
+                    TextSize = 13,
+                    ThemeTag = {TextColor3 = "Text"}
+                }
+            )
+    
             r.Root =
                 n(
                 "Frame",
                 {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromScale(1, 0)},
-                {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.LabelHolder}
+                {r.AcrylicPaint.Frame, r.Title, r.CloseButton, r.YesButton, r.NoButton, r.LabelHolder}
             )
+    
+            local function addUIStroke(button)
+                local uiStroke = Instance.new("UIStroke")
+                uiStroke.Parent = button
+                uiStroke.Thickness = 2
+                uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                uiStroke.Color = button.TextColor3
+            end
+    
+            addUIStroke(r.YesButton)
+            addUIStroke(r.NoButton)
+    
             if q.Content == "" then
                 r.ContentLabel.Visible = false
             end
             if q.SubContent == "" then
                 r.SubContentLabel.Visible = false
             end
+    
+            if not q.Buttons.Yes then
+                r.YesButton.Parent = nil
+            end
+            
+            if not q.Buttons.No then
+                r.NoButton.Parent = nil
+            end
+    
+            if q.Buttons.Yes or q.Buttons.No then
+                r.CloseButton.Parent = nil
+            end
+    
+            if q.Buttons.Yes or q.Buttons.No then
+                r.NoButton.Position = UDim2.new(1, -14, 0, 13)
+                r.YesButton.Position = UDim2.new(1, -14 - r.NoButton.Size.X.Offset - 10, 0, 13)
+            end
+            
             r.Holder =
                 n("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 200), Parent = o.Holder}, {r.Root})
+    
             local s = i.GroupMotor.new {Scale = 1, Offset = 60}
             s:onStep(
                 function(t)
                     r.Root.Position = UDim2.new(t.Scale, t.Offset, 0, 0)
                 end
             )
+    
+            if q.Buttons.Yes then
+                j.AddSignal(r.YesButton.MouseButton1Click, function()
+                    if type(q.Buttons.Yes.Callback) == "function" then
+                        q.Buttons.Yes.Callback()
+                    else
+                        
+                    end
+                    r:Close()
+                    -- Default value
+                end)
+            end
+            
+            if q.Buttons.No then
+                j.AddSignal(r.NoButton.MouseButton1Click, function()
+                    if type(q.Buttons.No.Callback) == "function" then
+                        q.Buttons.No.Callback()
+                    else
+                        
+                    end
+                    r:Close()
+                    -- Default Value
+                end)
+            end            
+            
             j.AddSignal(
                 r.CloseButton.MouseButton1Click,
                 function()
                     r:Close()
-                end
-            )
+                end)
+    
             function r.Open(t)
                 local u = r.LabelHolder.AbsoluteSize.Y
                 r.Holder.Size = UDim2.new(1, 0, 0, 58 + u)
                 s:setGoal {Scale = l(0, {frequency = 5}), Offset = l(0, {frequency = 5})}
             end
+    
             function r.Close(t)
                 if not r.Closed then
                     r.Closed = true
@@ -1085,7 +1176,9 @@ local aa = {
                     )
                 end
             end
+    
             r:Open()
+    
             if q.Duration then
                 task.delay(
                     q.Duration,
@@ -1094,10 +1187,12 @@ local aa = {
                     end
                 )
             end
+    
             return r
         end
+    
         return o
-    end,
+    end,    
     [13] = function()
         local c, d, e, f, g = b(13)
         local h = d.Parent.Parent
@@ -1455,13 +1550,13 @@ local aa = {
         local h, i = d.Parent.Parent, e(d.Parent.Assets)
         local j, k = e(h.Creator), e(h.Packages.Flipper)
         local l, m = j.New, j.AddSignal
+    
         return function(n)
             local o, p, q =
                 {},
                 e(h),
                 function(o, p, q, r)
-                    local s = {Callback = r or function()
-                            end}
+                    local s = {Callback = r or function() end}
                     s.Frame =
                         l(
                         "TextButton",
@@ -1476,12 +1571,13 @@ local aa = {
                         },
                         {
                             l("UICorner", {CornerRadius = UDim.new(0, 7)}),
+                            
                             l(
                                 "ImageLabel",
                                 {
                                     Image = o,
                                     Size = UDim2.fromOffset(16, 16),
-                                    Position = UDim2.fromScale(0.5, 0.5),
+                                    Position = UDim2.new(0, 18, 0, 18),
                                     AnchorPoint = Vector2.new(0.5, 0.5),
                                     BackgroundTransparency = 1,
                                     Name = "Icon",
@@ -1490,37 +1586,21 @@ local aa = {
                             )
                         }
                     )
+    
                     local t, u = j.SpringMotor(1, s.Frame, "BackgroundTransparency")
-                    m(
-                        s.Frame.MouseEnter,
-                        function()
-                            u(0.94)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseLeave,
-                        function()
-                            u(1, true)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseButton1Down,
-                        function()
-                            u(0.96)
-                        end
-                    )
-                    m(
-                        s.Frame.MouseButton1Up,
-                        function()
-                            u(0.94)
-                        end
-                    )
+                    m(s.Frame.MouseEnter, function() u(0.94) end)
+                    m(s.Frame.MouseLeave, function() u(1, true) end)
+                    m(s.Frame.MouseButton1Down, function() u(0.96) end)
+                    m(s.Frame.MouseButton1Up, function() u(0.94) end)
                     m(s.Frame.MouseButton1Click, s.Callback)
+    
                     s.SetCallback = function(v)
                         s.Callback = v
                     end
+    
                     return s
                 end
+    
             o.Frame =
                 l(
                 "Frame",
@@ -1531,47 +1611,50 @@ local aa = {
                         {Size = UDim2.new(1, -16, 1, 0), Position = UDim2.new(0, 16, 0, 0), BackgroundTransparency = 1},
                         {
                             l(
-                                "UIListLayout",
+                                "ImageLabel",
                                 {
-                                    Padding = UDim.new(0, 5),
-                                    FillDirection = Enum.FillDirection.Horizontal,
-                                    SortOrder = Enum.SortOrder.LayoutOrder
+                                    Image = "rbxassetid://104937882773234",
+                                    Size = UDim2.fromOffset(25, 25),
+                                    Position = UDim2.new(0, 18, 0, 20),
+                                    AnchorPoint = Vector2.new(0.5, 0.5),
+                                    BackgroundTransparency = 1,
+                                    Name = "Icon",
+                                    ThemeTag = {ImageColor3 = "Text"}
+                                },
+                                {
+                                    l("UICorner", {CornerRadius = UDim.new(0, 5)})
                                 }
                             ),
+                            
                             l(
                                 "TextLabel",
                                 {
                                     RichText = true,
                                     Text = n.Title,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
+                                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
                                     TextSize = 12,
                                     TextXAlignment = "Left",
                                     TextYAlignment = "Center",
                                     Size = UDim2.fromScale(0, 1),
+                                    Position = UDim2.new(0, 40, 0, 0), 
                                     AutomaticSize = Enum.AutomaticSize.X,
                                     BackgroundTransparency = 1,
                                     ThemeTag = {TextColor3 = "Text"}
                                 }
                             ),
+                            
                             l(
                                 "TextLabel",
                                 {
                                     RichText = true,
                                     Text = n.SubTitle,
                                     TextTransparency = 0.4,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
+                                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
                                     TextSize = 12,
                                     TextXAlignment = "Left",
                                     TextYAlignment = "Center",
                                     Size = UDim2.fromScale(0, 1),
+                                    Position = UDim2.new(0, 120, 0, 0),
                                     AutomaticSize = Enum.AutomaticSize.X,
                                     BackgroundTransparency = 1,
                                     ThemeTag = {TextColor3 = "Text"}
@@ -1579,6 +1662,7 @@ local aa = {
                             )
                         }
                     ),
+                    
                     l(
                         "Frame",
                         {
@@ -1598,14 +1682,15 @@ local aa = {
                 function()
                     p.Window:Dialog {
                         Title = "Close " .. AshB,
-                        Content = "Are you sure you want to remove " .. AshB .."UI?",
-                        Buttons = {{Title = "Yes", Callback = function()
-                                    
-                                    p:Destroy()
-                                end}, {Title = "no"}}
+                        Content = "Are you sure you want to remove " .. AshB .. " UI?",
+                        Buttons = {
+                            {Title = "Yes", Callback = function() p:Destroy() end},
+                            {Title = "No"}
+                        }
                     }
                 end
             )
+    
             o.MaxButton =
                 q(
                 i.Max,
@@ -1615,6 +1700,7 @@ local aa = {
                     n.Window.Maximize(not n.Window.Maximized)
                 end
             )
+    
             o.MinButton =
                 q(
                 i.Min,
@@ -1624,9 +1710,10 @@ local aa = {
                     p.Window:Minimize()
                 end
             )
+    
             return o
         end
-    end,
+    end,    
     [17] = function()
         local c, d, e, f, g = b(17)
         local h, i, j, k =
@@ -5081,7 +5168,7 @@ local aa = {
     end,
     [47] = function()
         local aa, ab, ac, ad, ae = b(47)
-        local af = {Names = {"Dark", "Darker", "Light", "Aqua", "Amethyst", "Rose"}}
+        local af = {Names = {"Dark", "Darker", "Light", "Aqua", "Amethyst", "Rose", "Dark Red"}}
         for ag, ah in next, ab:GetChildren() do
             local aj = ac(ah)
             af[aj.Name] = aj
@@ -5315,6 +5402,46 @@ local aa = {
             Hover = Color3.fromRGB(220, 140, 180),
             HoverChange = 0.04
         }        
+    end,
+    [54] = function()
+        local aa, ab, ac, ad, ae = b(53)
+        return {
+            Name = "Dark Red",
+            Accent = Color3.fromRGB(139, 0, 0),
+            AcrylicMain = Color3.fromRGB(20, 20, 20),
+            AcrylicBorder = Color3.fromRGB(100, 0, 0),
+            AcrylicGradient = ColorSequence.new(Color3.fromRGB(120, 0, 0), Color3.fromRGB(90, 0, 0)),
+            AcrylicNoise = 0.92,
+            TitleBarLine = Color3.fromRGB(80, 0, 0),
+            Tab = Color3.fromRGB(120, 30, 30),
+            Element = Color3.fromRGB(150, 20, 20),
+            ElementBorder = Color3.fromRGB(90, 0, 0),
+            InElementBorder = Color3.fromRGB(100, 10, 10),
+            ElementTransparency = 0.86,
+            ToggleSlider = Color3.fromRGB(150, 20, 20),
+            ToggleToggled = Color3.fromRGB(0, 0, 0),
+            SliderRail = Color3.fromRGB(150, 20, 20),
+            DropdownFrame = Color3.fromRGB(150, 30, 30),
+            DropdownHolder = Color3.fromRGB(80, 0, 0),
+            DropdownBorder = Color3.fromRGB(60, 0, 0),
+            DropdownOption = Color3.fromRGB(150, 20, 20),
+            Keybind = Color3.fromRGB(150, 20, 20),
+            Input = Color3.fromRGB(150, 20, 20),
+            InputFocused = Color3.fromRGB(20, 0, 0),
+            InputIndicator = Color3.fromRGB(100, 0, 0),
+            Dialog = Color3.fromRGB(80, 0, 0),
+            DialogHolder = Color3.fromRGB(60, 0, 0),
+            DialogHolderLine = Color3.fromRGB(50, 0, 0),
+            DialogButton = Color3.fromRGB(80, 0, 0),
+            DialogButtonBorder = Color3.fromRGB(100, 10, 10),
+            DialogBorder = Color3.fromRGB(70, 0, 0),
+            DialogInput = Color3.fromRGB(90, 10, 10),
+            DialogInputLine = Color3.fromRGB(120, 20, 20),
+            Text = Color3.fromRGB(240, 240, 240),
+            SubText = Color3.fromRGB(180, 180, 180),
+            Hover = Color3.fromRGB(150, 20, 20),
+            HoverChange = 0.04
+        }
     end
 }
 do
