@@ -155,7 +155,7 @@ local aa = {
                 end
                 return x:Notify {
                     Title = AshTitle,
-                    Content = "Callback error Please Report this to " .. Ash,
+                    Content = "Callback error please report this to " .. Ash,
                     SubContent = B:sub(D + 1),
                     Duration = 5
                 }
@@ -1747,7 +1747,7 @@ local aa = {
                         Size = UDim2.fromOffset(4, 0),
                         BackgroundColor3 = Color3.fromRGB(76, 194, 255),
                         Position = UDim2.fromOffset(0, 17),
-                        AnchorPoint = Vector2.new(0, 0.5),
+                        AnchorPoint = Vector2.new(0.5, 0.5),
                         ThemeTag = {BackgroundColor3 = "Accent"}
                     },
                     {s("UICorner", {CornerRadius = UDim.new(0, 2)})}
