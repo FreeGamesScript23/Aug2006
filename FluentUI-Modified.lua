@@ -1,3 +1,7 @@
+getgenv().AshTitle = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121)
+getgenv().AshB = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98)
+getgenv().Ash = string.char(65, 115, 104, 98, 111, 114, 110, 110)
+
 local a, b = {
     {
         1,
@@ -96,9 +100,6 @@ local a, b = {
         }
     }
 }
-local AshTitle = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121)
-local AshB = string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98)
-local Ash = string.char(65, 115, 104, 98, 111, 114, 110, 110)
 function randomString()
 	local length = math.random(10,20)
 	local array = {}
@@ -151,11 +152,11 @@ local aa = {
             if not A then
                 local C, D = B:find ":%d+: "
                 if not D then
-                    return x:Notify {Title = AshTitle, Content = "Callback error please report this to " .. Ash, SubContent = B, Duration = 5}
+                    return x:Notify {Title = getgenv().AshTitle, Content = "Callback error please report this to " .. getgenv().Ash, SubContent = B, Duration = 5}
                 end
                 return x:Notify {
-                    Title = AshTitle,
-                    Content = "Callback error please report this to " .. Ash,
+                    Title = getgenv().AshTitle,
+                    Content = "Callback error please report this to " .. getgenv().Ash,
                     SubContent = B:sub(D + 1),
                     Duration = 5
                 }
@@ -1681,8 +1682,8 @@ local aa = {
                 o.Frame,
                 function()
                     p.Window:Dialog {
-                        Title = "Close " .. AshB,
-                        Content = "Are you sure you want to remove " .. AshB .. " UI?",
+                        Title = "Close " .. getgenv().getgenv().AshB,
+                        Content = "Are you sure you want to remove " .. getgenv().getgenv().AshB .. " UI?",
                         Buttons = {
                             {Title = "Yes", Callback = function() p:Destroy() end},
                             {Title = "No"}
@@ -1733,7 +1734,7 @@ local aa = {
                     CurrentPos = 0,
                     Position = UDim2.fromOffset(
                         j.ViewportSize.X / 2 - t.Size.X.Offset / 2,
-                        j.ViewportSize.Y / 2 - t.Size.Y.Offset / 2
+                        j.ViewportSize.Y / 2 - t.Size.Y.Offset / 2 - 50 -- Window Position
                     )
                 },
                 false
@@ -1986,7 +1987,7 @@ local aa = {
                 if not C then
                     C = true
                     local N = u.MinimizeKeybind and u.MinimizeKeybind.Value or u.MinimizeKey.Name
-                    u:Notify {Title = AshTitle, Content = "Press " .. N .. " to toggle the inteface.", Duration = 3}
+                    u:Notify {Title = getgenv().AshTitle, Content = "Press " .. N .. " to toggle the inteface.", Duration = 3}
                 end
             end
             function v.Destroy(M)
@@ -4130,7 +4131,7 @@ local aa = {
                 ["lucide-laugh"] = "rbxassetid://10723424372",
                 ["lucide-layers"] = "rbxassetid://10723424505",
                 ["lucide-layout"] = "rbxassetid://10723425376",
-                ["lucide-layout-dashboard"] = "rbxassetid://10723424646",
+                ["lucide-layout-dgetgenv().getgenv().AshBoard"] = "rbxassetid://10723424646",
                 ["lucide-layout-grid"] = "rbxassetid://10723424838",
                 ["lucide-layout-list"] = "rbxassetid://10723424963",
                 ["lucide-layout-template"] = "rbxassetid://10723425187",
@@ -5212,7 +5213,7 @@ local aa = {
     Text = Color3.fromRGB(245, 245, 245),
     SubText = Color3.fromRGB(200, 200, 200),
     Hover = Color3.fromRGB(160, 130, 190),
-    HoverChange = 0.05
+    HoverChange = 0.5
 }
     end,
     [49] = function()
@@ -5252,7 +5253,7 @@ local aa = {
             Text = Color3.fromRGB(240, 240, 240),
             SubText = Color3.fromRGB(180, 180, 180),
             Hover = Color3.fromRGB(140, 190, 190),
-            HoverChange = 0.04
+            HoverChange = 0.5
         }          
     end,
     [50] = function()
@@ -5292,7 +5293,7 @@ local aa = {
     Text = Color3.fromRGB(240, 240, 240),
     SubText = Color3.fromRGB(180, 180, 180),
     Hover = Color3.fromRGB(80, 80, 80),
-    HoverChange = 0.08
+    HoverChange = 0.5
 }
     end,
     [51] = function()
@@ -5360,7 +5361,7 @@ local aa = {
             Text = Color3.fromRGB(0, 0, 0),
             SubText = Color3.fromRGB(40, 40, 40),
             Hover = Color3.fromRGB(50, 50, 50),
-            HoverChange = 0.16
+            HoverChange = 0.5
         }
     end,
     [53] = function()
@@ -5400,7 +5401,7 @@ local aa = {
             Text = Color3.fromRGB(240, 240, 240),
             SubText = Color3.fromRGB(180, 180, 180),
             Hover = Color3.fromRGB(220, 140, 180),
-            HoverChange = 0.04
+            HoverChange = 0.5
         }        
     end,
     [54] = function()
@@ -5440,7 +5441,7 @@ local aa = {
             Text = Color3.fromRGB(240, 240, 240),
             SubText = Color3.fromRGB(180, 180, 180),
             Hover = Color3.fromRGB(150, 20, 20),
-            HoverChange = 0.04
+            HoverChange = 0.5
         }
     end
 }
