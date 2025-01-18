@@ -134,7 +134,15 @@ function HoppingElite(teleportingText)
 			local targetServer = servers[math.random(1, #servers)]
 			TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
 		else
-			teleportingText.Text = "Serverhop: Couldn't find a suitable server."
+while true do
+    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait."
+    task.wait(0.5)
+    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait.."
+    task.wait(0.5)
+    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait..."
+    task.wait(0.5)
+end
+
 		end
 	else
 		teleportingText.Text = "Incompatible Exploit: Your exploit does not support HTTP requests."
