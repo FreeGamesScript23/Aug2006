@@ -1,10 +1,19 @@
+function randomString()
+	local length = math.random(10,20)
+	local array = {}
+	for i = 1, length do
+		array[i] = string.char(math.random(32, 126))
+	end
+	return table.concat(array)
+end
+
 local ASH = {};
 
 -- StarterGui.Teleporter
 ASH["1"] = Instance.new("ScreenGui", game:GetService("CoreGui"));
 ASH["1"]["IgnoreGuiInset"] = true;
 ASH["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
-ASH["1"]["Name"] = [[Teleporter]];
+ASH["1"]["Name"] = randomString()
 ASH["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 ASH["1"]["ResetOnSpawn"] = false;
 
@@ -16,7 +25,7 @@ ASH["2"]["BorderSizePixel"] = 0;
 ASH["2"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
 ASH["2"]["Size"] = UDim2.new(9999, 9999, 9999, 9999);
 ASH["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["2"]["Name"] = [[Main]];
+ASH["2"]["Name"] = randomString()
 ASH["2"]["BackgroundTransparency"] = 0.4;
 
 
@@ -43,7 +52,7 @@ ASH["4"]["RichText"] = true;
 ASH["4"]["Size"] = UDim2.new(0, 176, 0, 50);
 ASH["4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 ASH["4"]["Text"] = [[Teleporting in 10.]];
-ASH["4"]["Name"] = [[Teleporting]];
+ASH["4"]["Name"] = randomString()
 ASH["4"]["Position"] = UDim2.new(0.4455, 0, 0.67943, 0);
 
 
@@ -59,7 +68,7 @@ ASH["5"]["RichText"] = true;
 ASH["5"]["Selectable"] = false;
 ASH["5"]["Size"] = UDim2.new(0, 200, 0, 50);
 ASH["5"]["BackgroundTransparency"] = 1;
-ASH["5"]["Name"] = [[Cancel]];
+ASH["5"]["Name"] = randomString()
 ASH["5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 ASH["5"]["Text"] = [[Tap to Cancel]];
 ASH["5"]["Position"] = UDim2.new(0.43754, 0, 0.73963, 0);
@@ -77,7 +86,7 @@ ASH["6"]["RichText"] = true;
 ASH["6"]["Size"] = UDim2.new(0, 200, 0, 50);
 ASH["6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 ASH["6"]["Text"] = [[dsc.gg/ashbornnhub]];
-ASH["6"]["Name"] = [[Discord]];
+ASH["6"]["Name"] = randomString()
 ASH["6"]["Position"] = UDim2.new(0.43816, 0, 0.31698, 0);
 
 
@@ -93,7 +102,7 @@ ASH["7"]["RichText"] = true;
 ASH["7"]["Size"] = UDim2.new(0, 200, 0, 50);
 ASH["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 ASH["7"]["Text"] = [[AshbornnHub]];
-ASH["7"]["Name"] = [[Title]];
+ASH["7"]["Name"] = randomString()
 ASH["7"]["Position"] = UDim2.new(0.43816, 0, 0.27397, 0);
 
 ASH["5"].MouseButton1Click:Connect(function()
