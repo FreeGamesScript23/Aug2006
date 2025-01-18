@@ -105,10 +105,6 @@ ASH["7"]["Text"] = [[AshbornnHub]];
 ASH["7"]["Name"] = randomString()
 ASH["7"]["Position"] = UDim2.new(0.43816, 0, 0.27397, 0);
 
-ASH["5"].MouseButton1Click:Connect(function()
-	ASH["1"]:Destroy()
-end)
-
 function HoppingElite()
 	local HttpService = game:GetService("HttpService")
 	local TeleportService = game:GetService("TeleportService")
@@ -146,22 +142,40 @@ function HoppingElite()
 
 end
 
-local function startCountdown(teleportingLabel)
-	local countdownTime = 5
-	for i = countdownTime, 1, -1 do
-		teleportingLabel.Text = "Server Hopping in " .. i .. "."
+local function startCountdown(teleportingLabel, cancelButton)
+    local countdownTime = 10
+    local cancelRequested = false
 
-		local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-		local goal = {TextTransparency = 0}
-		local tween = game:GetService("TweenService"):Create(teleportingLabel, tweenInfo, goal)
-		tween:Play()
-		task.wait(1)
-	end
-	teleportingLabel.Text = "Server Hopping..."
-	task.wait(1)  
-	HoppingElite() 
+    cancelButton.MouseButton1Click:Connect(function()
+        cancelRequested = true
+        teleportingLabel.Text = "Teleportation Canceled."
+        print("Countdown Canceled")
+	ASH["1"]:Destroy()
+    end)
+
+    for i = countdownTime, 1, -1 do
+        if cancelRequested then
+            break
+        end
+        
+        teleportingLabel.Text = "Teleporting in " .. i .. "."
+        local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+        local goal = {TextTransparency = 0}
+        local tween = game:GetService("TweenService"):Create(teleportingLabel, tweenInfo, goal)
+        tween:Play()
+
+        task.wait(1)
+    end
+
+    if not cancelRequested then
+        teleportingLabel.Text = "Teleporting in 1."
+        task.wait(1)
+        print("Counter end")
+    end
 end
 
-startCountdown(ASH["4"])
+
+startCountdown(ASH["4"], ASH["5"])
+
 
 return ASH["1"], require;
