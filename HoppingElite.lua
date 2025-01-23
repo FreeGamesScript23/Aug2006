@@ -10,100 +10,78 @@ end
 local ASH = {};
 
 -- StarterGui.Teleporter
-ASH["1"] = Instance.new("ScreenGui", game:GetService("CoreGui"));
-ASH["1"]["IgnoreGuiInset"] = true;
-ASH["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
-ASH["1"]["Name"] = randomString()
-ASH["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
-ASH["1"]["ResetOnSpawn"] = false;
+ASH["1"] = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ASH["1"].IgnoreGuiInset = true
+ASH["1"].ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+ASH["1"].Name = randomString()
+ASH["1"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ASH["1"].ResetOnSpawn = false
 
+-- Main background (covers the entire screen)
+ASH["2"] = Instance.new("Frame", ASH["1"])
+ASH["2"].ZIndex = -999
+ASH["2"].BorderSizePixel = 0
+ASH["2"].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ASH["2"].Size = UDim2.new(1, 0, 1, 0) -- Fullscreen size
+ASH["2"].BackgroundTransparency = 0.4
 
--- StarterGui.Teleporter.Main
-ASH["2"] = Instance.new("Frame", ASH["1"]);
-ASH["2"]["ZIndex"] = -999;
-ASH["2"]["BorderSizePixel"] = 0;
-ASH["2"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["2"]["Size"] = UDim2.new(9999, 9999, 9999, 9999);
-ASH["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["2"]["Name"] = randomString()
-ASH["2"]["BackgroundTransparency"] = 0.4;
+-- Teleport button
+ASH["3"] = Instance.new("ImageButton", ASH["1"])
+ASH["3"].BorderSizePixel = 0
+ASH["3"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ASH["3"].Image = [[rbxassetid://81612087104606]]
+ASH["3"].Size = UDim2.new(0.2, 0, 0.2, 0) -- 20% of screen width and height
+ASH["3"].Position = UDim2.new(0.4, 0, 0.4, 0) -- Centered on screen
+ASH["3"].AnchorPoint = Vector2.new(0.5, 0.5) -- Center alignment
+ASH["3"].BackgroundTransparency = 1
 
+-- Teleporting label
+ASH["4"] = Instance.new("TextLabel", ASH["1"])
+ASH["4"].BorderSizePixel = 0
+ASH["4"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ASH["4"].TextSize = 25
+ASH["4"].Font = Enum.Font.Ubuntu
+ASH["4"].TextColor3 = Color3.fromRGB(86, 0, 255)
+ASH["4"].Size = UDim2.new(0.3, 0, 0.05, 0) -- 30% width, 5% height
+ASH["4"].Position = UDim2.new(0.5, 0, 0.7, 0) -- Below the button
+ASH["4"].AnchorPoint = Vector2.new(0.5, 0.5)
+ASH["4"].BackgroundTransparency = 1
+ASH["4"].Text = "Teleporting in 10."
 
--- StarterGui.Teleporter.ImageButton
-ASH["3"] = Instance.new("ImageButton", ASH["1"]);
-ASH["3"]["BorderSizePixel"] = 0;
-ASH["3"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-ASH["3"]["Image"] = [[rbxassetid://81612087104606]];
-ASH["3"]["Size"] = UDim2.new(0, 192, 0, 196);
-ASH["3"]["BackgroundTransparency"] = 1;
-ASH["3"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["3"]["Position"] = UDim2.new(0.44061, 0, 0.37841, 0);
+-- Cancel button
+ASH["5"] = Instance.new("TextButton", ASH["1"])
+ASH["5"].TextSize = 25
+ASH["5"].TextColor3 = Color3.fromRGB(86, 0, 0)
+ASH["5"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ASH["5"].Font = Enum.Font.Ubuntu
+ASH["5"].Size = UDim2.new(0.3, 0, 0.05, 0)
+ASH["5"].Position = UDim2.new(0.5, 0, 0.8, 0)
+ASH["5"].AnchorPoint = Vector2.new(0.5, 0.5)
+ASH["5"].BackgroundTransparency = 1
+ASH["5"].Text = "Tap to Cancel"
 
+-- Discord label
+ASH["6"] = Instance.new("TextLabel", ASH["1"])
+ASH["6"].TextSize = 10
+ASH["6"].Font = Enum.Font.Ubuntu
+ASH["6"].TextColor3 = Color3.fromRGB(255, 255, 255)
+ASH["6"].Size = UDim2.new(0.3, 0, 0.05, 0)
+ASH["6"].Position = UDim2.new(0.5, 0, 0.35, 0) -- Top-center of the screen
+ASH["6"].AnchorPoint = Vector2.new(0.5, 0.5)
+ASH["6"].BackgroundTransparency = 1
+ASH["6"].Text = "dsc.gg/ashbornnhub"
 
--- StarterGui.Teleporter.Teleporting
-ASH["4"] = Instance.new("TextLabel", ASH["1"]);
-ASH["4"]["BorderSizePixel"] = 0;
-ASH["4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-ASH["4"]["TextSize"] = 25;
-ASH["4"]["FontFace"] = Font.new([[rbxasset://fonts/families/Ubuntu.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-ASH["4"]["TextColor3"] = Color3.fromRGB(86, 0, 255);
-ASH["4"]["BackgroundTransparency"] = 1;
-ASH["4"]["RichText"] = true;
-ASH["4"]["Size"] = UDim2.new(0, 176, 0, 50);
-ASH["4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["4"]["Text"] = [[Teleporting in 10.]];
-ASH["4"]["Name"] = randomString()
-ASH["4"]["Position"] = UDim2.new(0.4455, 0, 0.67943, 0);
+-- Title label
+ASH["7"] = Instance.new("TextLabel", ASH["1"])
+ASH["7"].TextSize = 50
+ASH["7"].Font = Enum.Font.Ubuntu
+ASH["7"].TextColor3 = Color3.fromRGB(50, 0, 75)
+ASH["7"].Size = UDim2.new(0.3, 0, 0.05, 0)
+ASH["7"].Position = UDim2.new(0.5, 0, 0.3, 0) -- Above the Discord label
+ASH["7"].AnchorPoint = Vector2.new(0.5, 0.5)
+ASH["7"].BackgroundTransparency = 1
+ASH["7"].Text = "AshbornnHub"
 
-
--- StarterGui.Teleporter.Cancel
-ASH["5"] = Instance.new("TextButton", ASH["1"]);
-ASH["5"]["Active"] = false;
-ASH["5"]["BorderSizePixel"] = 0;
-ASH["5"]["TextSize"] = 25;
-ASH["5"]["TextColor3"] = Color3.fromRGB(86, 0, 0);
-ASH["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-ASH["5"]["FontFace"] = Font.new([[rbxasset://fonts/families/Ubuntu.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-ASH["5"]["RichText"] = true;
-ASH["5"]["Selectable"] = false;
-ASH["5"]["Size"] = UDim2.new(0, 200, 0, 50);
-ASH["5"]["BackgroundTransparency"] = 1;
-ASH["5"]["Name"] = randomString()
-ASH["5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["5"]["Text"] = [[Tap to Cancel]];
-ASH["5"]["Position"] = UDim2.new(0.43754, 0, 0.73963, 0);
-
-
--- StarterGui.Teleporter.Discord
-ASH["6"] = Instance.new("TextLabel", ASH["1"]);
-ASH["6"]["BorderSizePixel"] = 0;
-ASH["6"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-ASH["6"]["TextSize"] = 10;
-ASH["6"]["FontFace"] = Font.new([[rbxasset://fonts/families/Ubuntu.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-ASH["6"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-ASH["6"]["BackgroundTransparency"] = 1;
-ASH["6"]["RichText"] = true;
-ASH["6"]["Size"] = UDim2.new(0, 200, 0, 50);
-ASH["6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["6"]["Text"] = [[dsc.gg/ashbornnhub]];
-ASH["6"]["Name"] = randomString()
-ASH["6"]["Position"] = UDim2.new(0.43816, 0, 0.31698, 0);
-
-
--- StarterGui.Teleporter.Title
-ASH["7"] = Instance.new("TextLabel", ASH["1"]);
-ASH["7"]["BorderSizePixel"] = 0;
-ASH["7"]["BackgroundColor3"] = Color3.fromRGB(86, 0, 128);
-ASH["7"]["TextSize"] = 50;
-ASH["7"]["FontFace"] = Font.new([[rbxasset://fonts/families/Ubuntu.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-ASH["7"]["TextColor3"] = Color3.fromRGB(50, 0, 75);
-ASH["7"]["BackgroundTransparency"] = 1;
-ASH["7"]["RichText"] = true;
-ASH["7"]["Size"] = UDim2.new(0, 200, 0, 50);
-ASH["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-ASH["7"]["Text"] = [[AshbornnHub]];
-ASH["7"]["Name"] = randomString()
-ASH["7"]["Position"] = UDim2.new(0.43816, 0, 0.27397, 0);
 
 function HoppingElite(teleportingText)
 	local HttpService = game:GetService("HttpService")
@@ -134,14 +112,27 @@ function HoppingElite(teleportingText)
 
 			if #servers > 0 then
 				local targetServer = servers[math.random(1, #servers)]
-				TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
-				break
+				teleportingText.Text = "Serverhop: Attempting to join a new server..."
+				
+				local success, errorMessage = pcall(function()
+					TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
+				end)
+
+				if success then
+					break
+				else
+					if errorMessage:find("Teleport is in processing") then
+						teleportingText.Text = "Teleport already in progress. Waiting for completion..."
+						repeat
+							task.wait(1)
+						until not TeleportService:IsTeleporting() -- Wait until teleport finishes
+					else
+						teleportingText.Text = "Teleport failed: Retrying in 0.5 seconds..."
+						task.wait(0.5)
+					end
+				end
 			else
-				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait."
-				task.wait(0.5)
-				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait.."
-				task.wait(0.5)
-				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait..."
+				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Retrying..."
 				task.wait(0.5)
 			end
 		end
@@ -149,6 +140,7 @@ function HoppingElite(teleportingText)
 		teleportingText.Text = "Incompatible Exploit: Your exploit does not support HTTP requests."
 	end
 end
+
 
 
 local function startCountdown(teleportingLabel, cancelButton)
