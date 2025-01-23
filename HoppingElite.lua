@@ -114,44 +114,45 @@ function HoppingElite(teleportingText)
 	local JobId = game.JobId
 
 	if request then
-		local servers = {}
-		local req = request({
-			Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true", PlaceId)
-		})
+		while true do
+			local servers = {}
+			local req = request({
+				Url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true", PlaceId)
+			})
 
-		if req and req.Body then
-			local body = HttpService:JSONDecode(req.Body)
-			if body and body.data then
-				for _, server in ipairs(body.data) do
-					if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and 
-						server.playing < server.maxPlayers and server.id ~= JobId then
-						table.insert(servers, server.id)
+			if req and req.Body then
+				local body = HttpService:JSONDecode(req.Body)
+				if body and body.data then
+					for _, server in ipairs(body.data) do
+						if type(server) == "table" and tonumber(server.playing) and tonumber(server.maxPlayers) and 
+							server.playing < server.maxPlayers and server.id ~= JobId then
+							table.insert(servers, server.id)
+						end
 					end
 				end
 			end
-		end
-		if #servers > 0 then
-			local targetServer = servers[math.random(1, #servers)]
-			TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
-		else
-while true do
-    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait."
-    task.wait(0.5)
-    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait.."
-    task.wait(0.5)
-    teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait..."
-    task.wait(0.5)
-end
 
+			if #servers > 0 then
+				local targetServer = servers[math.random(1, #servers)]
+				TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
+				break
+			else
+				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait."
+				task.wait(0.5)
+				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait.."
+				task.wait(0.5)
+				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Please wait..."
+				task.wait(0.5)
+			end
 		end
 	else
 		teleportingText.Text = "Incompatible Exploit: Your exploit does not support HTTP requests."
 	end
-
 end
 
+
 local function startCountdown(teleportingLabel, cancelButton)
-    local countdownTime = 10
+    local countdownTime = 3
     local cancelRequested = false
 
     cancelButton.MouseButton1Click:Connect(function()
