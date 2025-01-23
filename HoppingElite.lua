@@ -134,21 +134,23 @@ function HoppingElite(teleportingText)
 				local targetServer = servers[math.random(1, #servers)]
 				teleportingText.Text = "Serverhop: Attempting to join a new server..."
 				
-				local success, errorMessage = pcall(function()
-					TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
+				-- Asynchronously attempt teleport using task.spawn
+				task.spawn(function()
+					local success, errorMessage = pcall(function()
+						TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
+					end)
+
+					if not success then
+						if errorMessage:find("full server") or errorMessage:find("Teleport is in processing") then
+							teleportingText.Text = "Selected server is full or invalid. Trying another..."
+						else
+							teleportingText.Text = "Teleport failed: Retrying in 0.5 seconds..."
+						end
+					end
 				end)
 
-				if success then
-					break
-				else
-					if errorMessage:find("full server") or errorMessage:find("Teleport is in processing") then
-						teleportingText.Text = "Selected server is full or invalid. Trying another..."
-						task.wait(0.5)
-					else
-						teleportingText.Text = "Teleport failed: Retrying in 0.5 seconds..."
-						task.wait(0.5)
-					end
-				end
+				-- Wait for a brief moment to allow teleportation process to start
+				task.wait(0.5)
 			else
 				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Retrying..."
 				task.wait(0.5)
@@ -158,6 +160,7 @@ function HoppingElite(teleportingText)
 		teleportingText.Text = "Incompatible Exploit: Your exploit does not support HTTP requests."
 	end
 end
+
 
 
 
