@@ -17,38 +17,45 @@ ASH["1"].Name = randomString()
 ASH["1"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ASH["1"].ResetOnSpawn = false
 
--- Main background (covers the entire screen)
+-- Main background (fullscreen, semi-transparent)
 ASH["2"] = Instance.new("Frame", ASH["1"])
 ASH["2"].ZIndex = -999
 ASH["2"].BorderSizePixel = 0
 ASH["2"].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ASH["2"].Size = UDim2.new(1, 0, 1, 0) -- Fullscreen size
+ASH["2"].Size = UDim2.new(1, 0, 1, 0) -- Fullscreen
 ASH["2"].BackgroundTransparency = 0.4
 
--- Teleport button
+-- Teleport button with aspect ratio constraint
 ASH["3"] = Instance.new("ImageButton", ASH["1"])
 ASH["3"].BorderSizePixel = 0
 ASH["3"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ASH["3"].Image = [[rbxassetid://81612087104606]]
-ASH["3"].Size = UDim2.new(0.2, 0, 0.2, 0) -- 20% of screen width and height
-ASH["3"].Position = UDim2.new(0.4, 0, 0.4, 0) -- Centered on screen
-ASH["3"].AnchorPoint = Vector2.new(0.5, 0.5) -- Center alignment
+ASH["3"].Size = UDim2.new(0.2, 0, 0.2, 0) -- Scales with screen size
+ASH["3"].Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered on screen
+ASH["3"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["3"].BackgroundTransparency = 1
 
--- Teleporting label
+local aspectConstraint = Instance.new("UIAspectRatioConstraint", ASH["3"])
+aspectConstraint.AspectRatio = 1 -- Ensures button is square
+
+-- Teleporting label with dynamic font scaling
 ASH["4"] = Instance.new("TextLabel", ASH["1"])
 ASH["4"].BorderSizePixel = 0
 ASH["4"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ASH["4"].TextSize = 25
 ASH["4"].Font = Enum.Font.Ubuntu
 ASH["4"].TextColor3 = Color3.fromRGB(86, 0, 255)
-ASH["4"].Size = UDim2.new(0.3, 0, 0.05, 0) -- 30% width, 5% height
+ASH["4"].Size = UDim2.new(0.3, 0, 0.05, 0) -- Adjusts with screen
 ASH["4"].Position = UDim2.new(0.5, 0, 0.7, 0) -- Below the button
 ASH["4"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["4"].BackgroundTransparency = 1
 ASH["4"].Text = "Teleporting in 10."
 
--- Cancel button
+local textSizeConstraint = Instance.new("UITextSizeConstraint", ASH["4"])
+textSizeConstraint.MaxTextSize = 30
+textSizeConstraint.MinTextSize = 12
+
+-- Cancel button with dynamic scaling
 ASH["5"] = Instance.new("TextButton", ASH["1"])
 ASH["5"].TextSize = 25
 ASH["5"].TextColor3 = Color3.fromRGB(86, 0, 0)
@@ -60,27 +67,40 @@ ASH["5"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["5"].BackgroundTransparency = 1
 ASH["5"].Text = "Tap to Cancel"
 
--- Discord label
+local cancelTextConstraint = Instance.new("UITextSizeConstraint", ASH["5"])
+cancelTextConstraint.MaxTextSize = 30
+cancelTextConstraint.MinTextSize = 12
+
+-- Discord label with dynamic scaling
 ASH["6"] = Instance.new("TextLabel", ASH["1"])
 ASH["6"].TextSize = 10
 ASH["6"].Font = Enum.Font.Ubuntu
 ASH["6"].TextColor3 = Color3.fromRGB(255, 255, 255)
 ASH["6"].Size = UDim2.new(0.3, 0, 0.05, 0)
-ASH["6"].Position = UDim2.new(0.5, 0, 0.35, 0) -- Top-center of the screen
+ASH["6"].Position = UDim2.new(0.5, 0, 0.35, 0) -- Near top of the screen
 ASH["6"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["6"].BackgroundTransparency = 1
 ASH["6"].Text = "dsc.gg/ashbornnhub"
 
--- Title label
+local discordTextConstraint = Instance.new("UITextSizeConstraint", ASH["6"])
+discordTextConstraint.MaxTextSize = 15
+discordTextConstraint.MinTextSize = 8
+
+-- Title label with aspect ratio scaling
 ASH["7"] = Instance.new("TextLabel", ASH["1"])
 ASH["7"].TextSize = 50
 ASH["7"].Font = Enum.Font.Ubuntu
 ASH["7"].TextColor3 = Color3.fromRGB(50, 0, 75)
 ASH["7"].Size = UDim2.new(0.3, 0, 0.05, 0)
-ASH["7"].Position = UDim2.new(0.5, 0, 0.3, 0) -- Above the Discord label
+ASH["7"].Position = UDim2.new(0.5, 0, 0.3, 0) -- Above Discord label
 ASH["7"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["7"].BackgroundTransparency = 1
 ASH["7"].Text = "AshbornnHub"
+
+local titleTextConstraint = Instance.new("UITextSizeConstraint", ASH["7"])
+titleTextConstraint.MaxTextSize = 60
+titleTextConstraint.MinTextSize = 20
+
 
 
 function HoppingElite(teleportingText)
@@ -121,11 +141,9 @@ function HoppingElite(teleportingText)
 				if success then
 					break
 				else
-					if errorMessage:find("Teleport is in processing") then
-						teleportingText.Text = "Teleport already in progress. Waiting for completion..."
-						repeat
-							task.wait(1)
-						until not TeleportService:IsTeleporting() -- Wait until teleport finishes
+					if errorMessage:find("full server") or errorMessage:find("Teleport is in processing") then
+						teleportingText.Text = "Selected server is full or invalid. Trying another..."
+						task.wait(0.5)
 					else
 						teleportingText.Text = "Teleport failed: Retrying in 0.5 seconds..."
 						task.wait(0.5)
@@ -140,6 +158,7 @@ function HoppingElite(teleportingText)
 		teleportingText.Text = "Incompatible Exploit: Your exploit does not support HTTP requests."
 	end
 end
+
 
 
 
