@@ -30,13 +30,13 @@ ASH["3"] = Instance.new("ImageButton", ASH["1"])
 ASH["3"].BorderSizePixel = 0
 ASH["3"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ASH["3"].Image = [[rbxassetid://81612087104606]]
-ASH["3"].Size = UDim2.new(0.2, 0, 0.2, 0) 
-ASH["3"].Position = UDim2.new(0.5, 0, 0.5, 0) 
+ASH["3"].Size = UDim2.new(0.2, 0, 0.2, 0) -- Scales with screen size
+ASH["3"].Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered on screen
 ASH["3"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["3"].BackgroundTransparency = 1
 
 local aspectConstraint = Instance.new("UIAspectRatioConstraint", ASH["3"])
-aspectConstraint.AspectRatio = 1 
+aspectConstraint.AspectRatio = 1 -- Ensures button is square
 
 -- Teleporting label with dynamic font scaling
 ASH["4"] = Instance.new("TextLabel", ASH["1"])
@@ -45,8 +45,8 @@ ASH["4"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ASH["4"].TextSize = 25
 ASH["4"].Font = Enum.Font.Ubuntu
 ASH["4"].TextColor3 = Color3.fromRGB(86, 0, 255)
-ASH["4"].Size = UDim2.new(0.3, 0, 0.05, 0)
-ASH["4"].Position = UDim2.new(0.5, 0, 0.7, 0) 
+ASH["4"].Size = UDim2.new(0.3, 0, 0.05, 0) -- Adjusts with screen
+ASH["4"].Position = UDim2.new(0.5, 0, 0.7, 0) -- Below the button
 ASH["4"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["4"].BackgroundTransparency = 1
 ASH["4"].Text = "Teleporting in 10."
@@ -77,7 +77,7 @@ ASH["6"].TextSize = 10
 ASH["6"].Font = Enum.Font.Ubuntu
 ASH["6"].TextColor3 = Color3.fromRGB(255, 255, 255)
 ASH["6"].Size = UDim2.new(0.3, 0, 0.05, 0)
-ASH["6"].Position = UDim2.new(0.5, 0, 0.35, 0)
+ASH["6"].Position = UDim2.new(0.5, 0, 0.35, 0) -- Near top of the screen
 ASH["6"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["6"].BackgroundTransparency = 1
 ASH["6"].Text = "dsc.gg/ashbornnhub"
@@ -92,7 +92,7 @@ ASH["7"].TextSize = 50
 ASH["7"].Font = Enum.Font.Ubuntu
 ASH["7"].TextColor3 = Color3.fromRGB(50, 0, 75)
 ASH["7"].Size = UDim2.new(0.3, 0, 0.05, 0)
-ASH["7"].Position = UDim2.new(0.5, 0, 0.3, 0) 
+ASH["7"].Position = UDim2.new(0.5, 0, 0.3, 0) -- Above Discord label
 ASH["7"].AnchorPoint = Vector2.new(0.5, 0.5)
 ASH["7"].BackgroundTransparency = 1
 ASH["7"].Text = "AshbornnHub"
@@ -100,6 +100,8 @@ ASH["7"].Text = "AshbornnHub"
 local titleTextConstraint = Instance.new("UITextSizeConstraint", ASH["7"])
 titleTextConstraint.MaxTextSize = 60
 titleTextConstraint.MinTextSize = 20
+
+
 
 function HoppingElite(teleportingText)
 	local HttpService = game:GetService("HttpService")
@@ -142,9 +144,10 @@ function HoppingElite(teleportingText)
 				end)
 
 				if not success then
+					-- Handle full server or other errors
 					if errorMessage:find("full server") then
 						teleportingText.Text = "Server is full. Trying another..."
-						task.wait(0.5) 
+						task.wait(0.5) -- Wait before retrying
 					elseif errorMessage:find("Teleport is in processing") then
 						teleportingText.Text = "Teleport in progress. Retrying..."
 						task.wait(0.5)
@@ -157,7 +160,7 @@ function HoppingElite(teleportingText)
 				end
 			else
 				teleportingText.Text = "Serverhop: Couldn't find a suitable server. Retrying..."
-				task.wait(1)
+				task.wait(1) -- Wait 1 second before retrying the server list fetch
 			end
 		end
 	else
@@ -208,6 +211,8 @@ local function startCountdown(teleportingLabel, cancelButton)
     end
 end
 
+
 startCountdown(ASH["4"], ASH["5"])
+
 
 return ASH["1"], require;
