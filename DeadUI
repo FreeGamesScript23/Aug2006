@@ -1,0 +1,153 @@
+local ASH = {}
+local function randomString()
+    local length = math.random(10, 20)
+    local array = {}
+    for i = 1, length do
+        array[i] = string.char(math.random(32, 126))
+    end
+    return table.concat(array)
+end
+
+ASH["2"] = Instance.new("ScreenGui", game:GetService("CoreGui"));
+ASH["2"]["AutoLocalize"] = true;
+ASH["2"]["Name"] = randomString();
+ASH["2"]["ResetOnSpawn"] = true;
+ASH["2"]["IgnoreGuiInset"] = true;
+ASH["2"]["Enabled"] = false;
+ASH["2"]["Archivable"] = true;
+
+ASH["3"] = Instance.new("Frame", ASH["2"]);
+ASH["3"]["Active"] = false;
+ASH["3"]["AnchorPoint"] = Vector2.new(0, 0.5);
+ASH["3"]["AutoLocalize"] = true;
+ASH["3"]["AutomaticSize"] = Enum.AutomaticSize.None;
+ASH["3"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+ASH["3"]["BackgroundTransparency"] = 1.000000;
+ASH["3"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+ASH["3"]["BorderMode"] = Enum.BorderMode.Outline;
+ASH["3"]["BorderSizePixel"] = 0.000000;
+ASH["3"]["ClipsDescendants"] = false;
+ASH["3"]["LayoutOrder"] = 0.000000;
+ASH["3"]["Name"] = [[BondInfo]];
+ASH["3"]["Position"] = UDim2.new(0.009999999776482582, 0, 0.5929999947547913, 0);
+ASH["3"]["Rotation"] = 0.000000;
+ASH["3"]["Selectable"] = false;
+ASH["3"]["Size"] = UDim2.new(0.09912531822919846, 0, 0.07140340656042099, 0);
+ASH["3"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY;
+ASH["3"]["Style"] = Enum.FrameStyle.Custom;
+ASH["3"]["Visible"] = true;
+ASH["3"]["ZIndex"] = 1.000000;
+ASH["3"]["Draggable"] = false;
+ASH["3"]["Transparency"] = 1.000000;
+ASH["3"]["Archivable"] = true;
+
+ASH["4"] = Instance.new("UIListLayout", ASH["3"]);
+ASH["4"]["Name"] = [[UIListLayout]];
+ASH["4"]["Archivable"] = true;
+ASH["4"]["Padding"] = UDim.new(0.10000000149011612, 0);
+ASH["4"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Left;
+ASH["4"]["VerticalAlignment"] = Enum.VerticalAlignment.Top;
+ASH["4"]["FillDirection"] = Enum.FillDirection.Horizontal;
+ASH["4"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+
+ASH["5"] = Instance.new("ImageLabel", ASH["3"]);
+ASH["5"]["Active"] = false;
+ASH["5"]["AnchorPoint"] = Vector2.new(0, 0);
+ASH["5"]["AutoLocalize"] = true;
+ASH["5"]["AutomaticSize"] = Enum.AutomaticSize.None;
+ASH["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+ASH["5"]["BackgroundTransparency"] = 1.000000;
+ASH["5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+ASH["5"]["BorderMode"] = Enum.BorderMode.Outline;
+ASH["5"]["BorderSizePixel"] = 0.000000;
+ASH["5"]["ClipsDescendants"] = false;
+ASH["5"]["LayoutOrder"] = 0.000000;
+ASH["5"]["Name"] = [[BondIcon]];
+ASH["5"]["Position"] = UDim2.new(0, 0, 0, 0);
+ASH["5"]["Rotation"] = 0.000000;
+ASH["5"]["Selectable"] = false;
+ASH["5"]["Size"] = UDim2.new(1, 0, 1, 0);
+ASH["5"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY;
+ASH["5"]["Visible"] = true;
+ASH["5"]["ZIndex"] = 0.000000;
+ASH["5"]["Image"] = [[rbxassetid://73580081637476]];
+ASH["5"]["ImageColor3"] = Color3.fromRGB(255, 255, 255);
+ASH["5"]["ImageRectOffset"] = Vector2.new(0, 0);
+ASH["5"]["ImageRectSize"] = Vector2.new(0, 0);
+ASH["5"]["ImageTransparency"] = 0.000000;
+ASH["5"]["ScaleType"] = Enum.ScaleType.Stretch;
+ASH["5"]["SliceCenter"] = Rect.new(0, 0, 0, 0);
+ASH["5"]["SliceScale"] = 1.000000;
+ASH["5"]["Draggable"] = false;
+ASH["5"]["Transparency"] = 1.000000;
+ASH["5"]["Archivable"] = true;
+
+ASH["6"] = Instance.new("UIAspectRatioConstraint", ASH["5"]);
+ASH["6"]["Name"] = [[UIAspectRatioConstraint]];
+ASH["6"]["AspectRatio"] = 1.960000;
+ASH["6"]["AspectType"] = Enum.AspectType.FitWithinMaxSize;
+ASH["6"]["DominantAxis"] = Enum.DominantAxis.Width;
+ASH["6"]["Archivable"] = true;
+
+ASH["7"] = Instance.new("UIStroke", ASH["5"]);
+ASH["7"]["Name"] = [[UIStroke]];
+ASH["7"]["Enabled"] = true;
+ASH["7"]["Thickness"] = 2.000000;
+ASH["7"]["Color"] = Color3.fromRGB(0, 0, 0);
+ASH["7"]["Transparency"] = 0.000000;
+ASH["7"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Contextual;
+ASH["7"]["LineJoinMode"] = Enum.LineJoinMode.Round;
+ASH["7"]["Archivable"] = true;
+
+
+-- BondCount
+ASH["8"] = Instance.new("TextLabel", ASH["3"]);
+ASH["8"]["Active"] = false;
+ASH["8"]["AnchorPoint"] = Vector2.new(0, 0);
+ASH["8"]["AutoLocalize"] = true;
+ASH["8"]["AutomaticSize"] = Enum.AutomaticSize.None;
+ASH["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+ASH["8"]["BackgroundTransparency"] = 1.000000;
+ASH["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+ASH["8"]["BorderMode"] = Enum.BorderMode.Outline;
+ASH["8"]["BorderSizePixel"] = 0.000000;
+ASH["8"]["ClipsDescendants"] = false;
+ASH["8"]["LayoutOrder"] = 0.000000;
+ASH["8"]["Name"] = [[BondCount]];
+ASH["8"]["Position"] = UDim2.new(0.6087412238121033, 0, 0.31149762868881226, 0);
+ASH["8"]["Rotation"] = 0.000000;
+ASH["8"]["Selectable"] = false;
+ASH["8"]["Size"] = UDim2.new(0.3386804759502411, 0, 0.9999999403953552, 0);
+ASH["8"]["SizeConstraint"] = Enum.SizeConstraint.RelativeXY;
+ASH["8"]["Visible"] = true;
+ASH["8"]["ZIndex"] = 1.000000;
+ASH["8"]["Text"] = [[20387]];
+ASH["8"]["TextColor3"] = Color3.fromRGB(255, 121, 103);
+ASH["8"]["TextScaled"] = true;
+ASH["8"]["TextSize"] = 14.000000;
+ASH["8"]["TextStrokeColor3"] = Color3.fromRGB(0, 0, 0);
+ASH["8"]["TextStrokeTransparency"] = 1.000000;
+ASH["8"]["TextTransparency"] = 0.000000;
+ASH["8"]["TextTruncate"] = Enum.TextTruncate.None;
+ASH["8"]["TextWrapped"] = true;
+ASH["8"]["TextXAlignment"] = Enum.TextXAlignment.Center;
+ASH["8"]["TextYAlignment"] = Enum.TextYAlignment.Center;
+ASH["8"]["Draggable"] = false;
+ASH["8"]["FontFace"] = Font.new("rbxassetid://12187372175", Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+ASH["8"]["Transparency"] = 0;
+ASH["8"]["Archivable"] = true;
+
+ASH["9"] = Instance.new("UIStroke", ASH["8"]);
+ASH["9"]["Name"] = [[UIStroke]];
+ASH["9"]["Enabled"] = true;
+ASH["9"]["Thickness"] = 2.000000;
+ASH["9"]["Color"] = Color3.fromRGB(0, 0, 0);
+ASH["9"]["Transparency"] = 0.000000;
+ASH["9"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Contextual;
+ASH["9"]["LineJoinMode"] = Enum.LineJoinMode.Round;
+ASH["9"]["Archivable"] = true;
+
+
+
+
+return ASH["1"]
