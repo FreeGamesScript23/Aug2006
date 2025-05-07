@@ -1,0 +1,55 @@
+local player = game:GetService("Players").LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+
+local zones = {
+	workspace.PartyZones:FindFirstChild("PartyZone"),
+	workspace.PartyZones:FindFirstChild("PartyZone1"),
+	workspace.PartyZones:FindFirstChild("PartyZone2"),
+	workspace.PartyZones:FindFirstChild("PartyZone3")
+}
+
+local foundZone = nil
+
+for _, zone in ipairs(zones) do
+	if zone and zone:FindFirstChild("BillboardGui") then
+		local label = zone.BillboardGui:FindFirstChild("StatusLabel")
+		if label and label.Text == "Waiting for players..." then
+			foundZone = zone
+			break
+		end
+	end
+end
+
+if foundZone then
+	local hitbox = foundZone:FindFirstChild("Hitbox")
+	if hitbox then
+		firetouchinterest(root, hitbox, 0)
+		task.wait(0.1)
+		firetouchinterest(root, hitbox, 1)
+	end
+
+	local gui = player:WaitForChild("PlayerGui")
+	local partyGui = gui:WaitForChild("PartyCreation")
+
+	repeat task.wait() until partyGui.Enabled
+
+	local subtractBtn = partyGui.Background.SettingsContainer.PlayerCountSetting.Frame.Subtract
+	local createBtn = partyGui.Background.CreateContainer.CreateButton
+
+	local function fullFire(button)
+		for _, signal in ipairs({ "MouseButton1Click", "MouseButton1Down", "Activated" }) do
+			local connections = getconnections(button[signal])
+			for _, conn in ipairs(connections) do
+				conn:Fire()
+			end
+		end
+	end
+
+	for i = 1, 3 do
+		fullFire(subtractBtn)
+		task.wait(0.1)
+	end
+
+	fullFire(createBtn)
+end
