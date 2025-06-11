@@ -292,7 +292,8 @@ local SaveManager = {} do
             getgenv().isAutoSaving = isAutoSaveEnabled
             
             local AutoSaveConfig = section:AddToggle("AutoSaveConfig", {
-                Title = "Auto Save Config", 
+                Title = "Auto Save Config",
+                Description = "Auto Load and Save current config.",
                 Default = false
             })
             
