@@ -8,7 +8,7 @@ local games = {
   [72907489978215] = "aintnowaybro",
   [2753915549] = 'bruhwhatisthis',
   [7449423635] = 'bruhwhatisthis',
-  [126884695634066] = 'doesitgrow%3F',
+  [126884695634066] = 'doesitgrow',
 }
 
 return games
