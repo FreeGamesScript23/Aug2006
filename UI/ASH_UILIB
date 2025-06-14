@@ -5562,6 +5562,7 @@ local Icons = {
 	["lucide-pie-chart"] = Asset.."10734921727",
 	["lucide-piggy-bank"] = Asset.."10734921935",
 	["lucide-pin"] = Asset.."10734922324",
+	["lucide-pet"] = "rbxassetid://78874414996144",
 	["lucide-pin-off"] = Asset.."10734922180",
 	["lucide-pipette"] = Asset.."10734922497",
 	["lucide-pizza"] = Asset.."10734922774",
