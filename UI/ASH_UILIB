@@ -2822,7 +2822,7 @@ Components.TitleBar = (function()
                 BackgroundTransparency = 1,
             }, {
                 New("ImageLabel", {
-                    Image = "rbxassetid://104937882773234", -- AshbornnHub logo
+                    Image = "rbxassetid://104937882773234", -- Ash logo
                     Size = UDim2.fromOffset(25, 25),
                     Position = UDim2.new(0, 18, 0, 20),
                     AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2835,12 +2835,8 @@ Components.TitleBar = (function()
                 }),
                 New("TextLabel", {
                     RichText = true,
-                    Text = Config.Title,
-                    FontFace = Font.new(
-                        "rbxasset://fonts/families/GothamSSm.json",
-                        Enum.FontWeight.Regular,
-                        Enum.FontStyle.Normal
-                    ),
+                    Text = Config.Title, -- Ash Title.
+                    FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
                     TextSize = 12,
                     TextXAlignment = "Left",
                     TextYAlignment = "Center",
