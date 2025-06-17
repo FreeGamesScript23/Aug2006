@@ -2822,7 +2822,7 @@ Components.TitleBar = (function()
                 BackgroundTransparency = 1,
             }, {
                 New("ImageLabel", {
-                    Image = "rbxassetid://104937882773234",
+                    Image = "rbxassetid://104937882773234", -- AshbornnHub logo
                     Size = UDim2.fromOffset(25, 25),
                     Position = UDim2.new(0, 18, 0, 20),
                     AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2849,6 +2849,8 @@ Components.TitleBar = (function()
                     Position = UDim2.new(0, 40, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundTransparency = 1,
+					TextStrokeTransparency = 0,
+    				TextStrokeColor3 = Color3.new(0, 0, 0),
                     ThemeTag = {
                         TextColor3 = "Text",
                     },
@@ -2865,6 +2867,8 @@ Components.TitleBar = (function()
                     TextSize = 12,
                     TextXAlignment = "Left",
                     TextYAlignment = "Center",
+					TextStrokeTransparency = 0,
+    				TextStrokeColor3 = Color3.new(0, 0, 0),
                     Size = UDim2.fromScale(0, 1),
                     Position = UDim2.new(0, 120, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
