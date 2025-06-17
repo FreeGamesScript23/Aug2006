@@ -2828,7 +2828,7 @@ Components.TitleBar = (function()
                 New("TextLabel", {
                     RichText = true,
                     Text = Config.Title, -- Ash Title.
-                    FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+                    FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
                     TextSize = 12,
                     TextXAlignment = "Left",
                     TextYAlignment = "Center",
@@ -2846,7 +2846,7 @@ Components.TitleBar = (function()
                     RichText = true,
                     Text = Config.SubTitle, -- Ash Subtitle.
                     TextTransparency = 0.4,
-                    FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+                    FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
                     TextSize = 12,
                     TextXAlignment = "Left",
                     TextYAlignment = "Center",
