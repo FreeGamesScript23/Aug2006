@@ -6,7 +6,6 @@ Show_Button = true
 Button_Icon = "rbxassetid://104937882773234" 
 Show_Assets = false 
 getgenv().MinimizerButton = false 
-
 ----------------------------
 local cloneref = cloneref or function(o) return o end
 
@@ -23,7 +22,7 @@ HttpService = cloneref(game:GetService("HttpService"))
 LocalPlayer = Players.LocalPlayer
 Camera = Workspace.CurrentCamera
 Mouse = LocalPlayer:GetMouse()
-gamesList = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/gameList.lua", true))()
+
 local Mobile
 if RunService:IsStudio() then
 	Mobile = false
@@ -5820,18 +5819,30 @@ if RunService:IsStudio() then
 	listfiles = function (...) return {...} end;
 end
 
--- SaveManager
+local httpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
 local SaveManager = {} do
+
+    local GameFolder = {
+        ["Fisch"] = 16732694052,
+        ["MM2"] = 142823291,
+        ["BloxHunt"] = 70005410,
+        ["FleeTheFacility"] = 893973440,
+    }
+
     SaveManager.Folder = "FluentSettings"
     
-    	local currentPlaceId = game.PlaceId
-		for placeId, folderName in pairs(gamesList) do
-  			if placeId == currentPlaceId then
-   		    	SaveManager.Folder = folderName
-    	   		break
-   		 	end
-		end
-
+    local currentPlaceId = game.PlaceId
+    
+    for folderName, placeId in pairs(GameFolder) do
+        if placeId == currentPlaceId then
+            SaveManager.Folder = folderName
+            break
+        end
+    end
+    
     SaveManager.Ignore = {}
     SaveManager.Parser = {
         Toggle = {
@@ -5898,9 +5909,9 @@ local SaveManager = {} do
     end
 
     function SaveManager:Save(customName)
-        if not LocalPlayer then return false, "Player not found" end
+        if not Player then return false, "Player not found" end
 
-        local name = customName or ("Settings_" .. LocalPlayer.Name .. ".json")
+        local name = customName or ("Settings_" .. Player.Name .. ".json")
         local fullPath = self.Folder .. "/settings/" .. name
         local data = { objects = {} }
 
@@ -5910,7 +5921,7 @@ local SaveManager = {} do
             end
         end
 
-        local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+        local success, encoded = pcall(httpService.JSONEncode, httpService, data)
         if not success then
             return false, "Failed to encode data"
         end
@@ -5920,15 +5931,15 @@ local SaveManager = {} do
     end
 
     function SaveManager:Load(customName)
-        if not LocalPlayer then return false, "Player not found" end
+        if not Player then return false, "Player not found" end
 
-        local name = customName or ("Settings_" .. LocalPlayer.Name .. ".json")
+        local name = customName or ("Settings_" .. Player.Name .. ".json")
         local file = self.Folder .. "/settings/" .. name
         if not isfile(file) then
             return false, "Invalid file"
         end
 
-        local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+        local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
         if not success then
             return false, "Decode error"
         end
@@ -5982,7 +5993,7 @@ local SaveManager = {} do
             local success, err = self:Load(name)
 
             self.Library:Notify({
-                Title = getgenv().AshTitle .. "Interface",
+                Title = "Interface",
                 Content = "Config loader",
                 SubContent = success and ("Auto loaded config " .. name) or ("Failed to load autoload config: " .. err),
                 Duration = 7
@@ -6000,7 +6011,7 @@ local SaveManager = {} do
 
         local function notify(title, subContent)
             self.Library:Notify({
-                Title = getgenv().AshTitle .. "Interface",
+                Title = "Interface",
                 Content = "Config loader",
                 SubContent = subContent,
                 Duration = 7
@@ -6089,10 +6100,10 @@ local SaveManager = {} do
 
         local successSaveLoad, errSaveLoad = pcall(function()
             local Players = game:GetService("Players")
-            local LocalPlayer = Players.LocalPlayer
+            local Player = Players.LocalPlayer
             
-            local settingsPath = self.Folder .. "/settings/Settings_" .. LocalPlayer.Name .. ".json"
-            local autoLoadPath = self.Folder .. "/" .. LocalPlayer.Name .. "_IsAutoLoad.txt"
+            local settingsPath = self.Folder .. "/settings/Settings_" .. Player.Name .. ".json"
+            local autoLoadPath = self.Folder .. "/" .. Player.Name .. "_IsAutoLoad.txt"
             
             local isAutoSaveEnabled = false
             if isfile and isfile(autoLoadPath) then
@@ -6110,7 +6121,7 @@ local SaveManager = {} do
             AutoSaveConfig:SetValue(isAutoSaveEnabled)
 
             if isAutoSaveEnabled and isfile and isfile(settingsPath) then
-                local loadSuccess, loadErr = self:Load("Settings_" .. LocalPlayer.Name .. ".json")
+                local loadSuccess, loadErr = self:Load("Settings_" .. Player.Name .. ".json")
                 if loadSuccess then
                     if self.Options.RefreshedNpc then
                         self.Options.RefreshedNpc:SetValue(true)
@@ -6135,7 +6146,7 @@ local SaveManager = {} do
                     
                     AutoSaveThread = task.spawn(function()
                         while getgenv().isAutoSaving do
-                            local saveSuccess, saveErr = self:Save("Settings_" .. LocalPlayer.Name .. ".json")
+                            local saveSuccess, saveErr = self:Save("Settings_" .. Player.Name .. ".json")
                             if not saveSuccess then
                                 warn("Failed to save settings:", saveErr)
                             end
@@ -6158,129 +6169,134 @@ local SaveManager = {} do
 
     SaveManager:BuildFolderTree()
 end
--- InterfaceManager
-local InterfaceManager = {} do
-	InterfaceManager.Folder = "FluentSettings"
-	InterfaceManager.Settings = {
-		Acrylic = true,
-		Transparency = true,
-		MenuKeybind = "M"
-	}
 
-	function InterfaceManager:SetTheme(name)
-		InterfaceManager.Settings.Theme = name
-	end
+local httpService = game:GetService("HttpService")
 
-	function InterfaceManager:SetFolder(folder)
-		self.Folder = folder;
-		self:BuildFolderTree()
-	end
+local InterfaceManager = {
+    Folder = "FluentSettings",
+    Settings = {
+        Theme = "Dark",
+        Acrylic = true,
+        Transparency = true,
+        MenuKeybind = "LeftControl",
+    },
+}
 
-	function InterfaceManager:SetLibrary(library)
-		self.Library = library
-	end
+-- Sets the folder path and builds the folder structure
+function InterfaceManager:SetFolder(folder)
+    self.Folder = folder
+    self:BuildFolderTree()
+end
 
-	function InterfaceManager:BuildFolderTree()
-		local paths = {}
+-- Associates a library with the InterfaceManager
+function InterfaceManager:SetLibrary(library)
+    self.Library = library
+end
 
-		local parts = self.Folder:split("/")
-		for idx = 1, #parts do
-			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
-		end
+-- Creates the required folder structure
+function InterfaceManager:BuildFolderTree()
+    local paths = {}
+    for idx = 1, #self.Folder:split("/") do
+        table.insert(paths, table.concat(self.Folder:split("/"), "/", 1, idx))
+    end
 
-		table.insert(paths, self.Folder)
-		table.insert(paths, self.Folder .. "/")
+    table.insert(paths, self.Folder)
+    table.insert(paths, self.Folder .. "/settings")
 
-		for i = 1, #paths do
-			local str = paths[i]
-			if not isfolder(str) then
-				makefolder(str)
-			end
-		end
-	end
+    for _, path in ipairs(paths) do
+        if not isfolder(path) then
+            makefolder(path)
+        end
+    end
+end
 
-	function InterfaceManager:SaveSettings()
-		writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
-	end
+-- Saves settings to a JSON file
+function InterfaceManager:SaveSettings()
+    local success, encoded = pcall(httpService.JSONEncode, httpService, self.Settings)
+    if success then
+        writefile(self.Folder .. "/options.json", encoded)
+    else
+        warn("Failed to encode settings")
+    end
+end
 
-	function InterfaceManager:LoadSettings()
-		local path = self.Folder .. "/options.json"
-		if isfile(path) then
-			local data = readfile(path)
-			local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+-- Loads settings from a JSON file
+function InterfaceManager:LoadSettings()
+    local path = self.Folder .. "/options.json"
+    if isfile(path) then
+        local data = readfile(path)
+        local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+        if success then
+            for key, value in pairs(decoded) do
+                self.Settings[key] = value
+            end
+        else
+            warn("Failed to decode settings")
+        end
+    end
+end
 
-			if success then
-				for i, v in next, decoded do
-					InterfaceManager.Settings[i] = v
-				end
-			end
-		end
-	end
+-- Builds the interface configuration section
+function InterfaceManager:BuildInterfaceSection(tab)
+    assert(self.Library, "Library is not set")
 
-	function InterfaceManager:BuildInterfaceSection(tab)
-		assert(self.Library, "Must set InterfaceManager.Library")
-		local Library = self.Library
-		local Settings = InterfaceManager.Settings
+    local Library = self.Library
+    local Settings = self.Settings
 
-		InterfaceManager:LoadSettings()
+    self:LoadSettings()
 
-		local section = tab:AddSection("Interface")
-		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = "Theme",
-			Description = "Changes the interface theme.",
-			Values = Library.Themes,
-			Default = self.Library.Theme,
-			Callback = function(Value)
-				Library:SetTheme(Value)
-				Settings.Theme = Value
-				InterfaceManager:SaveSettings()
-			end
-		})
+    local section = tab:AddSection("Interface")
 
-		InterfaceTheme:SetValue(Settings.Theme)
+    -- Theme dropdown
+    local themeDropdown = section:AddDropdown("InterfaceTheme", {
+        Title = "Theme",
+        Description = "Changes the interface theme.",
+        Values = Library.Themes,
+        Default = Settings.Theme,
+        Callback = function(value)
+            Library:SetTheme(value)
+            Settings.Theme = value
+            self:SaveSettings()
+        end,
+    })
+    themeDropdown:SetValue(Settings.Theme)
 
-		if Library.UseAcrylic then
-			section:AddToggle("AcrylicToggle", {
-				Title = "Acrylic",
-				Description = "The blurred background requires graphic quality 8+",
-				Default = Settings.Acrylic,
-				Callback = function(Value)
-					Library:ToggleAcrylic(Value)
-					Settings.Acrylic = Value
-					InterfaceManager:SaveSettings()
-				end
-			})
-		end
+    -- Acrylic toggle
+    if Library.UseAcrylic then
+        section:AddToggle("AcrylicToggle", {
+            Title = "Acrylic",
+            Description = "The blurred background requires graphic quality 8+",
+            Default = Settings.Acrylic,
+            Callback = function(value)
+                Library:ToggleAcrylic(value)
+                Settings.Acrylic = value
+                self:SaveSettings()
+            end,
+        })
+    end
 
-		section:AddToggle("TransparentToggle", {
-			Title = "Transparency",
-			Description = "Makes the interface transparent.",
-			Default = Settings.Transparency,
-			Callback = function(Value)
-				Library:ToggleTransparency(Value)
-				Settings.Transparency = Value
-				InterfaceManager:SaveSettings()
-			end
-		})
+    -- Transparency toggle
+    section:AddToggle("TransparentToggle", {
+        Title = "Transparency",
+        Description = "Makes the interface transparent.",
+        Default = Settings.Transparency,
+        Callback = function(value)
+            Library:ToggleTransparency(value)
+            Settings.Transparency = value
+            self:SaveSettings()
+        end,
+    })
 
-		section:AddSlider("CooldownDragging", {
-			Title = "GUI dragging cooldown.",
-			Default = 5,
-			Min = 0,
-			Max = 50,
-			Rounding = 1,
-			Callback = function(Value)
-				CDDrag = Value
-			end,
-		})
-
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Library.MinimizeKey.Name or Settings.MenuKeybind })
-		MenuKeybind:OnChanged(function()
-			Settings.MenuKeybind = MenuKeybind.Value
-			InterfaceManager:SaveSettings()
-		end)
-		Library.MinimizeKeybind = MenuKeybind
-	end
+    -- Menu keybind
+    local menuKeybind = section:AddKeybind("MenuKeybind", {
+        Title = "Minimize Bind",
+        Default = Settings.MenuKeybind,
+    })
+    menuKeybind:OnChanged(function()
+        Settings.MenuKeybind = menuKeybind.Value
+        self:SaveSettings()
+    end)
+    Library.MinimizeKeybind = menuKeybind
 end
 
 function Library:CreateWindow(Config)
@@ -6362,171 +6378,160 @@ else
 	Fluent = Library
 end
 
-local Dragging = false
-local DragInput
-local MousePos
-local StartPos
-
-local function createMinimizeButton()
-	local MinimizeButton = New("TextButton", {
-		BackgroundTransparency = 1,
+local MinimizeButton = New("TextButton", {
+	BackgroundTransparency = 1,
+	Size = UDim2.new(1, 0, 1, 0),
+	BorderSizePixel = 0
+}, {
+	New("UIPadding", {
+		PaddingBottom = UDim.new(0, 2),
+		PaddingLeft = UDim.new(0, 2),
+		PaddingRight = UDim.new(0, 2),
+		PaddingTop = UDim.new(0, 2),
+	}),
+	New("ImageLabel", {
+		Image = Mobile and Button_Icon or Asset.."10734897102" or "",
 		Size = UDim2.new(1, 0, 1, 0),
-		BorderSizePixel = 0,
+		BackgroundTransparency = 1,
 	}, {
-		New("UIPadding", {
-			PaddingBottom = UDim.new(0, 2),
-			PaddingLeft = UDim.new(0, 2),
-			PaddingRight = UDim.new(0, 2),
-			PaddingTop = UDim.new(0, 2),
-		}),
-		New("ImageLabel", {
-			Image = Mobile and Button_Icon or Asset.."10734897102" or "",
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-		}, {
-			New("UIAspectRatioConstraint", {
-				AspectRatio = 1,
-				AspectType = Enum.AspectType.FitWithinMaxSize,
-			})
+		New("UIAspectRatioConstraint", {
+			AspectRatio = 1,
+			AspectType = Enum.AspectType.FitWithinMaxSize,
 		})
 	})
-
-	-- Add purple circle border locked inside button
-	local borderThickness = 2
-	local border = Instance.new("Frame", MinimizeButton)
-	border.Name = randomString()
-	border.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
-	border.BorderSizePixel = 0
-	border.Size = UDim2.new(1, borderThickness * 2, 1, borderThickness * 2)
-	border.Position = UDim2.new(0, -borderThickness, 0, -borderThickness)
-	border.ZIndex = 9
-	border.ClipsDescendants = false
-
-	local borderCorner = Instance.new("UICorner", border)
-	borderCorner.CornerRadius = UDim.new(1, 0)
-
-	return MinimizeButton
-end
+})
 
 local Minimizer
 
 if getgenv().MinimizerButton then
-	if Mobile then
-		Minimizer = New("Frame", {
-			Parent = GUI,
-			Size = UDim2.new(0.06, 0, 0.15, 0),
-			Position = UDim2.new(0.45, 0, 0.025, 0),
-			BackgroundTransparency = 1,
-			ZIndex = 999999999,
-		}, {
-			New("Frame", {
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundTransparency = 0.5,
-				BorderSizePixel = 0,
-			}, {
-				New("UICorner", {
-					CornerRadius = UDim.new(0.25, 0),
-				}),
-				createMinimizeButton()
-			})
-		})
-	else
-		Minimizer = New("Frame", {
-			Parent = GUI,
-			Size = UDim2.new(0, 0, 0, 0),
-			Position = UDim2.new(0.45, 0, 0.025, 0),
-			BackgroundTransparency = 1,
-			ZIndex = 999999999,
-		}, {
-			New("Frame", {
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				Size = UDim2.new(0, 0, 0, 0),
-				BackgroundTransparency = 0,
-				BorderSizePixel = 0,
-			}, {
-				New("UICorner", {
-					CornerRadius = UDim.new(0.25, 0),
-				}),
-				createMinimizeButton()
-			})
-		})
-	end
+    if Mobile then
+        Minimizer = New("Frame", {
+            Parent = GUI,
+            Size = UDim2.new(0.06, 0, 0.15, 0),
+            Position = UDim2.new(0.45, 0, 0.025, 0),
+            BackgroundTransparency = 1,
+            ZIndex = 999999999,
+        }, {
+            New("Frame", {
+                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 0.5,
+                BorderSizePixel = 0
+            }, {
+                New("UICorner", {
+                    CornerRadius = UDim.new(0.25, 0),
+                }),
+                MinimizeButton
+            })
+        })
+    else
+        Minimizer = New("Frame", {
+            Parent = GUI,
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.45, 0, 0.025, 0),
+            BackgroundTransparency = 1,
+            ZIndex = 999999999,
+        }, {
+            New("Frame", {
+                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                Size = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 0,
+                BorderSizePixel = 0
+            }, {
+                New("UICorner", {
+                    CornerRadius = UDim.new(0.25, 0),
+                }),
+                MinimizeButton
+            })
+        })
+    end
 end
-
--- Drag logic
 if Minimizer then
-	Creator.AddSignal(Minimizer.InputBegan, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			Dragging = true
-			MousePos = input.Position
-			StartPos = Minimizer.Position
+    Creator.AddSignal(Minimizer.InputBegan, function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+            Dragging = true
+            MousePos = Input.Position
+            StartPos = Minimizer.Position
 
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					Dragging = false
-				end
-			end)
-		end
-	end)
-
-	Creator.AddSignal(Minimizer.InputChanged, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			DragInput = input
-		end
-	end)
+            Input.Changed:Connect(function()
+                if Input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
+        end
+    end)
+else
+    
 end
 
-local MinimizeButton = Minimizer and Minimizer:FindFirstChildWhichIsA("Frame") and Minimizer:FindFirstChildWhichIsA("Frame"):FindFirstChildOfClass("TextButton")
 
-if MinimizeButton then
-	Creator.AddSignal(MinimizeButton.InputBegan, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			Dragging = true
-			MousePos = input.Position
-			StartPos = Minimizer.Position
+Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
+	if
+		Input.UserInputType == Enum.UserInputType.MouseButton1
+		or Input.UserInputType == Enum.UserInputType.Touch
+	then
+		Dragging = true
+		MousePos = Input.Position
+		StartPos = Minimizer.Position
 
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					Dragging = false
-				end
-			end)
-		end
-	end)
+		Input.Changed:Connect(function()
+			if Input.UserInputState == Enum.UserInputState.End then
+				Dragging = false
+			end
+		end)
+	end
+end)
 
-	Creator.AddSignal(MinimizeButton.InputChanged, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			DragInput = input
-		end
-	end)
+Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
+	if
+		Input.UserInputType == Enum.UserInputType.MouseMovement
+		or Input.UserInputType == Enum.UserInputType.Touch
+	then
+		DragInput = Input
+	end
+end)
 
-	Creator.AddSignal(MinimizeButton.MouseButton1Click, function()
-		Library.Window:Minimize()
-	end)
+if Minimizer then
+Creator.AddSignal(Minimizer.InputChanged, function(Input)
+	if
+		Input.UserInputType == Enum.UserInputType.MouseMovement
+		or Input.UserInputType == Enum.UserInputType.Touch
+	then
+		DragInput = Input
+	end
+end)
 end
-
-Creator.AddSignal(UserInputService.InputChanged, function(input)
-	if input == DragInput and Dragging and Minimizer then
+Creator.AddSignal(UserInputService.InputChanged, function(Input)
+	if Input == DragInput and Dragging then
 		local GuiInset = GuiService:GetGuiInset()
-		local Delta = input.Position - MousePos
+		local Delta = Input.Position - MousePos
 		local ViewportSize = workspace.Camera.ViewportSize
-		local CurrentX = StartPos.X.Scale + (Delta.X / ViewportSize.X)
-		local CurrentY = StartPos.Y.Scale + (Delta.Y / ViewportSize.Y)
+		local CurrentX = StartPos.X.Scale + (Delta.X/ViewportSize.X)
+		local CurrentY = StartPos.Y.Scale + (Delta.Y/ViewportSize.Y)
 
-		if CurrentX < 0 then CurrentX = 0 end
-		if CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X) / ViewportSize.X then
-			CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X) / ViewportSize.X
+		if CurrentX<0 or CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X then
+			if CurrentX < 0 then
+				CurrentX = 0
+			else
+				CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X
+			end
 		end
 
-		if CurrentY < 0 then CurrentY = 0 end
-		if CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y) / (ViewportSize.Y + GuiInset.Y) then
-			CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y) / (ViewportSize.Y + GuiInset.Y)
+		if CurrentY < 0 or CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y) then
+			if CurrentY < 0 then
+				CurrentY = 0
+			else
+				CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y)
+			end
 		end
 
 		Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
 	end
 end)
 
+AddSignal(MinimizeButton.MouseButton1Click, function()
+	Library.Window:Minimize()
+end)
 
 
 return Library, SaveManager, InterfaceManager, Mobile
