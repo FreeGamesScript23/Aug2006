@@ -2,7 +2,7 @@ getgenv().AshTitle = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98
 getgenv().AshB = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98) .. "</font></b>"
 getgenv().Ash = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110) .. "</font></b>"
 
-Show_Button = false 
+Show_Button = true
 Button_Icon = "rbxassetid://104937882773234" 
 Show_Assets = false 
 getgenv().MinimizerButton = false 
