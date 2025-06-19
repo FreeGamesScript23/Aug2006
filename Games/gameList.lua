@@ -1,14 +1,14 @@
 local games = {
-  [142823291] = "Silent",
-  [335132309] = "Silent",
-  [636649648] = "Silent",
+  [142823291] = "MM2",
+  [335132309] = "MM2",
+  [636649648] = "MM2",
   [70005410] = "BloxHunt",
   [893973440] = "FleeFacility",
-  [16732694052] = "aintnowaybro",
-  [72907489978215] = "aintnowaybro",
-  [2753915549] = "bruhwhatisthis",
-  [7449423635] = "bruhwhatisthis",
-  [126884695634066] = "doesitgrow",
+  [16732694052] = "Fisch",
+  [72907489978215] = "Fisch",
+  [2753915549] = "BloxFruits",
+  [7449423635] = "BloxFruits",
+  [126884695634066] = "GrowAGarden",
 }
 
 return games
