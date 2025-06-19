@@ -6171,6 +6171,7 @@ local SaveManager = {} do
 end
 
 local httpService = game:GetService("HttpService")
+local coreGui = game:GetService("CoreGui")
 
 local InterfaceManager = {
     Folder = "FluentSettings",
@@ -6182,18 +6183,103 @@ local InterfaceManager = {
     },
 }
 
--- Sets the folder path and builds the folder structure
+function InterfaceManager:CreateMinimizerButton()
+    if self.MinimizerButton then
+        return self.MinimizerButton
+    end
+    local buttonWidth, buttonHeight = 32, 33
+    local borderThickness = 1.5
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "MinimizerButtonGui"
+    gui.Parent = coreGui
+
+    local button = Instance.new("ImageButton")
+    button.Name = "MinimizerButton"
+    button.Parent = gui
+    button.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
+    button.BackgroundTransparency = 0.14
+    button.BorderSizePixel = 0
+    button.Size = UDim2.new(0, buttonWidth, 0, buttonHeight)
+    button.Position = UDim2.new(0, 10, 0, 10)
+    button.Image = "rbxassetid://104937882773234"
+    button.ScaleType = Enum.ScaleType.Crop
+    button.Draggable = true
+    button.ZIndex = 10
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0.5, 0)
+    UICorner.Parent = button
+
+    local border = Instance.new("Frame")
+    border.Parent = button
+    border.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+    border.BorderSizePixel = 0
+    border.Size = UDim2.new(1, borderThickness * 2, 1, borderThickness * 2)
+    border.Position = UDim2.new(0, -borderThickness, 0, -borderThickness)
+    border.ZIndex = 9
+    border.ClipsDescendants = false
+
+    local borderCorner = Instance.new("UICorner")
+    borderCorner.CornerRadius = UDim.new(1, 0)
+    borderCorner.Parent = border
+
+    button.MouseButton1Click:Connect(function()
+        if self.Library and self.Library.Window and self.Library.Window.Minimize then
+            self.Library.Window:Minimize()
+        else
+            print("Minimize pressed!")
+        end
+    end)
+
+    self.MinimizerButton = button
+    self.MinimizerButtonGui = gui
+    return button
+end
+
+function InterfaceManager:SetMinimizerDraggable(value)
+    if self.MinimizerButton then
+        self.MinimizerButton.Draggable = value
+    end
+end
+
+function InterfaceManager:SetMinimizerVisible(value)
+    if self.MinimizerButton then
+        self.MinimizerButton.Visible = value
+    end
+    if self.MinimizerButtonGui then
+        self.MinimizerButtonGui.Enabled = value
+    end
+end
+
+function InterfaceManager:AddMinimizerToggles(section)
+    local DraggableToggle = section:AddToggle("DraggableButton", {
+        Title = 'Draggable <b><font color="#9370DB">UI</font></b> Button',
+        Default = false
+    })
+    DraggableToggle:OnChanged(function(value)
+        self:SetMinimizerDraggable(value)
+    end)
+
+    local VisibilityToggle = section:AddToggle("ButtonVisibility", {
+        Title = "Toggle Button Visibility",
+        Description = "Make the Open/Close Button visible or not visible.",
+        Default = true
+    })
+    VisibilityToggle:OnChanged(function(value)
+        self:SetMinimizerVisible(value)
+    end)
+end
+
 function InterfaceManager:SetFolder(folder)
     self.Folder = folder
     self:BuildFolderTree()
 end
 
--- Associates a library with the InterfaceManager
 function InterfaceManager:SetLibrary(library)
     self.Library = library
 end
 
--- Creates the required folder structure
 function InterfaceManager:BuildFolderTree()
     local paths = {}
     for idx = 1, #self.Folder:split("/") do
@@ -6210,17 +6296,13 @@ function InterfaceManager:BuildFolderTree()
     end
 end
 
--- Saves settings to a JSON file
 function InterfaceManager:SaveSettings()
     local success, encoded = pcall(httpService.JSONEncode, httpService, self.Settings)
     if success then
         writefile(self.Folder .. "/options.json", encoded)
-    else
-        warn("Failed to encode settings")
     end
 end
 
--- Loads settings from a JSON file
 function InterfaceManager:LoadSettings()
     local path = self.Folder .. "/options.json"
     if isfile(path) then
@@ -6230,13 +6312,10 @@ function InterfaceManager:LoadSettings()
             for key, value in pairs(decoded) do
                 self.Settings[key] = value
             end
-        else
-            warn("Failed to decode settings")
         end
     end
 end
 
--- Builds the interface configuration section
 function InterfaceManager:BuildInterfaceSection(tab)
     assert(self.Library, "Library is not set")
 
@@ -6247,7 +6326,6 @@ function InterfaceManager:BuildInterfaceSection(tab)
 
     local section = tab:AddSection("Interface")
 
-    -- Theme dropdown
     local themeDropdown = section:AddDropdown("InterfaceTheme", {
         Title = "Theme",
         Description = "Changes the interface theme.",
@@ -6261,7 +6339,6 @@ function InterfaceManager:BuildInterfaceSection(tab)
     })
     themeDropdown:SetValue(Settings.Theme)
 
-    -- Acrylic toggle
     if Library.UseAcrylic then
         section:AddToggle("AcrylicToggle", {
             Title = "Acrylic",
@@ -6275,7 +6352,6 @@ function InterfaceManager:BuildInterfaceSection(tab)
         })
     end
 
-    -- Transparency toggle
     section:AddToggle("TransparentToggle", {
         Title = "Transparency",
         Description = "Makes the interface transparent.",
@@ -6287,7 +6363,6 @@ function InterfaceManager:BuildInterfaceSection(tab)
         end,
     })
 
-    -- Menu keybind
     local menuKeybind = section:AddKeybind("MenuKeybind", {
         Title = "Minimize Bind",
         Default = Settings.MenuKeybind,
@@ -6297,6 +6372,9 @@ function InterfaceManager:BuildInterfaceSection(tab)
         self:SaveSettings()
     end)
     Library.MinimizeKeybind = menuKeybind
+
+    self:CreateMinimizerButton()
+    self:AddMinimizerToggles(section)
 end
 
 function Library:CreateWindow(Config)
@@ -6377,161 +6455,5 @@ if getgenv then
 else
 	Fluent = Library
 end
-
-local MinimizeButton = New("TextButton", {
-	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 1, 0),
-	BorderSizePixel = 0
-}, {
-	New("UIPadding", {
-		PaddingBottom = UDim.new(0, 2),
-		PaddingLeft = UDim.new(0, 2),
-		PaddingRight = UDim.new(0, 2),
-		PaddingTop = UDim.new(0, 2),
-	}),
-	New("ImageLabel", {
-		Image = Mobile and Button_Icon or Asset.."10734897102" or "",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-	}, {
-		New("UIAspectRatioConstraint", {
-			AspectRatio = 1,
-			AspectType = Enum.AspectType.FitWithinMaxSize,
-		})
-	})
-})
-
-local Minimizer
-
-if getgenv().MinimizerButton then
-    if Mobile then
-        Minimizer = New("Frame", {
-            Parent = GUI,
-            Size = UDim2.new(0.06, 0, 0.15, 0),
-            Position = UDim2.new(0.45, 0, 0.025, 0),
-            BackgroundTransparency = 1,
-            ZIndex = 999999999,
-        }, {
-            New("Frame", {
-                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 0.5,
-                BorderSizePixel = 0
-            }, {
-                New("UICorner", {
-                    CornerRadius = UDim.new(0.25, 0),
-                }),
-                MinimizeButton
-            })
-        })
-    else
-        Minimizer = New("Frame", {
-            Parent = GUI,
-            Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.45, 0, 0.025, 0),
-            BackgroundTransparency = 1,
-            ZIndex = 999999999,
-        }, {
-            New("Frame", {
-                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-                Size = UDim2.new(0, 0, 0, 0),
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0
-            }, {
-                New("UICorner", {
-                    CornerRadius = UDim.new(0.25, 0),
-                }),
-                MinimizeButton
-            })
-        })
-    end
-end
-if Minimizer then
-    Creator.AddSignal(Minimizer.InputBegan, function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            Dragging = true
-            MousePos = Input.Position
-            StartPos = Minimizer.Position
-
-            Input.Changed:Connect(function()
-                if Input.UserInputState == Enum.UserInputState.End then
-                    Dragging = false
-                end
-            end)
-        end
-    end)
-else
-    
-end
-
-
-Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseButton1
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		Dragging = true
-		MousePos = Input.Position
-		StartPos = Minimizer.Position
-
-		Input.Changed:Connect(function()
-			if Input.UserInputState == Enum.UserInputState.End then
-				Dragging = false
-			end
-		end)
-	end
-end)
-
-Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseMovement
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		DragInput = Input
-	end
-end)
-
-if Minimizer then
-Creator.AddSignal(Minimizer.InputChanged, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseMovement
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		DragInput = Input
-	end
-end)
-end
-Creator.AddSignal(UserInputService.InputChanged, function(Input)
-	if Input == DragInput and Dragging then
-		local GuiInset = GuiService:GetGuiInset()
-		local Delta = Input.Position - MousePos
-		local ViewportSize = workspace.Camera.ViewportSize
-		local CurrentX = StartPos.X.Scale + (Delta.X/ViewportSize.X)
-		local CurrentY = StartPos.Y.Scale + (Delta.Y/ViewportSize.Y)
-
-		if CurrentX<0 or CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X then
-			if CurrentX < 0 then
-				CurrentX = 0
-			else
-				CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X
-			end
-		end
-
-		if CurrentY < 0 or CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y) then
-			if CurrentY < 0 then
-				CurrentY = 0
-			else
-				CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y)
-			end
-		end
-
-		Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
-	end
-end)
-
-AddSignal(MinimizeButton.MouseButton1Click, function()
-	Library.Window:Minimize()
-end)
-
 
 return Library, SaveManager, InterfaceManager, Mobile
