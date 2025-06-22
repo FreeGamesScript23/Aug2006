@@ -5374,6 +5374,7 @@ local Icons = {
 	["lucide-grip-horizontal"] = Asset.."10723405089",
 	["lucide-grip-vertical"] = Asset.."10723405236",
 	["lucide-hammer"] = Asset.."10723405360",
+	["lucide-pickaxe"] = "rbxassetid://136908438193459",
 	["lucide-hand"] = Asset.."10723405649",
 	["lucide-hand-metal"] = Asset.."10723405508",
 	["lucide-hard-drive"] = Asset.."10723405749",
