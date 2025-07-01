@@ -3701,6 +3701,7 @@ end)
 				{ Rotation = 180 }
 			):Play()
 			DropdownDisplay:ReleaseFocus(false)
+			DropdownDisplay.Text = ""
 			Dropdown:Display()
 		end
 
