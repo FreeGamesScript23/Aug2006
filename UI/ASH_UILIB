@@ -3599,12 +3599,12 @@ ElementsTable.Dropdown = (function()
 
 		local ListSizeX = 0
 		local function RecalculateListSize()
-			if #Dropdown.Values > 10 then
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, 392)
-			else
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10)
-			end
-		end
+            local contentY = DropdownListLayout.AbsoluteContentSize.Y
+            local maxY = 392 -- You can adjust this value for your preferred max height
+            DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
+            DropdownScrollFrame.Size = UDim2.new(1, -5, 0, math.min(contentY, maxY))
+            DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
+        end
 
 		local function RecalculateCanvasSize()
 			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, DropdownListLayout.AbsoluteContentSize.Y)
@@ -3624,32 +3624,17 @@ ElementsTable.Dropdown = (function()
 		end)
 
 		Creator.AddSignal(DropdownDisplay:GetPropertyChangedSignal("Text"), function()
-			local Text = DropdownDisplay.Text
-			if #Text == 0 then
-				for _, Element in next, DropdownScrollFrame:GetChildren() do
-					if not Element:IsA("UIListLayout") then
-						local Value = Element.ButtonLabel.Text
-						local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
-						Element.Visible = true
-					end
-				end
-			end
-			for _, Element in next, DropdownScrollFrame:GetChildren() do
-				if not Element:IsA("UIListLayout") then
-					local Value = Element.ButtonLabel.Text
-					local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
-					Element.Visible = Similar and true or false
-				end
-			end
-			-- TweenService:Create(
-			-- 	DropdownHolderCanvas,
-			-- 	TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-			-- 	{ Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10) }
-			-- ):Play()
-
-			RecalculateListPosition()
-			RecalculateListSize()
-		end)
+    local Text = DropdownDisplay.Text
+    for _, Element in next, DropdownScrollFrame:GetChildren() do
+        if not Element:IsA("UIListLayout") then
+            local Value = Element.ButtonLabel.Text
+            local Similar = #Text == 0 or Value:lower():find(Text:lower(), 1, true)
+            Element.Visible = Similar
+        end
+    end
+    RecalculateListPosition()
+    RecalculateListSize()
+end)
 
 		Creator.AddSignal(DropdownDisplay.Focused, function()
 			DropdownDisplay.Text = ""
