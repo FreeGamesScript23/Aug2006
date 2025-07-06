@@ -1,4 +1,4 @@
-getgenv().AshTitle = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 78, 111, 116, 105, 102, 121) .. "</font></b>"
+getgenv().AshTitle = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 76, 111, 97, 100, 105, 110, 103) .. "</font></b>"
 getgenv().AshB = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98) .. "</font></b>"
 getgenv().Ash = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110) .. "</font></b>"
 
@@ -3213,13 +3213,13 @@ Components.Window = (function()
 				local Key = Library.MinimizeKeybind and Library.MinimizeKeybind.Value or Library.MinimizeKey.Name
 				if not Mobile then Library:Notify({
 					Title = getgenv().AshTitle,
-					Content = "Press " .. Key .. " to toggle the interface.",
+					Content = "Press " .. Key .. " to toggle the interface. Loading the UI Please Wait",
 					Duration = 6
 					})
 				else 
 					Library:Notify({
 						Title = getgenv().AshTitle,
-						Content = "Tap to the button to toggle the interface.",
+						Content = "Tap to the button to toggle the interface. Loading the UI Please Wait",
 						Duration = 6
 					})
 				end
