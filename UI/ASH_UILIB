@@ -6,6 +6,8 @@ Show_Button = false
 Button_Icon = "rbxassetid://104937882773234" 
 Show_Assets = false 
 getgenv().MinimizerButton = false 
+
+getgenv().AshDestroyed = false
 ----------------------------
 local cloneref = cloneref or function(o) return o end
 
@@ -2881,6 +2883,7 @@ Components.TitleBar = (function()
 						Title = "Yes",
 						Callback = function()
 							Library:Destroy()
+							getgenv().AshDestroyed = true
 						end,
 					},
 					{
