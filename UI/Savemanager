@@ -9,6 +9,7 @@ local SaveManager = {} do
         ["MM2"] = 142823291,
         ["BloxHunt"] = 70005410,
         ["FleeTheFacility"] = 893973440,
+        ["GrowAGarden"] = 126884695634066
     }
 
     SaveManager.Folder = "FluentSettings"
