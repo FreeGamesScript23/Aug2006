@@ -324,15 +324,16 @@ local SaveManager = {} do
                         AutoSaveThread = nil
                     end
                     
-                    AutoSaveThread = task.spawn(function()
-                        while getgenv().isAutoSaving do
-                            local saveSuccess, saveErr = self:Save("Settings_" .. Player.Name .. ".json")
+                    AutoSaveThread = getgenv().AshSpawn(function()
+                        while getgenv().isAutoSaving and not getgenv().AshDestroyed do
+                        local saveSuccess, saveErr = self:Save("Settings_" .. Player.Name .. ".json")
                             if not saveSuccess then
                                 warn("Failed to save settings:", saveErr)
                             end
                             task.wait(0.5)
                         end
                     end)
+
                 elseif AutoSaveThread then
                     task.cancel(AutoSaveThread)
                     AutoSaveThread = nil
