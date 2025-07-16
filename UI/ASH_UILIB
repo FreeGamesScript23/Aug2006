@@ -3623,8 +3623,13 @@ ElementsTable.Dropdown = (function()
 				Dropdown:Close()
 				return
 			end
+
+			if Dropdown.RefreshCallback then
+				task.spawn(Dropdown.RefreshCallback)
+			end
 			Dropdown:Open()
 		end)
+
 
 		Creator.AddSignal(DropdownDisplay:GetPropertyChangedSignal("Text"), function()
     local Text = DropdownDisplay.Text
@@ -5472,7 +5477,7 @@ local Icons = {
 	["lucide-meh"] = Asset.."10734887603",
 	["lucide-menu"] = Asset.."10734887784",
 	["lucide-message-circle"] = Asset.."10734888000",
-	["lucide-circle--plus"] = "rbxassetid://120891034220611",
+	["lucide-circle-plus"] = "rbxassetid://120891034220611",
 	["lucide-message-square"] = Asset.."10734888228",
 	["lucide-mic"] = Asset.."10734888864",
 	["lucide-mic-2"] = Asset.."10734888430",
