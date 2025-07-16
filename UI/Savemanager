@@ -1,7 +1,7 @@
 local httpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-
+getgenv().SettingsApplied = false
 local SaveManager = {} do
 
     local GameFolder = {
@@ -26,56 +26,88 @@ local SaveManager = {} do
     SaveManager.Ignore = {}
     SaveManager.Parser = {
         Toggle = {
-            Save = function(idx, object) 
-                return { type = "Toggle", idx = idx, value = object.Value } 
-            end,
-            Load = function(idx, data)
-                SaveManager.Options[idx]:SetValue(data.value)
-            end,
-        },
-        Slider = {
-            Save = function(idx, object)
-                return { type = "Slider", idx = idx, value = tostring(object.Value) }
-            end,
-            Load = function(idx, data)
-                SaveManager.Options[idx]:SetValue(data.value)
-            end,
-        },
-        Dropdown = {
-            Save = function(idx, object)
-                return { type = "Dropdown", idx = idx, value = object.Value, multi = object.Multi }
-            end,
-            Load = function(idx, data)
-                SaveManager.Options[idx]:SetValue(data.value)
-            end,
-        },
-        Colorpicker = {
-            Save = function(idx, object)
-                return { type = "Colorpicker", idx = idx, value = object.Value:ToHex(), transparency = object.Transparency }
-            end,
-            Load = function(idx, data)
-                SaveManager.Options[idx]:SetValueRGB(Color3.fromHex(data.value), data.transparency)
-            end,
-        },
-        Keybind = {
-            Save = function(idx, object)
-                return { type = "Keybind", idx = idx, mode = object.Mode, key = object.Value }
-            end,
-            Load = function(idx, data)
-                SaveManager.Options[idx]:SetValue(data.key, data.mode)
-            end,
-        },
-        Input = {
-            Save = function(idx, object)
-                return { type = "Input", idx = idx, text = object.Value }
-            end,
-            Load = function(idx, data)
-                if type(data.text) == "string" then
-                    SaveManager.Options[idx]:SetValue(data.text)
-                end
-            end,
-        },
+    Save = function(idx, object)
+        return { type = "Toggle", idx = idx, value = object.Value }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and opt.Value ~= data.value then
+            opt:SetValue(data.value)
+        end
+    end,
+},
+Slider = {
+    Save = function(idx, object)
+        return { type = "Slider", idx = idx, value = tostring(object.Value) }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and tostring(opt.Value) ~= tostring(data.value) then
+            opt:SetValue(data.value)
+        end
+    end,
+},
+Dropdown = {
+    Save = function(idx, object)
+        return { type = "Dropdown", idx = idx, value = object.Value, multi = object.Multi }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and opt.Value ~= data.value then
+            opt:SetValue(data.value)
+        end
+    end,
+},
+Colorpicker = {
+    Save = function(idx, object)
+        return {
+            type = "Colorpicker",
+            idx = idx,
+            value = object.Value:ToHex(),
+            transparency = object.Transparency
+        }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        local currentHex = opt.Value and opt.Value:ToHex()
+        if opt and currentHex ~= data.value then
+            opt:SetValueRGB(Color3.fromHex(data.value), data.transparency)
+        end
+    end,
+},
+Keybind = {
+    Save = function(idx, object)
+        return {
+            type = "Keybind",
+            idx = idx,
+            mode = object.Mode,
+            key = object.Value
+        }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and (opt.Value ~= data.key or opt.Mode ~= data.mode) then
+            opt:SetValue(data.key, data.mode)
+        end
+    end,
+},
+Input = {
+    Save = function(idx, object)
+        return { type = "Input", idx = idx, text = object.Value }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and opt.Value ~= data.text then
+            opt:SetValue(data.text)
+        end
+    end,
+},
     }
+    
+    function SaveManager:SetLibrary(library)
+        self.Library = library
+        self.Options = library.Options
+    end
 
     function SaveManager:SetIgnoreIndexes(list)
         for _, key in ipairs(list) do
@@ -110,28 +142,67 @@ local SaveManager = {} do
         return true
     end
 
-    function SaveManager:Load(customName)
-        if not Player then return false, "Player not found" end
 
-        local name = customName or ("Settings_" .. Player.Name .. ".json")
-        local file = self.Folder .. "/settings/" .. name
-        if not isfile(file) then
-            return false, "Invalid file"
-        end
+function SaveManager:Load(customName)
+	if not Player then return false, "Player not found" end
+	if not self.Library then return false, "Library not set" end
 
-        local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
-        if not success then
-            return false, "Decode error"
-        end
+	local name = customName or ("Settings_" .. Player.Name .. ".json")
+	local file = self.Folder .. "/settings/" .. name
+	if not isfile(file) then
+		return false, "Invalid file"
+	end
 
-        for _, option in ipairs(decoded.objects) do
-            if self.Parser[option.type] then
-                task.spawn(function() self.Parser[option.type].Load(option.idx, option) end)
-            end
-        end
+	local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
+	if not success then
+		return false, "Decode error"
+	end
 
-        return true
-    end
+	self.Library:Notify({
+		Title = getgenv().AshTitle or "Config Loader",
+		Content = "Loading config...",
+		SubContent = "Please wait while settings are being applied.",
+		Duration = 5
+	})
+
+	local regularQueue = {}
+	local toggleQueue = {}
+
+	for _, option in ipairs(decoded.objects) do
+		local parser = self.Parser[option.type]
+		if parser and self.Options[option.idx] then
+			local fn = function() parser.Load(option.idx, option) end
+			if option.type == "Toggle" then
+				table.insert(toggleQueue, fn)
+			else
+				table.insert(regularQueue, fn)
+			end
+		end
+	end
+
+	task.spawn(function()
+		for _, fn in ipairs(regularQueue) do
+			fn()
+			task.wait(0.01)
+		end
+
+		for _, fn in ipairs(toggleQueue) do
+			fn()
+			task.wait(0.01)
+		end
+
+		self.Library:Notify({
+			Title = getgenv().AshTitle or "Config Loader",
+			Content = "Config Loaded!",
+			SubContent = "All settings applied successfully. 🟢",
+			Duration = 6
+		})
+
+		getgenv().SettingsApplied = true
+	end)
+
+	return true
+end
 
     function SaveManager:IgnoreThemeSettings()
         self:SetIgnoreIndexes({ "InterfaceTheme", "AcrylicToggle", "TransparentToggle", "MenuKeybind" })
@@ -161,10 +232,6 @@ local SaveManager = {} do
         return out
     end
 
-    function SaveManager:SetLibrary(library)
-        self.Library = library
-        self.Options = library.Options
-    end
 
     function SaveManager:LoadAutoloadConfig()
         local autoloadFile = self.Folder .. "/settings/autoload.txt"
