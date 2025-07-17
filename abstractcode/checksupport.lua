@@ -1,6 +1,7 @@
 local dataOwner = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/niggIds.lua", true))()
 local ownerUserIds = dataOwner.ownerUserIds
 local priorityRanks = dataOwner.priorityRanks
+getgenv().AshDevMode = false
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
@@ -28,6 +29,7 @@ end
 
 if ownerUserIds[LocalPlayer.UserId] then
     print("LocalPlayer is an owner, bypassing checks.")
+    getgenv().AshDevMode = true
 else
     if isfunctionhooked and restorefunction and CheckSupport() then
         local functions = {
