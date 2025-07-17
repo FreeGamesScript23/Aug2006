@@ -30,6 +30,7 @@ end
 if ownerUserIds[LocalPlayer.UserId] then
     print("LocalPlayer is an owner, bypassing checks.")
     getgenv().AshDevMode = true
+    getgenv().PandaKeki = true
 else
     if isfunctionhooked and restorefunction and CheckSupport() then
         local functions = {
