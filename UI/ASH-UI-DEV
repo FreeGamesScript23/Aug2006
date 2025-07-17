@@ -1974,7 +1974,7 @@ Components.Section = (function()
 		}, {
 			New("TextLabel", {
 				RichText = true,
-				Text = "-[| " .. Title .. " |]-",
+				Text = "[ " .. Title .. " ]",
 				TextTransparency = 0,
 				FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 				TextSize = 18,
