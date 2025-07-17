@@ -2518,17 +2518,13 @@ Components.Notification = (function()
 
 		NewNotification.ButtonHolder = New("Frame", {
 			Name = "ButtonHolder",
-			BackgroundTransparency = (#Config.Buttons == 0 and 1 or 0),
-			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+			BackgroundTransparency = 1,
 			Size = UDim2.new(1, -28, 0, (#Config.Buttons == 0 and 0 or 32)),
 			Position = UDim2.new(0, 14, 1, -14),
 			AnchorPoint = Vector2.new(0, 1),
 			BorderSizePixel = 0,
 			Visible = #Config.Buttons > 0,
 		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, 6),
-			}),
 			New("UIListLayout", {
 				FillDirection = Enum.FillDirection.Horizontal,
 				HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -2539,15 +2535,18 @@ Components.Notification = (function()
 
 		for _, ButtonConfig in ipairs(Config.Buttons) do
 			local Button = New("TextButton", {
-					Text = ButtonConfig.Text or "Button",
-					Size = UDim2.fromOffset(72, 26),
-					BackgroundTransparency = 1,
-					TextColor3 = Color3.fromRGB(255, 255, 255),
-					Font = Enum.Font.Ubuntu,
-					TextSize = 13,
-					AutoButtonColor = false,
-					BorderSizePixel = 1,
-					BorderColor3 = Color3.fromRGB(255, 255, 255),
+				Text = ButtonConfig.Text or "Button",
+				Size = UDim2.fromOffset(72, 26),
+				BackgroundTransparency = 1,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				Font = Enum.Font.Ubuntu,
+				TextSize = 13,
+				AutoButtonColor = false,
+				BorderSizePixel = 1,
+				BorderColor3 = Color3.fromRGB(255, 255, 255),
+				ThemeTag = { TextColor3 = "Text", BorderColor3 = "Text" },
+			}, {
+				New("UICorner", { CornerRadius = UDim.new(0, 6) }),
 			})
 
 			Creator.AddSignal(Button.MouseButton1Click, function()
@@ -2634,7 +2633,8 @@ Components.Notification = (function()
 
 		function NewNotification:Open()
 			local ContentSize = self.LabelHolder.AbsoluteSize.Y
-			self.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize + 32)
+			local extraHeight = (#Config.Buttons > 0) and 32 or 0
+			self.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize + extraHeight)
 			RootMotor:setGoal({
 				Scale = Spring(0, { frequency = 5 }),
 				Offset = Spring(0, { frequency = 5 }),
