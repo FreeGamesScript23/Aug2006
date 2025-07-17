@@ -2485,9 +2485,7 @@ Components.Notification = (function()
 			Size = UDim2.new(1, -12, 0, 12),
 			TextWrapped = true,
 			BackgroundTransparency = 1,
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
+			ThemeTag = { TextColor3 = "Text" },
 		})
 
 		NewNotification.ContentLabel = New("TextLabel", {
@@ -2499,12 +2497,9 @@ Components.Notification = (function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Size = UDim2.new(1, 0, 0, 14),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
+			ThemeTag = { TextColor3 = "Text" },
 		})
 
 		NewNotification.SubContentLabel = New("TextLabel", {
@@ -2516,51 +2511,58 @@ Components.Notification = (function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Size = UDim2.new(1, 0, 0, 14),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
-			ThemeTag = {
-				TextColor3 = "SubText",
-			},
+			ThemeTag = { TextColor3 = "SubText" },
 		})
 
 		NewNotification.ButtonHolder = New("Frame", {
-			Size = UDim2.new(1, -28, 0, 30),
-			BackgroundTransparency = 1,
-			Visible = #Config.Buttons > 0,
+			Name = "ButtonHolder",
+			BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+			Size = UDim2.new(1, -28, 0, 32),
+			Position = UDim2.new(0, 14, 1, -14),
+			AnchorPoint = Vector2.new(0, 1),
+			BorderSizePixel = 1,
+			BorderColor3 = Color3.fromRGB(60, 60, 60),
 		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(0, 6),
+			}),
 			New("UIListLayout", {
 				FillDirection = Enum.FillDirection.Horizontal,
 				HorizontalAlignment = Enum.HorizontalAlignment.Right,
-				SortOrder = Enum.SortOrder.LayoutOrder,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
 				Padding = UDim.new(0, 6),
 			}),
 		})
 
-		for _, button in ipairs(Config.Buttons) do
-			local Btn = New("TextButton", {
-				Text = button.Text or "OK",
+		for _, ButtonConfig in ipairs(Config.Buttons) do
+			local Button = New("TextButton", {
+				Text = ButtonConfig.Text or "Button",
+				Size = UDim2.fromOffset(72, 26),
+				BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+				TextColor3 = Color3.fromRGB(255, 255, 255),
 				Font = Enum.Font.Ubuntu,
-				TextSize = 12,
-				Size = UDim2.fromOffset(70, 24),
-				BackgroundColor3 = Color3.fromRGB(70, 70, 70),
-				TextColor3 = Color3.new(1, 1, 1),
+				TextSize = 13,
 				AutoButtonColor = true,
 			}, {
-				New("UICorner", { CornerRadius = UDim.new(0, 6) })
+				New("UICorner", {
+					CornerRadius = UDim.new(0, 6),
+				}),
 			})
-			Btn.MouseButton1Click:Connect(function()
-				if button.Callback then
-					button.Callback()
+
+			Creator.AddSignal(Button.MouseButton1Click, function()
+				if ButtonConfig.Callback then
+					ButtonConfig.Callback()
 				end
 				NewNotification:Close()
 			end)
-			Btn.Parent = NewNotification.ButtonHolder
+
+			Button.Parent = NewNotification.ButtonHolder
 		end
 
 		NewNotification.LabelHolder = New("Frame", {
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(14, 40),
 			Size = UDim2.new(1, -28, 0, 0),
@@ -2572,7 +2574,6 @@ Components.Notification = (function()
 			}),
 			NewNotification.ContentLabel,
 			NewNotification.SubContentLabel,
-			NewNotification.ButtonHolder,
 		})
 
 		NewNotification.CloseButton = New("TextButton", {
@@ -2588,9 +2589,7 @@ Components.Notification = (function()
 				Position = UDim2.fromScale(0.5, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
-				ThemeTag = {
-					ImageColor3 = "Text",
-				},
+				ThemeTag = { ImageColor3 = "Text" },
 			}),
 		})
 
@@ -2603,6 +2602,7 @@ Components.Notification = (function()
 			NewNotification.Title,
 			NewNotification.CloseButton,
 			NewNotification.LabelHolder,
+			NewNotification.ButtonHolder,
 		})
 
 		if Config.Content == "" then
@@ -2635,8 +2635,7 @@ Components.Notification = (function()
 
 		function NewNotification:Open()
 			local ContentSize = self.LabelHolder.AbsoluteSize.Y
-			self.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize)
-
+			self.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize + 32)
 			RootMotor:setGoal({
 				Scale = Spring(0, { frequency = 5 }),
 				Offset = Spring(0, { frequency = 5 }),
@@ -2646,7 +2645,6 @@ Components.Notification = (function()
 		function NewNotification:Close(instant)
 			if not self.Closed then
 				self.Closed = true
-
 				local index = table.find(ActiveNotifications, self)
 				if index then
 					table.remove(ActiveNotifications, index)
@@ -2660,7 +2658,6 @@ Components.Notification = (function()
 						self.Holder:Destroy()
 						return
 					end
-
 					RootMotor:setGoal({
 						Scale = Spring(1, { frequency = 5 }),
 						Offset = Spring(60, { frequency = 5 }),
