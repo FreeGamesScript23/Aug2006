@@ -2557,7 +2557,6 @@ Components.Notification = (function()
 			}),
 		})
 
-
 			Creator.AddSignal(Button.MouseButton1Click, function()
 				if ButtonConfig.Callback then
 					ButtonConfig.Callback()
