@@ -2542,12 +2542,21 @@ Components.Notification = (function()
 				Font = Enum.Font.Ubuntu,
 				TextSize = 13,
 				AutoButtonColor = false,
-				BorderSizePixel = 1,
-				BorderColor3 = Color3.fromRGB(255, 255, 255),
-				ThemeTag = { TextColor3 = "Text", BorderColor3 = "Text" },
+				BorderSizePixel = 0,
+				ThemeTag = { TextColor3 = "Text" },
 			}, {
-				New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-			})
+				New("UICorner", {
+				CornerRadius = UDim.new(0, 6),
+			}),
+				New("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Color = Color3.fromRGB(255, 255, 255),
+				Thickness = 1,
+				Transparency = 0,
+				ThemeTag = { Color = "Text" },
+			}),
+		})
+
 
 			Creator.AddSignal(Button.MouseButton1Click, function()
 				if ButtonConfig.Callback then
