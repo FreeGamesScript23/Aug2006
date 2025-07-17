@@ -2524,6 +2524,40 @@ Components.Notification = (function()
 			},
 		})
 
+		NewNotification.ButtonHolder = New("Frame", {
+			Size = UDim2.new(1, -28, 0, 30),
+			BackgroundTransparency = 1,
+			Visible = #Config.Buttons > 0,
+		}, {
+			New("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Padding = UDim.new(0, 6),
+			}),
+		})
+
+		for _, button in ipairs(Config.Buttons) do
+			local Btn = New("TextButton", {
+				Text = button.Text or "OK",
+				Font = Enum.Font.Ubuntu,
+				TextSize = 12,
+				Size = UDim2.fromOffset(70, 24),
+				BackgroundColor3 = Color3.fromRGB(70, 70, 70),
+				TextColor3 = Color3.new(1, 1, 1),
+				AutoButtonColor = true,
+			}, {
+				New("UICorner", { CornerRadius = UDim.new(0, 6) })
+			})
+			Btn.MouseButton1Click:Connect(function()
+				if button.Callback then
+					button.Callback()
+				end
+				NewNotification:Close()
+			end)
+			Btn.Parent = NewNotification.ButtonHolder
+		end
+
 		NewNotification.LabelHolder = New("Frame", {
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -2538,6 +2572,7 @@ Components.Notification = (function()
 			}),
 			NewNotification.ContentLabel,
 			NewNotification.SubContentLabel,
+			NewNotification.ButtonHolder,
 		})
 
 		NewNotification.CloseButton = New("TextButton", {
