@@ -1347,13 +1347,6 @@ function Creator.OverrideTag(Object, Properties)
 	Creator.UpdateTheme()
 end
 
-function Creator.GetThemeProperty(Property)
-	if Themes[Library.Theme][Property] then
-		return Themes[Library.Theme][Property]
-	end
-	return Themes["Dark"][Property]
-end
-
 function Creator.New(Name, Properties, Children)
 	local Object = Instance.new(Name)
 
@@ -2430,6 +2423,7 @@ Components.Notification = (function()
 	local New = Creator.New
 
 	local Notification = {}
+	local ActiveNotifications = {}
 
 	function Notification:Init(GUI)
 		Notification.Holder = New("Frame", {
@@ -2454,6 +2448,17 @@ Components.Notification = (function()
 		Config.SubContent = Config.SubContent or ""
 		Config.Duration = Config.Duration or nil
 		Config.Buttons = Config.Buttons or {}
+
+		local sameTitle = {}
+		for _, notif in ipairs(ActiveNotifications) do
+			if not notif.Closed and notif.Title.Text == Config.Title then
+				table.insert(sameTitle, notif)
+			end
+		end
+		if #sameTitle >= 2 then
+			sameTitle[1]:Close(true)
+		end
+
 		local NewNotification = {
 			Closed = false,
 		}
@@ -2473,9 +2478,7 @@ Components.Notification = (function()
 			Size = UDim2.new(1, -12, 0, 12),
 			TextWrapped = true,
 			BackgroundTransparency = 1,
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
+			ThemeTag = { TextColor3 = "Text" },
 		})
 
 		NewNotification.ContentLabel = New("TextLabel", {
@@ -2487,12 +2490,9 @@ Components.Notification = (function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Size = UDim2.new(1, 0, 0, 14),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
+			ThemeTag = { TextColor3 = "Text" },
 		})
 
 		NewNotification.SubContentLabel = New("TextLabel", {
@@ -2504,17 +2504,64 @@ Components.Notification = (function()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Size = UDim2.new(1, 0, 0, 14),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
-			ThemeTag = {
-				TextColor3 = "SubText",
-			},
+			ThemeTag = { TextColor3 = "SubText" },
 		})
+
+		NewNotification.ButtonHolder = New("Frame", {
+			Name = "ButtonHolder",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -28, 0, (#Config.Buttons == 0 and 0 or 32)),
+			Position = UDim2.new(0, 14, 1, -14),
+			AnchorPoint = Vector2.new(0, 1),
+			BorderSizePixel = 0,
+			Visible = #Config.Buttons > 0,
+		}, {
+			New("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				Padding = UDim.new(0, 6),
+			}),
+		})
+
+		for _, ButtonConfig in ipairs(Config.Buttons) do
+			local Button = New("TextButton", {
+				Text = ButtonConfig.Text or "Button",
+				Size = UDim2.fromOffset(72, 26),
+				BackgroundTransparency = 1,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				Font = Enum.Font.Ubuntu,
+				TextSize = 13,
+				AutoButtonColor = false,
+				BorderSizePixel = 0,
+				ThemeTag = { TextColor3 = "Text" },
+			}, {
+				New("UICorner", {
+				CornerRadius = UDim.new(0, 6),
+			}),
+				New("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Color = Color3.fromRGB(255, 255, 255),
+				Thickness = 1,
+				Transparency = 0,
+				ThemeTag = { Color = "Text" },
+			}),
+		})
+
+			Creator.AddSignal(Button.MouseButton1Click, function()
+				if ButtonConfig.Callback then
+					ButtonConfig.Callback()
+				end
+				NewNotification:Close()
+			end)
+
+			Button.Parent = NewNotification.ButtonHolder
+		end
 
 		NewNotification.LabelHolder = New("Frame", {
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(14, 40),
 			Size = UDim2.new(1, -28, 0, 0),
@@ -2541,9 +2588,7 @@ Components.Notification = (function()
 				Position = UDim2.fromScale(0.5, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
-				ThemeTag = {
-					ImageColor3 = "Text",
-				},
+				ThemeTag = { ImageColor3 = "Text" },
 			}),
 		})
 
@@ -2556,12 +2601,12 @@ Components.Notification = (function()
 			NewNotification.Title,
 			NewNotification.CloseButton,
 			NewNotification.LabelHolder,
+			NewNotification.ButtonHolder,
 		})
 
 		if Config.Content == "" then
 			NewNotification.ContentLabel.Visible = false
 		end
-
 		if Config.SubContent == "" then
 			NewNotification.SubContentLabel.Visible = false
 		end
@@ -2588,38 +2633,53 @@ Components.Notification = (function()
 		end)
 
 		function NewNotification:Open()
-			local ContentSize = NewNotification.LabelHolder.AbsoluteSize.Y
-			NewNotification.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize)
-
+			local ContentSize = self.LabelHolder.AbsoluteSize.Y
+			local extraHeight = (#Config.Buttons > 0) and 32 or 0
+			self.Holder.Size = UDim2.new(1, 0, 0, 58 + ContentSize + extraHeight)
 			RootMotor:setGoal({
 				Scale = Spring(0, { frequency = 5 }),
 				Offset = Spring(0, { frequency = 5 }),
 			})
 		end
 
-		function NewNotification:Close()
-			if not NewNotification.Closed then
-				NewNotification.Closed = true
+		function NewNotification:Close(instant)
+			if not self.Closed then
+				self.Closed = true
+				local index = table.find(ActiveNotifications, self)
+				if index then
+					table.remove(ActiveNotifications, index)
+				end
+
 				task.spawn(function()
+					if instant then
+						if Library.UseAcrylic then
+							self.AcrylicPaint.Model:Destroy()
+						end
+						self.Holder:Destroy()
+						return
+					end
 					RootMotor:setGoal({
 						Scale = Spring(1, { frequency = 5 }),
 						Offset = Spring(60, { frequency = 5 }),
 					})
 					task.wait(0.4)
 					if Library.UseAcrylic then
-						NewNotification.AcrylicPaint.Model:Destroy()
+						self.AcrylicPaint.Model:Destroy()
 					end
-					NewNotification.Holder:Destroy()
+					self.Holder:Destroy()
 				end)
 			end
 		end
 
 		NewNotification:Open()
+		table.insert(ActiveNotifications, NewNotification)
+
 		if Config.Duration then
 			task.delay(Config.Duration, function()
 				NewNotification:Close()
 			end)
 		end
+
 		return NewNotification
 	end
 
