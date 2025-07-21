@@ -3645,17 +3645,19 @@ ElementsTable.Dropdown = (function()
 		})
 		table.insert(Library.OpenFrames, DropdownHolderCanvas)
 
-		local function RecalculateListPosition()
-			local Add = -40
-			if Camera.ViewportSize.Y - DropdownInner.AbsolutePosition.Y < DropdownHolderCanvas.AbsoluteSize.Y - 5 then
-				Add = DropdownHolderCanvas.AbsoluteSize.Y
-				- 5
-				- (Camera.ViewportSize.Y - DropdownInner.AbsolutePosition.Y)
-					+ 40
-			end
-			DropdownHolderCanvas.Position =
-				UDim2.fromOffset(DropdownInner.AbsolutePosition.X - 1, DropdownInner.AbsolutePosition.Y - 5 - Add)
+		function RecalculateListPosition()
+			local dropdownY = DropdownInner.AbsolutePosition.Y
+			local dropdownHeight = DropdownHolderCanvas.AbsoluteSize.Y
+			local screenHeight = Camera.ViewportSize.Y
+
+			local offsetY = dropdownY + dropdownHeight > screenHeight and (screenHeight - dropdownHeight - 10) or dropdownY - 5
+
+			DropdownHolderCanvas.Position = UDim2.fromOffset(
+				DropdownInner.AbsolutePosition.X - 1,
+				math.max(5, offsetY)
+			)
 		end
+
 
 		local ListSizeX = 0
 		function RecalculateListSize()
