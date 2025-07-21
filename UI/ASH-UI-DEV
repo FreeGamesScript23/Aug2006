@@ -3645,26 +3645,24 @@ ElementsTable.Dropdown = (function()
 		})
 		table.insert(Library.OpenFrames, DropdownHolderCanvas)
 
-		function RecalculateListPosition()
-			local dropdownY = DropdownInner.AbsolutePosition.Y
-			local dropdownHeight = DropdownHolderCanvas.AbsoluteSize.Y
-			local screenHeight = Camera.ViewportSize.Y
-
-			local offsetY = dropdownY + dropdownHeight > screenHeight and (screenHeight - dropdownHeight - 10) or dropdownY - 5
-
-			DropdownHolderCanvas.Position = UDim2.fromOffset(
-				DropdownInner.AbsolutePosition.X - 1,
-				math.max(5, offsetY)
-			)
+		local function RecalculateListPosition()
+			local Add = -40
+			if Camera.ViewportSize.Y - DropdownInner.AbsolutePosition.Y < DropdownHolderCanvas.AbsoluteSize.Y - 5 then
+				Add = DropdownHolderCanvas.AbsoluteSize.Y
+				- 5
+				- (Camera.ViewportSize.Y - DropdownInner.AbsolutePosition.Y)
+					+ 40
+			end
+			DropdownHolderCanvas.Position =
+				UDim2.fromOffset(DropdownInner.AbsolutePosition.X - 1, DropdownInner.AbsolutePosition.Y - 5 - Add)
 		end
-
 
 		local ListSizeX = 0
 		function RecalculateListSize()
 			local contentY = DropdownListLayout.AbsoluteContentSize.Y
 			local maxY = 392
 			DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
-			DropdownScrollFrame.Size = UDim2.new(1, -5, 0, maxY)
+			DropdownScrollFrame.Size = UDim2.new(1, -5, 1, -10)
 			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, math.max(contentY + 1, DropdownScrollFrame.AbsoluteSize.Y + 1))
 		end
 
@@ -3675,7 +3673,6 @@ ElementsTable.Dropdown = (function()
 
 		RecalculateListPosition()
 		RecalculateListSize()
-
 		Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
 
 		Creator.AddSignal(DropdownInner.MouseButton1Click, function()
@@ -3700,8 +3697,8 @@ ElementsTable.Dropdown = (function()
             Element.Visible = Similar
         end
     end
-    RecalculateListPosition()
-    RecalculateListSize()
+	RecalculateListSize()
+	RecalculateListPosition()
 end)
 
 		Creator.AddSignal(DropdownDisplay.Focused, function()
@@ -3972,6 +3969,7 @@ end)
 
 			RecalculateCanvasSize()
 			RecalculateListSize()
+			RecalculateListPosition()
 		end
 
 		function Dropdown:SetValues(NewValues)
