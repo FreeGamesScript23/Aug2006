@@ -3658,13 +3658,14 @@ ElementsTable.Dropdown = (function()
 		end
 
 		local ListSizeX = 0
-		local function RecalculateListSize()
-            local contentY = DropdownListLayout.AbsoluteContentSize.Y
-            local maxY = 160
+		function RecalculateListSize()
+			local contentY = DropdownListLayout.AbsoluteContentSize.Y
+			local maxY = 392
 			DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
 			DropdownScrollFrame.Size = UDim2.new(1, -5, 0, maxY)
-			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
-        end
+			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, math.max(contentY + 1, DropdownScrollFrame.AbsoluteSize.Y + 1))
+		end
+
 
 		local function RecalculateCanvasSize()
 			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, DropdownListLayout.AbsoluteContentSize.Y)
