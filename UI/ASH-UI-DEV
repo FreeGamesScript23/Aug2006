@@ -1350,19 +1350,16 @@ end
 function Creator.New(Name, Properties, Children)
 	local Object = Instance.new(Name)
 
-	-- Default properties
 	for Name, Value in next, Creator.DefaultProperties[Name] or {} do
 		Object[Name] = Value
 	end
 
-	-- Properties
 	for Name, Value in next, Properties or {} do
 		if Name ~= "ThemeTag" then
 			Object[Name] = Value
 		end
 	end
 
-	-- Children
 	for _, Child in next, Children or {} do
 		Child.Parent = Object
 	end
@@ -3663,10 +3660,10 @@ ElementsTable.Dropdown = (function()
 		local ListSizeX = 0
 		local function RecalculateListSize()
             local contentY = DropdownListLayout.AbsoluteContentSize.Y
-            local maxY = 392 -- You can adjust this value for your preferred max height
-            DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
-            DropdownScrollFrame.Size = UDim2.new(1, -5, 0, math.min(contentY, maxY))
-            DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
+            local maxY = 160
+			DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
+			DropdownScrollFrame.Size = UDim2.new(1, -5, 0, maxY)
+			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
         end
 
 		local function RecalculateCanvasSize()
