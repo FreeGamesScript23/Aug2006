@@ -1406,18 +1406,28 @@ end
 
 getgenv().RandomStringData = randomString()
 
+local previousFluentUI = getgenv().FluentUI
 getgenv().FluentUI = randomString()
 
 Library.Creator = Creator
 
 local New = Creator.New
+local parent = RunService:IsStudio() and LocalPlayer.PlayerGui or gethui()
+
+if previousFluentUI then
+	local oldGUI = parent:FindFirstChild(previousFluentUI)
+	if oldGUI then
+		oldGUI:Destroy()
+	end
+end
 
 local GUI = New("ScreenGui", {
-	Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or gethui(),
-    Name = FluentUI
+	Parent = parent,
+	Name = getgenv().FluentUI
 })
 Library.GUI = GUI
 ProtectGui(GUI)
+
 
 function Library:SafeCallback(Function, ...)
 	if not Function then
