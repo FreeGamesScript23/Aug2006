@@ -1,83 +1,80 @@
-return function()
-    local dataOwner = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/niggIds.lua", true))()
-    local ownerUserIds = dataOwner.ownerUserIds
-    local priorityRanks = dataOwner.priorityRanks
-    getgenv().AshDevMode = false
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
+-- Default SecurityLevel to 1 if not set
+getgenv().SecurityLevel = getgenv().SecurityLevel or 1
+getgenv().AshDevMode = false
 
-    local function CheckSupport()
-        local required = {
-            "hookfunction",
-            "hookmetamethod",
-            "request",
-            "fireproximityprompt",
-            "getconnections",
-            "getgc",
-            "getgenv",
-            "setreadonly",
-            "islclosure",
-            "newcclosure"
-        }
-        for _, v in ipairs(required) do
-            if typeof(getfenv()[v]) ~= "function" then
-                return false
-            end
-        end
-        return true
-    end
+local function CheckSupport()
+	local required = {
+		"hookfunction",
+		"hookmetamethod",
+		"request",
+		"fireproximityprompt",
+		"getconnections",
+		"getgc",
+		"getgenv",
+		"setreadonly",
+		"islclosure",
+		"newcclosure"
+	}
+	for _, v in ipairs(required) do
+		if typeof(getfenv()[v]) ~= "function" then
+			return false
+		end
+	end
+	return true
+end
 
-    local function isOwner()
-        return ownerUserIds[LocalPlayer.UserId]
-    end
+local function isOwner(uid)
+	local data = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/niggIds.lua", true))()
+	return data.ownerUserIds and data.ownerUserIds[uid]
+end
 
-    if isOwner() then
-        print("LocalPlayer is an owner, bypassing checks.")
-        getgenv().AshDevMode = true
-        getgenv().PandaKeki = true
-        return
-    end
+local function TryRestore()
+	local functions = {}
 
-    if not (isfunctionhooked and restorefunction and CheckSupport()) then
-        LocalPlayer:Kick("Required function missing. Change your executor - dsc.gg/AshbornnHub")
-        return
-    end
+	if SecurityLevel >= 1 then
+		table.insert(functions, game.HttpPost)
+		table.insert(functions, game.HttpGet)
+		if typeof(request) == "function" then
+			table.insert(functions, request)
+		end
+		if typeof(syn) == "table" and typeof(syn.request) == "function" then
+			table.insert(functions, syn.request)
+		end
+	end
 
-    local security = tonumber(getgenv().SecurityLevel) or 0
+	if SecurityLevel >= 2 then
+		local mt = getrawmetatable(game)
+		if mt then
+			table.insert(functions, mt.__namecall)
+		end
+		table.insert(functions, Instance.new("RemoteEvent").FireServer)
+		table.insert(functions, Instance.new("RemoteFunction").InvokeServer)
+	end
 
-    local functions = {}
+	task.spawn(function()
+		while true do
+			for _, func in ipairs(functions) do
+				if func and isfunctionhooked(func) and not (getgenv().SkipRestore and getgenv().SkipRestore[func]) then
+					restorefunction(func)
+				end
+			end
+			task.wait(0.5)
+		end
+	end)
+end
 
-    if security == 1 then
-        table.insert(functions, game.HttpGet)
-        table.insert(functions, game.HttpPost)
-        table.insert(functions, request)
-        if syn and syn.request then
-            table.insert(functions, syn.request)
-        end
-    elseif security >= 2 then
-        functions = {
-            game.HttpGet,
-            game.HttpPost,
-            request,
-            getrawmetatable(game).__namecall,
-            Instance.new("RemoteEvent").FireServer,
-            Instance.new("RemoteFunction").InvokeServer,
-        }
-        if syn and syn.request then
-            table.insert(functions, syn.request)
-        end
-    end
-
-    task.spawn(function()
-        while true do
-            for _, func in ipairs(functions) do
-                if func and isfunctionhooked(func) then
-                    warn("[CheckSupport] Restoring:", tostring(func))
-                    restorefunction(func)
-                end
-            end
-            task.wait(0.5)
-        end
-    end)
+-- OWNER BYPASS
+if isOwner(LocalPlayer.UserId) then
+	getgenv().AshDevMode = true
+	getgenv().PandaKeki = true
+	warn("[CheckSupport] Owner bypass active")
+else
+	if isfunctionhooked and restorefunction and CheckSupport() then
+		TryRestore()
+	else
+		LocalPlayer:Kick("❌ Missing required exploit functions.\nUse a better executor.\ndsc.gg/AshbornnHub")
+	end
 end
