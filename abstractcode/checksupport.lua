@@ -1,18 +1,13 @@
+-- 🔐 EARLY HARD LOCK
+repeat task.wait() until game:IsLoaded()
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
 local function CheckSupport()
 	local required = {
-		"hookfunction",
-		"hookmetamethod",
-		"request",
-		"fireproximityprompt",
-		"getconnections",
-		"getgc",
-		"getgenv",
-		"setreadonly",
-		"islclosure",
-		"newcclosure"
+		"hookfunction", "hookmetamethod", "request", "fireproximityprompt",
+		"getconnections", "getgc", "getgenv", "setreadonly", "islclosure", "newcclosure"
 	}
 	for _, v in ipairs(required) do
 		if typeof(getfenv()[v]) ~= "function" then
@@ -63,6 +58,7 @@ local function TryRestore()
 	end)
 end
 
+-- 🧠 HARD GUARD
 if isOwner(LocalPlayer.UserId) then
 	getgenv().AshDevMode = true
 	getgenv().PandaKeki = true
@@ -76,3 +72,6 @@ else
 		LocalPlayer:Kick("❌ Missing required exploit functions.\nUse a better executor.\ndsc.gg/AshbornnHub")
 	end
 end
+
+-- 🔐 BLOCK ALL SCRIPT CODE UNTIL SAFE
+repeat task.wait() until getgenv().IsCheckSupportReady
