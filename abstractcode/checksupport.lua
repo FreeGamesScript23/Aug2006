@@ -37,7 +37,6 @@ else
             game.HttpPost,
             game.HttpGet,
             request,
-            getrawmetatable(game).__namecall,
             Instance.new("RemoteEvent").FireServer,
             Instance.new("RemoteFunction").InvokeServer
         }
