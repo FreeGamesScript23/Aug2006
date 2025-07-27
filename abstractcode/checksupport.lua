@@ -1,10 +1,4 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
-
--- Default SecurityLevel to 1 if not set
-getgenv().SecurityLevel = getgenv().SecurityLevel or 1
-getgenv().AshDevMode = false
-
+-- Owner ID check
 local function CheckSupport()
 	local required = {
 		"hookfunction",
@@ -58,6 +52,7 @@ local function TryRestore()
 		while true do
 			for _, func in ipairs(functions) do
 				if func and isfunctionhooked(func) and not (getgenv().SkipRestore and getgenv().SkipRestore[func]) then
+					warn("[⚠️ Restoring Hooked Function]:", tostring(func))
 					restorefunction(func)
 				end
 			end
