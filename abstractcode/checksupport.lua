@@ -33,29 +33,27 @@ if ownerUserIds[LocalPlayer.UserId] then
     getgenv().PandaKeki = true
 else
     if isfunctionhooked and restorefunction and CheckSupport() then
-        local functions = {
-            game.HttpPost,
-            game.HttpGet,
-            request,
-            Instance.new("RemoteEvent").FireServer,
-            Instance.new("RemoteFunction").InvokeServer
-        }
+    local functions = {
+        game.HttpPost,
+        game.HttpGet,
+        request,
+    }
 
-        if syn and syn.request then
-            table.insert(functions, syn.request)
-        end
-
-        task.spawn(function()
-            while true do
-                for _, func in ipairs(functions) do
-                    if func and isfunctionhooked(func) and func ~= getgenv().GunHook then
-                        restorefunction(func)
-                    end
-                end
-                task.wait(0.5)
-            end
-        end)
-    else
-        LocalPlayer:Kick("Required function missing. Change your executor - dsc.gg/AshbornnHub")
+    if syn and syn.request then
+        table.insert(functions, syn.request)
     end
+
+    task.spawn(function()
+        while true do
+            for _, func in ipairs(functions) do
+                if func and isfunctionhooked(func) then
+                    restorefunction(func)
+                end
+            end
+            task.wait(0.5)
+        end
+    end)
+else
+    LocalPlayer:Kick("Required function missing. Change your executor - dsc.gg/AshbornnHub")
+end
 end
