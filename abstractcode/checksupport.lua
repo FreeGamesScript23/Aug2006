@@ -1,6 +1,6 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
-
+warn("Hello my pookie cookie sugar boooooo")
 local aldasldaskdnanhalkdhnalk = {
     [129215104] = true, [6069697086] = true, [4072731377] = true, [6150337449] = true,
     [1571371222] = true, [2911976621] = true, [2729297689] = true, [6150320395] = true,
