@@ -74,3 +74,4 @@ else
 		LocalPlayer:Kick("❌ Missing required exploit functions.\nUse a better executor.\ndsc.gg/AshbornnHub")
 	end
 end
+getgenv().IsCheckSupportReady = true
