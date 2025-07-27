@@ -67,11 +67,12 @@ if isOwner(LocalPlayer.UserId) then
 	getgenv().AshDevMode = true
 	getgenv().PandaKeki = true
 	warn("[CheckSupport] Owner bypass active")
+	getgenv().IsCheckSupportReady = true
 else
 	if isfunctionhooked and restorefunction and CheckSupport() then
 		TryRestore()
+		getgenv().IsCheckSupportReady = true
 	else
 		LocalPlayer:Kick("❌ Missing required exploit functions.\nUse a better executor.\ndsc.gg/AshbornnHub")
 	end
 end
-getgenv().IsCheckSupportReady = true
