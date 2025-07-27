@@ -73,6 +73,7 @@ return function()
         while true do
             for _, func in ipairs(functions) do
                 if func and isfunctionhooked(func) then
+                    warn("[CheckSupport] Restoring:", tostring(func))
                     restorefunction(func)
                 end
             end
