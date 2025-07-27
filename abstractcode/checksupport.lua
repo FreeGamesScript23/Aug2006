@@ -1,10 +1,23 @@
+local dataOwner = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/niggIds.lua", true))()
+local ownerUserIds = dataOwner.ownerUserIds
+local priorityRanks = dataOwner.priorityRanks
+getgenv().AshDevMode = false
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
 local function CheckSupport()
     local required = {
-        "hookfunction", "hookmetamethod", "request", "fireproximityprompt",
-        "getconnections", "getgc", "getgenv", "setreadonly", "islclosure", "newcclosure"
+        "hookfunction",
+        "hookmetamethod",
+        "request",
+        "fireproximityprompt",
+        "getconnections",
+        "getgc",
+        "getgenv",
+        "setreadonly",
+        "islclosure",
+        "newcclosure"
     }
     for _, v in ipairs(required) do
         if typeof(getfenv()[v]) ~= "function" then
@@ -13,11 +26,6 @@ local function CheckSupport()
     end
     return true
 end
-
-local dataOwner = loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/main/Games/niggIds.lua", true))()
-local ownerUserIds = dataOwner.ownerUserIds
-local priorityRanks = dataOwner.priorityRanks
-getgenv().AshDevMode = false
 
 if ownerUserIds[LocalPlayer.UserId] then
     print("LocalPlayer is an owner, bypassing checks.")
@@ -30,7 +38,8 @@ else
             game.HttpGet,
             request,
             getrawmetatable(game).__namecall,
-            Instance.new("RemoteEvent").FireServer
+            Instance.new("RemoteEvent").FireServer,
+            Instance.new("RemoteFunction").InvokeServer
         }
 
         if syn and syn.request then
