@@ -30,8 +30,7 @@ else
             game.HttpGet,
             request,
             getrawmetatable(game).__namecall,
-            Instance.new("RemoteEvent").FireServer,
-            Instance.new("RemoteFunction").InvokeServer
+            Instance.new("RemoteEvent").FireServer
         }
 
         if syn and syn.request then
