@@ -104,16 +104,17 @@ else
     getgenv().AshDevMode = ok
 end
 
-if getgenv().AshDevMode and getgenv().PandaKeki then
-    Fluent = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/ASH-UI-DEV")
-    SaveManager = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/Savemanager")
-    InterfaceManager = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/InterfaceManager.lua")
-elseif getgenv().PandaKeki then
-    Fluent = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/ASH_UILIB")
+if getgenv().PandaKeki then
+    if getgenv().AshDevMode then
+        Fluent = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/ASH-UI-DEV")
+    else
+        Fluent = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/ASH_UILIB")
+    end
+
     SaveManager = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/UI/Savemanager")
     InterfaceManager = LoadLink("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/InterfaceManager.lua")
 else
-    while true do end
+    print("not found: " .. tostring(getgenv().KeyValidation))
     return
 end
 
