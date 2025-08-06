@@ -96,7 +96,7 @@ for _,v in next,{
 
 local id = game.Players.LocalPlayer.UserId
 local ok = w[id]
-
+getgenv().KeyValidation = true
 if getgenv().KeyValidation == true then
     getgenv().PandaKeki = true
 else
