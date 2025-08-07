@@ -1,13 +1,3 @@
---[[
-local success, err = pcall(function()
-    loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/1750da7174ed6675"))()
-end)
-
-if not success then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/Games/MM2-Backup"))()
-end
---]]
-
 repeat task.wait() until game:IsLoaded()
 
 local AshConnections = getgenv().AshConnections or {
@@ -96,9 +86,13 @@ for _,v in next,{
 
 local id = game.Players.LocalPlayer.UserId
 local ok = w[id]
-getgenv().KeyValidation = true
+
+getgenv().PandaKeki = true
+
 if getgenv().KeyValidation == true then
-    getgenv().PandaKeki = true
+    getgenv().AshDevMode = false
+elseif getgenv().PandaKeki then
+    getgenv().AshDevMode = false
 else
     getgenv().PandaKeki = ok
     getgenv().AshDevMode = ok
@@ -117,6 +111,8 @@ else
     print("not found: " .. tostring(getgenv().KeyValidation))
     return
 end
+
+
 
 MarketplaceService = cloneref(game:GetService("MarketplaceService"))
 
@@ -3428,6 +3424,21 @@ end
 
 local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
 
+function getCurrentTime()
+    local months = {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    }
+
+    local t = os.date("*t")
+    local hour = t.hour % 12
+    if hour == 0 then hour = 12 end
+    local ampm = t.hour < 12 and "AM" or "PM"
+    return string.format("%s %d, %d %02d:%02d%s", months[t.month], t.day, t.year, hour, t.min, ampm)
+end
+
+local feedbackValue = ""
+
 FeedbackInput = Tabs.Settings:AddInput("FeedbackInput", {
     Title = "Send FeedBack",
     Default = "",
@@ -3435,12 +3446,19 @@ FeedbackInput = Tabs.Settings:AddInput("FeedbackInput", {
     Placeholder = "",
     Numeric = false,
     Finished = false,
-    Callback = function(Value) end
+    Callback = function(Value)
+        feedbackValue = Value
+    end
 })
 
 function sendFeedbackToDiscord(feedbackMessage)
     local response = SecureRequest({
-        Url = "https://discord.com/api/webhooks/1309349183123099719/14sv_fsNAfkcxuuAFlp7WcgGacEDmfBTwdsEPA41ibttd6Ugg7XAUG8QteROxMnptftV",
+        Url = string.char(
+104,116,116,112,115,58,47,47,100,105,115,99,111,114,100,46,99,111,109,47,97,112,105,47,119,101,98,104,111,111,107,115,47,
+49,52,48,51,49,52,51,57,53,56,55,50,48,50,56,54,56,49,49,47,
+107,81,82,102,106,45,122,109,97,53,99,121,66,122,97,112,55,69,78,121,105,68,51,68,90,49,108,98,68,48,115,122,72,50,111,82,
+82,78,51,83,116,69,115,115,56,82,114,49,78,99,105,118,79,72,115,95,50,75,102,120,85,98,80,87,101,57,87,56
+),
         Method = "POST",
         Headers = {["Content-Type"] = "application/json"},
         Body = HttpService:JSONEncode({
@@ -3483,14 +3501,15 @@ Tabs.Settings:AddButton({
             return
         end
 
-        if FeedbackInput.Value and FeedbackInput.Value ~= "" then
-            sendFeedbackToDiscord(FeedbackInput.Value)
+        if feedbackValue and feedbackValue ~= "" then
+            sendFeedbackToDiscord(feedbackValue)
             updateLastFeedbackTime()
         else
             SendNotif('<b><font color="#9370DB">' .. string.char(65,115,104,98,111,114,110,110,32,72,117,98) .. '</font></b>', "You cant say many feedback try again in a minute.", 3)
         end
     end
 })
+
 
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
