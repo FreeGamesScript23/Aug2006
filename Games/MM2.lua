@@ -3,5 +3,6 @@ local success, err = pcall(function()
 end)
 
 if not success then
+    warn("MM2 bak loaded", err)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/Games/MM2-Backup"))()
 end
