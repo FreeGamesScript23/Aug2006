@@ -3,6 +3,6 @@ local success, err = pcall(function()
 end)
 
 if not success then
-    warn("Primary source failed, loading fallback...")
+    warn("LLD Source Failed")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/FreeGamesScript23/Aug2006/refs/heads/main/AshMain-Modified.lua"))()
 end
