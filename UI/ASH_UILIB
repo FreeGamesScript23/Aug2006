@@ -1350,19 +1350,16 @@ end
 function Creator.New(Name, Properties, Children)
 	local Object = Instance.new(Name)
 
-	-- Default properties
 	for Name, Value in next, Creator.DefaultProperties[Name] or {} do
 		Object[Name] = Value
 	end
 
-	-- Properties
 	for Name, Value in next, Properties or {} do
 		if Name ~= "ThemeTag" then
 			Object[Name] = Value
 		end
 	end
 
-	-- Children
 	for _, Child in next, Children or {} do
 		Child.Parent = Object
 	end
@@ -1409,18 +1406,28 @@ end
 
 getgenv().RandomStringData = randomString()
 
+local previousFluentUI = getgenv().FluentUI
 getgenv().FluentUI = randomString()
-
+	
 Library.Creator = Creator
 
 local New = Creator.New
+local parent = RunService:IsStudio() and LocalPlayer.PlayerGui or gethui()
+
+if previousFluentUI then
+	local oldGUI = parent:FindFirstChild(previousFluentUI)
+	if oldGUI then
+		oldGUI:Destroy()
+	end
+end
 
 local GUI = New("ScreenGui", {
-	Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or gethui(),
-    Name = FluentUI
+	Parent = parent,
+	Name = getgenv().FluentUI
 })
 Library.GUI = GUI
 ProtectGui(GUI)
+
 
 function Library:SafeCallback(Function, ...)
 	if not Function then
@@ -3663,7 +3670,7 @@ ElementsTable.Dropdown = (function()
 		local ListSizeX = 0
 		local function RecalculateListSize()
             local contentY = DropdownListLayout.AbsoluteContentSize.Y
-            local maxY = 392 -- You can adjust this value for your preferred max height
+            local maxY = 250 -- You can adjust this value for your preferred max height
             DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY + 10, maxY))
             DropdownScrollFrame.Size = UDim2.new(1, -5, 0, math.min(contentY, maxY))
             DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
@@ -5134,6 +5141,7 @@ local Icons = {
 	["lucide-calendar-check"] = Asset.."10709783474",
 	["lucide-calendar-check-2"] = Asset.."10709783392",
 	["lucide-calendar-clock"] = "rbxassetid://140124513917355",
+	["lucide-calendar-sync"] = "rbxassetid://125430553272781",
 	["lucide-calendar-days"] = Asset.."10709783673",
 	["lucide-calendar-heart"] = Asset.."10709783835",
 	["lucide-calendar-minus"] = Asset.."10709783959",
