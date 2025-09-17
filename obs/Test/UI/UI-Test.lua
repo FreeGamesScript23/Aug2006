@@ -1,7 +1,7 @@
 getgenv().AshTitle = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98, 32, 76, 111, 97, 100, 105, 110, 103) .. "</font></b>"
 getgenv().AshB = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98) .. "</font></b>"
 getgenv().Ash = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110) .. "</font></b>"
-
+-- 1
 Show_Button = false 
 Button_Icon = "rbxassetid://104937882773234" 
 Show_Assets = false 
@@ -3827,51 +3827,100 @@ end
 			Dropdown:BuildDropdownList()
 		end
 
-		function Dropdown:BuildDropdownList()
-	local Values = Dropdown.Values
-	if not self.ButtonPool then
-		self.ButtonPool = {}
-	end
-	local Pool = self.ButtonPool
-	local Scroll = DropdownScrollFrame
+function Dropdown:BuildDropdownList()
+    local Values = Dropdown.Values
+    local Pool = self.ButtonPool or {}
+    self.ButtonPool = Pool
+    local Scroll = DropdownScrollFrame
 
-	for i, v in ipairs(Pool) do
-		v.Visible = false
-	end
+    -- Hide all pooled buttons first
+    for _, Btn in ipairs(Pool) do
+        Btn.Visible = false
+    end
 
-	for i, Value in ipairs(Values) do
-		local Button = Pool[i]
-		if not Button then
-			local BtnSelector = New("Frame", {Size = UDim2.fromOffset(4,14), BackgroundColor3=Color3.fromRGB(76,194,255)}, {New("UICorner",{CornerRadius=UDim.new(0,2)})})
-			local BtnLabel = New("TextLabel",{Text=Value, TextSize=13, BackgroundTransparency=1, Size=UDim2.fromScale(1,1), Position=UDim2.fromOffset(10,0)})
-			Button = New("TextButton",{Size=UDim2.new(1,-5,0,32), BackgroundTransparency=1, Parent=Scroll}, {BtnSelector, BtnLabel, New("UICorner",{CornerRadius=UDim.new(0,6)})})
-			Pool[i] = Button
+    local ListSizeX = 0
 
-			Button.Label = BtnLabel
-			Button.Selector = BtnSelector
-			Button.Activated:Connect(function()
-				if Config.Multi then
-					Dropdown.Value[Value] = not Dropdown.Value[Value] or nil
-				else
-					Dropdown.Value = Value
-					for j, b in ipairs(Pool) do
-						b.Selector.Size = UDim2.new(0,4,0,6)
-					end
-				end
-				Button.Selector.Size = UDim2.new(0,4,0, Dropdown.Value[Value] and 14 or 6)
-				Dropdown:Display()
-				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-			end)
-		end
+    for i, Value in ipairs(Values) do
+        local Btn = Pool[i]
 
-		Button.Label.Text = Value
-		Button.Visible = true
-	end
+        -- Create button if it doesn't exist
+        if not Btn then
+            local BtnSelector = New("Frame", {
+                Size = UDim2.fromOffset(4, 6),
+                BackgroundColor3 = Color3.fromRGB(76, 194, 255),
+                Position = UDim2.fromOffset(-1, 16),
+                AnchorPoint = Vector2.new(0, 0.5),
+            }, {New("UICorner", {CornerRadius = UDim.new(0, 2)})})
 
-	local contentY = #Values * 32
-	DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
-	DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY, 250))
+            local BtnLabel = New("TextLabel", {
+                Text = Value,
+                TextSize = 13,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                BackgroundTransparency = 1,
+                Size = UDim2.fromScale(1, 1),
+                Position = UDim2.fromOffset(10, 0),
+            })
+
+            Btn = New("TextButton", {
+                Size = UDim2.new(1, -5, 0, 32),
+                BackgroundTransparency = 1,
+                Parent = Scroll,
+            }, {BtnSelector, BtnLabel, New("UICorner", {CornerRadius = UDim.new(0, 6)})})
+
+            Btn.Label = BtnLabel
+            Btn.Selector = BtnSelector
+
+            -- One-time motors
+            local SelMotor = Flipper.SingleMotor.new(6)
+            SelMotor:onStep(function(val)
+                BtnSelector.Size = UDim2.new(0, 4, 0, val)
+            end)
+
+            Btn.UpdateButton = function()
+                local Selected
+                if Config.Multi then
+                    Selected = Dropdown.Value[Value]
+                else
+                    Selected = Dropdown.Value == Value
+                end
+                SelMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, {frequency = 6}))
+                Btn.Selector.BackgroundTransparency = Selected and 0 or 1
+            end
+
+            Btn.Activated:Connect(function()
+                if Config.Multi then
+                    Dropdown.Value[Value] = not Dropdown.Value[Value] or nil
+                else
+                    Dropdown.Value = Value
+                    for _, b in ipairs(Pool) do
+                        b.UpdateButton()
+                    end
+                end
+                Btn.UpdateButton()
+                Dropdown:Display()
+                Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+                Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+            end)
+
+            Pool[i] = Btn
+        else
+            Btn.Label.Text = Value
+        end
+
+        Btn.Visible = true
+        Btn.UpdateButton()
+
+        if Btn.Label.TextBounds.X > ListSizeX then
+            ListSizeX = Btn.Label.TextBounds.X
+        end
+    end
+
+    ListSizeX = ListSizeX + 30
+
+    -- Update ScrollFrame and Canvas size
+    local contentY = #Values * 32
+    DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, contentY)
+    DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, math.min(contentY, 250))
 end
 
 
