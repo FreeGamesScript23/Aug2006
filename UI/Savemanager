@@ -3,7 +3,6 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 getgenv().SettingsApplied = false
 local SaveManager = {} do
-
     local GameFolder = {
         ["Fisch"] = 16732694052,
         ["MM2"] = 142823291,
@@ -53,8 +52,12 @@ Dropdown = {
     end,
     Load = function(idx, data)
         local opt = SaveManager.Options[idx]
-        if opt and opt.Value ~= data.value then
+        if opt then
             opt:SetValue(data.value)
+            task.spawn(function()
+                task.wait(0.05)
+                opt:SetValue(data.value)
+            end)
         end
     end,
 },
@@ -153,10 +156,14 @@ function SaveManager:Load(customName)
 		return false, "Invalid file"
 	end
 
-	local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
-	if not success then
-		return false, "Decode error"
-	end
+	local raw = readfile(file)
+    local success, decoded = pcall(httpService.JSONDecode, httpService, raw)
+    if not success then
+        delfile(file)
+        warn("[AshbornnHub]: Corrupted settings file deleted:", file)
+        return false, "Decode error (file deleted)"
+    end
+
 
     local TimeStart = tick()
 	self.Library:Notify({
