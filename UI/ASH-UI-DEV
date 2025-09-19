@@ -2,10 +2,8 @@ getgenv().AshTitle = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98
 getgenv().AshB = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110, 72, 117, 98) .. "</font></b>"
 getgenv().Ash = "<b><font color='#9370DB'>" .. string.char(65, 115, 104, 98, 111, 114, 110, 110) .. "</font></b>"
 
-Show_Button = false 
 Button_Icon = "rbxassetid://104937882773234" 
 Show_Assets = false 
-getgenv().MinimizerButton = false 
 
 getgenv().AshDestroyed = false
 ----------------------------
@@ -20,20 +18,60 @@ TweenService = cloneref(game:GetService("TweenService"))
 TextService = cloneref(game:GetService("TextService"))
 GuiService = cloneref(game:GetService("GuiService"))
 HttpService = cloneref(game:GetService("HttpService"))
+coreGui = gethui() or cloneref(game:GetService("CoreGui"))
 
 LocalPlayer = Players.LocalPlayer
 Camera = Workspace.CurrentCamera
 Mouse = LocalPlayer:GetMouse()
+
+local posFile = "AshbornnHub/UILibbtnPos.json"
+local MIN_TOP_MARGIN = 8
+local MIN_BOTTOM_MARGIN = 8
+
+local function loadPosition()
+    if isfile and isfile(posFile) then
+        local ok, data = pcall(function()
+            return HttpService:JSONDecode(readfile(posFile))
+        end)
+        if ok and data.x and data.y then
+            return data.x, data.y
+        end
+    end
+    return nil, nil
+end
+
+local function savePosition(x, y)
+    if writefile then
+        pcall(function()
+            writefile(posFile, HttpService:JSONEncode({x = x, y = y}))
+        end)
+    end
+end
+
+local function clampToViewport(button, x, y)
+    while button.AbsoluteSize.X == 0 or button.AbsoluteSize.Y == 0 do
+        RunService.RenderStepped:Wait()
+    end
+    while Camera.ViewportSize.X == 0 or Camera.ViewportSize.Y == 0 do
+        RunService.RenderStepped:Wait()
+    end
+    local absSize = button.AbsoluteSize
+    local viewport = Camera.ViewportSize
+    local minX, minY = 0, MIN_TOP_MARGIN
+    local maxX = math.max(minX, viewport.X - absSize.X)
+    local maxY = math.max(minY, viewport.Y - absSize.Y - MIN_BOTTOM_MARGIN)
+    x = math.clamp(x, minX, maxX)
+    y = math.clamp(y, minY, maxY)
+    button.Position = UDim2.new(0, x, 0, y)
+    savePosition(x, y)
+    return x, y
+end
 
 local Mobile
 if RunService:IsStudio() then
 	Mobile = false
 else
 	Mobile = table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
-end
-
-if Show_Button then
-	Mobile = true
 end
 
 local Asset = "rbxassetid://"
@@ -746,10 +784,10 @@ local Library = {
 	Unloaded = false,
 
 	Creator = nil,
-
 	DialogOpen = false,
 	UseAcrylic = false,
 	Acrylic = false,
+	UIButton = false,
 	Transparency = true,
 	MinimizeKeybind = nil,
 	MinimizeKey = Enum.KeyCode.LeftControl,
@@ -3107,20 +3145,19 @@ Components.Window = (function()
 			Y = Window.Position.Y.Offset,
 		})
 
-		_G.CDDrag = 0
 		Window.SelectorPosMotor = Flipper.SingleMotor.new(17)
 		Window.SelectorSizeMotor = Flipper.SingleMotor.new(0)
 		Window.ContainerBackMotor = Flipper.SingleMotor.new(0)
 		Window.ContainerPosMotor = Flipper.SingleMotor.new(94)
 
 		SizeMotor:onStep(function(values)
-			task.wait(_G.CDDrag / 10)
 			Window.Root.Size = UDim2.new(0, values.X, 0, values.Y)
 		end)
 
 		PosMotor:onStep(function(values)
-			task.wait(_G.CDDrag / 10)
-			Window.Root.Position = UDim2.new(0, values.X, 0, values.Y)
+			if not getgenv().ASHWindowPosChange then
+				Window.Root.Position = UDim2.new(0, values.X, 0, values.Y)
+			end
 		end)
 
 		local LastValue = 0
@@ -3780,23 +3817,29 @@ end)
 			Dropdown:Display()
 		end
 
-		function Dropdown:Display()
-			local Values = Dropdown.Values
-			local Str = ""
+function Dropdown:Display()
+    local Str = ""
+    if Dropdown.Multi then
+        local t = {}
+        local values = Dropdown.Value or {}
+        for v, _ in pairs(values) do
+            table.insert(t, v)
+        end
+        if #t > 0 then
+            Str = table.concat(t, ", ")
+        end
+    else
+        Str = Dropdown.Value or ""
+    end
 
-			if Config.Multi then
-				for Idx, Value in next, Values do
-					if Dropdown.Value[Value] then
-						Str = Str .. Value .. ", "
-					end
-				end
-				Str = Str:sub(1, #Str - 2)
-			else
-				Str = Dropdown.Value or ""
-			end
+    if Str == "" then
+        DropdownDisplay.PlaceholderText = string.char(45,45)
+    else
+        DropdownDisplay.PlaceholderText = Str
+    end
+end
 
-			DropdownDisplay.PlaceholderText = (Str == "" and "--" or Str)
-		end
+
 
 		function Dropdown:GetActiveValues()
 			if Config.Multi then
@@ -3821,203 +3864,212 @@ end)
 			Dropdown:BuildDropdownList()
 		end
 
-		function Dropdown:BuildDropdownList()
-			local Values = Dropdown.Values
-			local Buttons = {}
+function Dropdown:BuildDropdownList()
+    local Values = Dropdown.Values
+    Dropdown.Buttons = Dropdown.Buttons or {}
+    local Buttons = {}
 
-			for _, Element in next, DropdownScrollFrame:GetChildren() do
-				if not Element:IsA("UIListLayout") then
-					Element:Destroy()
-				end
-			end
+    -- destroy buttons not in current Values
+    for Button, Table in next, Dropdown.Buttons do
+        if not table.find(Values, Table.Value) then
+            Button:Destroy()
+        else
+            Buttons[Button] = Table
+        end
+    end
 
-			local Count = 0
+    local Count = 0
 
-			for Idx, Value in next, Values do
-				local Table = {}
+    for Idx, Value in next, Values do
+        Count = Count + 1
+        local Table = nil
 
-				Count = Count + 1
+        -- reuse button if exists
+        for B, T in next, Buttons do
+            if T.Value == Value then
+                Table = T
+                break
+            end
+        end
 
-				local ButtonSelector = New("Frame", {
-					Size = UDim2.fromOffset(4, 14),
-					BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-					Position = UDim2.fromOffset(-1, 16),
-					AnchorPoint = Vector2.new(0, 0.5),
-					ThemeTag = {
-						BackgroundColor3 = "Accent",
-					},
-				}, {
-					New("UICorner", {
-						CornerRadius = UDim.new(0, 2),
-					}),
-				})
+        if not Table then
+            Table = {}
+            Table.Value = Value
 
-				local ButtonLabel = New("TextLabel", {
-					FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-					Text = Value,
-					TextColor3 = Color3.fromRGB(200, 200, 200),
-					TextSize = 13,
-					RichText = true,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-					AutomaticSize = Enum.AutomaticSize.Y,
-					BackgroundTransparency = 1,
-					Size = UDim2.fromScale(1, 1),
-					Position = UDim2.fromOffset(10, 0),
-					Name = "ButtonLabel",
-					ThemeTag = {
-						TextColor3 = "Text",
-					},
-				})
+            -- OLD UI CREATION CODE
+            local ButtonSelector = New("Frame", {
+                Size = UDim2.fromOffset(4, 14),
+                BackgroundColor3 = Color3.fromRGB(76, 194, 255),
+                Position = UDim2.fromOffset(-1, 16),
+                AnchorPoint = Vector2.new(0, 0.5),
+                ThemeTag = { BackgroundColor3 = "Accent" },
+            }, { New("UICorner", { CornerRadius = UDim.new(0, 2) }) })
 
-				local Button = New("TextButton", {
-					Size = UDim2.new(1, -5, 0, 32),
-					BackgroundTransparency = 1,
-					ZIndex = 23,
-					Text = "",
-					Parent = DropdownScrollFrame,
-					ThemeTag = {
-						BackgroundColor3 = "DropdownOption",
-					},
-				}, {
-					ButtonSelector,
-					ButtonLabel,
-					New("UICorner", {
-						CornerRadius = UDim.new(0, 6),
-					}),
-				})
+            local ButtonLabel = New("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+                Text = Value,
+                TextColor3 = Color3.fromRGB(200, 200, 200),
+                TextSize = 13,
+                RichText = true,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                Size = UDim2.fromScale(1, 1),
+                Position = UDim2.fromOffset(10, 0),
+                Name = "ButtonLabel",
+                ThemeTag = { TextColor3 = "Text" },
+            })
 
-				local Selected
+            local Button = New("TextButton", {
+                Size = UDim2.new(1, -5, 0, 32),
+                BackgroundTransparency = 1,
+                ZIndex = 23,
+                Text = "",
+                Parent = DropdownScrollFrame,
+                ThemeTag = { BackgroundColor3 = "DropdownOption" },
+            }, { ButtonSelector, ButtonLabel, New("UICorner", { CornerRadius = UDim.new(0, 6) }) })
 
-				if Config.Multi then
-					Selected = Dropdown.Value[Value]
-				else
-					Selected = Dropdown.Value == Value
-				end
+            Table.Button = Button
+            Table.ButtonSelector = ButtonSelector
+            Table.ButtonLabel = ButtonLabel
 
-				local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
-				local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
-				local SelectorSizeMotor = Flipper.SingleMotor.new(6)
+            -- copy old logic for mouse events and selection
+            local Selected = Dropdown.Multi and Dropdown.Value[Value] or Dropdown.Value == Value
+            local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
+            local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
+            local SelectorSizeMotor = Flipper.SingleMotor.new(6)
 
-				SelectorSizeMotor:onStep(function(value)
-					ButtonSelector.Size = UDim2.new(0, 4, 0, value)
-				end)
+            SelectorSizeMotor:onStep(function(value)
+                ButtonSelector.Size = UDim2.new(0, 4, 0, value)
+            end)
 
-				Creator.AddSignal(Button.MouseEnter, function()
-					SetBackTransparency(Selected and 0.85 or 0.89)
-				end)
-				Creator.AddSignal(Button.MouseLeave, function()
-					SetBackTransparency(Selected and 0.89 or 1)
-				end)
-				Creator.AddSignal(Button.MouseButton1Down, function()
-					SetBackTransparency(0.92)
-				end)
-				Creator.AddSignal(Button.MouseButton1Up, function()
-					SetBackTransparency(Selected and 0.85 or 0.89)
-				end)
+            function Table:UpdateButton()
+                Selected = Dropdown.Multi and Dropdown.Value[Value] or Dropdown.Value == Value
+                SetBackTransparency(Selected and 0.89 or 1)
+                SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, { frequency = 6 }))
+                SetSelTransparency(Selected and 0 or 1)
+            end
 
-				function Table:UpdateButton()
-					if Config.Multi then
-						Selected = Dropdown.Value[Value]
-						if Selected then
-							SetBackTransparency(0.89)
-						end
-					else
-						Selected = Dropdown.Value == Value
-						SetBackTransparency(Selected and 0.89 or 1)
-					end
+            AddSignal(Button.Activated, function()
+                local Try = not Selected
+                if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then return end
+                if Dropdown.Multi then
+                    Selected = Try
+                    Dropdown.Value[Value] = Selected and true or nil
+                else
+                    Selected = Try
+                    Dropdown.Value = Selected and Value or nil
+                    for _, OtherButton in next, Buttons do OtherButton:UpdateButton() end
+                end
+                Table:UpdateButton()
+                Dropdown:Display()
+                Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+                Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+            end)
+        end
 
-					SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, { frequency = 6 }))
-					SetSelTransparency(Selected and 0 or 1)
-				end
+        Table:UpdateButton()
+        Buttons[Table.Button] = Table
+    end
 
-				AddSignal(Button.Activated, function()
-					local Try = not Selected
+    Dropdown.Buttons = Buttons
 
-					if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
-					else
-						if Config.Multi then
-							Selected = Try
-							Dropdown.Value[Value] = Selected and true or nil
-						else
-							Selected = Try
-							Dropdown.Value = Selected and Value or nil
+    ListSizeX = 0
+    for Button, Table in next, Buttons do
+        if Button.ButtonLabel and Button.ButtonLabel.TextBounds.X > ListSizeX then
+            ListSizeX = Button.ButtonLabel.TextBounds.X
+        end
+    end
+    ListSizeX = ListSizeX + 30
 
-							for _, OtherButton in next, Buttons do
-								OtherButton:UpdateButton()
-							end
-						end
+    RecalculateCanvasSize()
+    RecalculateListSize()
+end
 
-						Table:UpdateButton()
 
-						if Dropdown.Searchable and #DropdownDisplay.Text > 0 then
 
-						else
-							Dropdown:Display()
-						end
 
-						Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-						Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-					end
-				end)
+function Dropdown:SetValues(NewValues)
+    if not NewValues then return end
 
-				Table:UpdateButton()
-				Dropdown:Display()
+    if Dropdown.Multi then
+        Dropdown._OldValue = Dropdown._OldValue or {}
+        for k, v in pairs(Dropdown.Value or {}) do
+            Dropdown._OldValue[k] = true
+        end
+        Dropdown.Value = {}
+    else
+        Dropdown._OldValue = Dropdown.Value
+        Dropdown.Value = nil
+    end
 
-				Buttons[Button] = Table
-			end
+    Dropdown.Values = NewValues
 
-			ListSizeX = 0
-			for Button, Table in next, Buttons do
-				if Button.ButtonLabel then
-					if Button.ButtonLabel.TextBounds.X > ListSizeX then
-						ListSizeX = Button.ButtonLabel.TextBounds.X
-					end
-				end
-			end
-			ListSizeX = ListSizeX + 30
+    if Dropdown._OldValue then
+        if Dropdown.Multi then
+            for k, _ in pairs(Dropdown._OldValue) do
+                if table.find(Dropdown.Values, k) then
+                    Dropdown.Value[k] = true
+                    Dropdown._OldValue[k] = nil
+                end
+            end
+        else
+            if table.find(Dropdown.Values, Dropdown._OldValue) then
+                Dropdown.Value = Dropdown._OldValue
+                Dropdown._OldValue = nil
+            end
+        end
+    end
 
-			RecalculateCanvasSize()
-			RecalculateListSize()
-		end
+    Dropdown:BuildDropdownList()
+    Dropdown:Display()
+end
 
-		function Dropdown:SetValues(NewValues)
-			if NewValues then
-				Dropdown.Values = NewValues
-			end
-
-			Dropdown:BuildDropdownList()
-		end
+	function Dropdown:RefreshValues()
+    	for Button, Table in next, Dropdown.Buttons do
+        	Table:UpdateButton()
+    	end
+    	Dropdown:Display()
+	end
 
 		function Dropdown:OnChanged(Func)
 			Dropdown.Changed = Func
 			Func(Dropdown.Value)
 		end
 
-		function Dropdown:SetValue(Val)
-			if Dropdown.Multi then
-				local nTable = {}
+function Dropdown:SetValue(Val)
+    if Dropdown.Multi then
+        local nTable = {}
+        Dropdown._OldValue = Dropdown._OldValue or {}
+        for Value, Bool in next, Val do
+            nTable[Value] = true
+            if not table.find(Dropdown.Values, Value) then
+                Dropdown._OldValue[Value] = true
+            else
+                Dropdown._OldValue[Value] = nil
+            end
+        end
+        Dropdown.Value = nTable
+    else
+        if not Val then
+            Dropdown.Value = nil
+            Dropdown._OldValue = nil
+        elseif table.find(Dropdown.Values, Val) then
+            Dropdown.Value = Val
+            Dropdown._OldValue = nil -- noig
+        else
+            Dropdown._OldValue = Val
+            Dropdown.Value = Val
+        end
+    end
 
-				for Value, Bool in next, Val do
-					if table.find(Dropdown.Values, Value) then
-						nTable[Value] = true
-					end
-				end
+    Dropdown:BuildDropdownList()
+    Dropdown:Display()
+    Library:SafeCallback(Dropdown.Callback, Dropdown.Value or Dropdown._OldValue)
+    Library:SafeCallback(Dropdown.Changed, Dropdown.Value or Dropdown._OldValue)
+end
 
-				Dropdown.Value = nTable
-			else
-				if not Val then
-					Dropdown.Value = nil
-				elseif table.find(Dropdown.Values, Val) then
-					Dropdown.Value = Val
-				end
-			end
-
-			Dropdown:BuildDropdownList()
-
-			Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-			Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-		end
 
 		function Dropdown:Destroy()
 			DropdownFrame:Destroy()
@@ -4027,41 +4079,42 @@ end)
 		Dropdown:BuildDropdownList()
 		Dropdown:Display()
 
-		local Defaults = {}
+do
+    if Config.Multi then
+        Dropdown.Value = {}
+        if Dropdown._OldValue then
+            for v, _ in pairs(Dropdown._OldValue) do
+                if table.find(Dropdown.Values, v) then
+                    Dropdown.Value[v] = true
+                end
+            end
+        end
+        if next(Dropdown.Value) == nil and type(Config.Default) == "table" then
+            for _, v in ipairs(Config.Default) do
+                if table.find(Dropdown.Values, v) then
+                    Dropdown.Value[v] = true
+                end
+            end
+        end
+    else
+        if Dropdown._OldValue and table.find(Dropdown.Values, Dropdown._OldValue) then
+            Dropdown.Value = Dropdown._OldValue
+            Dropdown._OldValue = nil
+        elseif type(Config.Default) == "string" or type(Config.Default) == "number" then
+            if table.find(Dropdown.Values, Config.Default) then
+                Dropdown.Value = Config.Default
+            else
+                Dropdown.Value = nil
+                Dropdown._OldValue = Config.Default
+            end
+        else
+            Dropdown.Value = nil
+        end
+    end
 
-		if type(Config.Default) == "string" then
-			local Idx = table.find(Dropdown.Values, Config.Default)
-			if Idx then
-				table.insert(Defaults, Idx)
-			end
-		elseif type(Config.Default) == "table" then
-			for _, Value in next, Config.Default do
-				local Idx = table.find(Dropdown.Values, Value)
-				if Idx then
-					table.insert(Defaults, Idx)
-				end
-			end
-		elseif type(Config.Default) == "number" and Dropdown.Values[Config.Default] ~= nil then
-			table.insert(Defaults, Config.Default)
-		end
-
-		if next(Defaults) then
-			for i = 1, #Defaults do
-				local Index = Defaults[i]
-				if Config.Multi then
-					Dropdown.Value[Dropdown.Values[Index]] = true
-				else
-					Dropdown.Value = Dropdown.Values[Index]
-				end
-
-				if not Config.Multi then
-					break
-				end
-			end
-
-			Dropdown:BuildDropdownList()
-			Dropdown:Display()
-		end
+    Dropdown:BuildDropdownList()
+    Dropdown:Display()
+end
 
 		Library.Options[Idx] = Dropdown
 		return Dropdown
@@ -5884,329 +5937,441 @@ if RunService:IsStudio() then
 	listfiles = function (...) return {...} end;
 end
 
+function Library:SetTheme(Value)
+    if table.find(Library.Themes, Value) then
+        Library.Theme = Value
+        Creator.Theme = Value
+        if Library.Window then
+            Creator.UpdateTheme()
+        end
+    end
+end
+
+local httpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+getgenv().SettingsApplied = false
 local SaveManager = {} do
-	SaveManager.Folder = "FluentSettings"
-	SaveManager.Ignore = {}
-	SaveManager.Parser = {
-		Toggle = {
-			Save = function(idx, object) 
-				return { type = "Toggle", idx = idx, value = object.Value } 
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] then 
-					SaveManager.Options[idx]:SetValue(data.value)
-				end
-			end,
-		},
-		Slider = {
-			Save = function(idx, object)
-				return { type = "Slider", idx = idx, value = tostring(object.Value) }
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] then 
-					SaveManager.Options[idx]:SetValue(data.value)
-				end
-			end,
-		},
-		Dropdown = {
-			Save = function(idx, object)
-				return { type = "Dropdown", idx = idx, value = object.Value, mutli = object.Multi }
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] then 
-					SaveManager.Options[idx]:SetValue(data.value)
-				end
-			end,
-		},
-		Colorpicker = {
-			Save = function(idx, object)
-				return { type = "Colorpicker", idx = idx, value = object.Value:ToHex(), transparency = object.Transparency }
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] then 
-					SaveManager.Options[idx]:SetValueRGB(Color3.fromHex(data.value), data.transparency)
-				end
-			end,
-		},
-		Keybind = {
-			Save = function(idx, object)
-				return { type = "Keybind", idx = idx, mode = object.Mode, key = object.Value }
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] then 
-					SaveManager.Options[idx]:SetValue(data.key, data.mode)
-				end
-			end,
-		},
+    local GameFolder = {
+        ["Fisch"] = 16732694052,
+        ["MM2"] = 142823291,
+        ["BloxHunt"] = 70005410,
+        ["FleeTheFacility"] = 893973440,
+        ["GrowAGarden"] = 126884695634066
+    }
 
-		Input = {
-			Save = function(idx, object)
-				return { type = "Input", idx = idx, text = object.Value }
-			end,
-			Load = function(idx, data)
-				if SaveManager.Options[idx] and type(data.text) == "string" then
-					SaveManager.Options[idx]:SetValue(data.text)
-				end
-			end,
-		},
-	}
+    SaveManager.Folder = "FluentSettings"
+    
+    local currentPlaceId = game.PlaceId
+    
+    for folderName, placeId in pairs(GameFolder) do
+        if placeId == currentPlaceId then
+            SaveManager.Folder = folderName
+            break
+        end
+    end
+    
+    SaveManager.Ignore = {}
+    SaveManager.Parser = {
+        Toggle = {
+    Save = function(idx, object)
+        return { type = "Toggle", idx = idx, value = object.Value }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and opt.Value ~= data.value then
+            opt:SetValue(data.value)
+        end
+    end,
+},
+Slider = {
+    Save = function(idx, object)
+        return { type = "Slider", idx = idx, value = tostring(object.Value) }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and tostring(opt.Value) ~= tostring(data.value) then
+            opt:SetValue(data.value)
+        end
+    end,
+},
+Dropdown = {
+    Save = function(idx, object)
+        return { type = "Dropdown", idx = idx, value = object.Value, multi = object.Multi }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt then
+            opt:SetValue(data.value)
+            task.spawn(function()
+                task.wait(0.05)
+                opt:SetValue(data.value)
+            end)
+        end
+    end,
+},
+Colorpicker = {
+    Save = function(idx, object)
+        return {
+            type = "Colorpicker",
+            idx = idx,
+            value = object.Value:ToHex(),
+            transparency = object.Transparency
+        }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        local currentHex = opt.Value and opt.Value:ToHex()
+        if opt and currentHex ~= data.value then
+            opt:SetValueRGB(Color3.fromHex(data.value), data.transparency)
+        end
+    end,
+},
+Keybind = {
+    Save = function(idx, object)
+        return {
+            type = "Keybind",
+            idx = idx,
+            mode = object.Mode,
+            key = object.Value
+        }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and (opt.Value ~= data.key or opt.Mode ~= data.mode) then
+            opt:SetValue(data.key, data.mode)
+        end
+    end,
+},
+Input = {
+    Save = function(idx, object)
+        return { type = "Input", idx = idx, text = object.Value }
+    end,
+    Load = function(idx, data)
+        local opt = SaveManager.Options[idx]
+        if opt and opt.Value ~= data.text then
+            opt:SetValue(data.text)
+        end
+    end,
+},
+    }
+    
+    function SaveManager:SetLibrary(library)
+        self.Library = library
+        self.Options = library.Options
+    end
 
-	function SaveManager:SetIgnoreIndexes(list)
-		for _, key in next, list do
-			self.Ignore[key] = true
-		end
+    function SaveManager:SetIgnoreIndexes(list)
+        for _, key in ipairs(list) do
+            self.Ignore[key] = true
+        end
+    end
+
+    function SaveManager:SetFolder(folder)
+        self.Folder = folder
+        self:BuildFolderTree()
+    end
+
+    function SaveManager:Save(customName)
+        if not Player then return false, "Player not found" end
+
+        local name = customName or ("Settings_" .. Player.Name .. ".json")
+        local fullPath = self.Folder .. "/settings/" .. name
+        local data = { objects = {} }
+
+        for idx, option in pairs(self.Options) do
+            if self.Parser[option.Type] and not self.Ignore[idx] then
+                table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
+            end
+        end
+
+        local success, encoded = pcall(httpService.JSONEncode, httpService, data)
+        if not success then
+            return false, "Failed to encode data"
+        end
+
+        writefile(fullPath, encoded)
+        return true
+    end
+
+
+function SaveManager:Load(customName)
+	if not Player then return false, "Player not found" end
+	if not self.Library then return false, "Library not set" end
+
+	local name = customName or ("Settings_" .. Player.Name .. ".json")
+	local file = self.Folder .. "/settings/" .. name
+	if not isfile(file) then
+		return false, "Invalid file"
 	end
 
-	function SaveManager:SetFolder(folder)
-		self.Folder = folder;
-		self:BuildFolderTree()
-	end
-
-	function SaveManager:Save(name)
-		if (not name) then
-			return false, "no config file is selected"
-		end
-
-		local fullPath = self.Folder .. "/" .. name .. ".json"
-
-		local data = {
-			objects = {}
-		}
+	local raw = readfile(file)
+    local success, decoded = pcall(httpService.JSONDecode, httpService, raw)
+    if not success then
+        delfile(file)
+        warn("[AshbornnHub]: Corrupted settings file deleted:", file)
+        return false, "Decode error (file deleted)"
+    end
 
 
-		for idx, option in next, SaveManager.Options do
-			if not self.Parser[option.Type] then continue end
-			if self.Ignore[idx] then continue end
+    local TimeStart = tick()
+	self.Library:Notify({
+		Title = getgenv().AshTitle or "Config Loader",
+		Content = "Loading config...",
+		SubContent = "Please wait while settings are being applied.",
+		Duration = 5
+	})
 
-			table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
-		end	
+	local regularQueue = {}
+	local toggleQueue = {}
 
-		local success, encoded = pcall(httpService.JSONEncode, httpService, data)
-		if not success then
-			return false, "failed to encode data"
-		end
-
-		writefile(fullPath, encoded)
-		return true
-	end
-	
-	if not RunService:IsStudio() then
-		function SaveManager:Load(name)
-			if (not name) then
-				return false, "no config file is selected"
+	for _, option in ipairs(decoded.objects) do
+		local parser = self.Parser[option.type]
+		if parser and self.Options[option.idx] then
+			local fn = function() parser.Load(option.idx, option) end
+			if option.type == "Toggle" then
+				table.insert(toggleQueue, fn)
+			else
+				table.insert(regularQueue, fn)
 			end
-
-			local file = self.Folder .. "/" .. name .. ".json"
-			if not isfile(file) then return false, "Create Config Save File" end
-		
-			local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
-			if not success then return false, "decode error" end
-
-			for _, option in next, decoded.objects do
-				if self.Parser[option.type] and not self.Ignore[option.idx] then
-					task.spawn(function() self.Parser[option.type].Load(option.idx, option) end) -- task.spawn() so the config loading wont get stuck.
-				end
-			end
-
-			Fluent.SettingLoaded = true
-
-			return true, decoded
 		end
 	end
 
-	function SaveManager:IgnoreThemeSettings()
-		self:SetIgnoreIndexes({ 
-			"InterfaceTheme", "AcrylicToggle", "TransparentToggle", "MenuKeybind"
+	task.spawn(function()
+		for _, fn in ipairs(regularQueue) do
+			fn()
+			task.wait(0.01)
+		end
+
+		for _, fn in ipairs(toggleQueue) do
+			fn()
+			task.wait(0.01)
+		end
+        local TimeEnd = tick()
+        local FormattedTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
+		self.Library:Notify({
+			Title = getgenv().AshTitle or "Config Loader",
+			Content = "Config Loaded!",
+			SubContent = "Successfully loaded the script in " .. FormattedTime .. "s. Thank you for your patience🥰",
+			Duration = 6
 		})
-	end
+	end)
 
-	function SaveManager:BuildFolderTree()
-		local paths = {
-			self.Folder,
-			self.Folder .. "/"
-		}
+	return true
+end
 
-		for i = 1, #paths do
-			local str = paths[i]
-			if not isfolder(str) then
-				makefolder(str)
-			end
-		end
-	end
+    function SaveManager:IgnoreThemeSettings()
+        self:SetIgnoreIndexes({ "InterfaceTheme", "AcrylicToggle", "TransparentToggle", "MenuKeybind" })
+    end
 
-	function SaveManager:RefreshConfigList()
-		local list = listfiles(self.Folder .. "/")
+    function SaveManager:BuildFolderTree()
+        if not isfolder(self.Folder) then
+            makefolder(self.Folder)
+        end
 
-		local out = {}
-		for i = 1, #list do
-			local file = list[i]
-			if file:sub(-5) == ".json" then
-				local pos = file:find(".json", 1, true)
-				local start = pos
+        local settingsPath = self.Folder .. "/settings"
+        if not isfolder(settingsPath) then
+            makefolder(settingsPath)
+        end
+    end
 
-				local char = file:sub(pos, pos)
-				while char ~= "/" and char ~= "\\" and char ~= "" do
-					pos = pos - 1
-					char = file:sub(pos, pos)
-				end
+    function SaveManager:RefreshConfigList()
+        local out = {}
+        for _, file in ipairs(listfiles(self.Folder .. "/settings")) do
+            if file:sub(-5) == ".json" then
+                local name = file:match("([^/\\]+)%.json$")
+                if name and name ~= "options" then
+                    table.insert(out, name)
+                end
+            end
+        end
+        return out
+    end
 
-				if char == "/" or char == "\\" then
-					local name = file:sub(pos + 1, start - 1)
-					if name ~= "options" then
-						table.insert(out, name)
-					end
-				end
-			end
-		end
 
-		return out
-	end
+    function SaveManager:LoadAutoloadConfig()
+        local autoloadFile = self.Folder .. "/settings/autoload.txt"
+        if isfile(autoloadFile) then
+            local name = readfile(autoloadFile)
+            local success, err = self:Load(name)
 
-	function SaveManager:SetLibrary(library)
-		self.Library = library
-		self.Options = library.Options
-	end
+            self.Library:Notify({
+                Title = "Interface",
+                Content = "Config loader",
+                SubContent = success and ("Auto loaded config " .. name) or ("Failed to load autoload config: " .. err),
+                Duration = 7
+            })
+        end
+    end
 
-	if not RunService:IsStudio() then
-		function SaveManager:LoadAutoloadConfig()
-			if isfile(self.Folder .. "/autoload.txt") then
-				local name = readfile(self.Folder .. "/autoload.txt")
+    function SaveManager:BuildConfigSection(tab)
+        assert(self.Library, "Must set SaveManager.Library")
 
-				local success, err = self:Load(name)
-				if not success then
-					return self.Library:Notify({
-						Title = "Interface",
-						Content = "Config loader",
-						SubContent = "Failed to load autoload config: " .. err,
-						Duration = 7
-					})
-				end
+        local section = tab:AddSection("Configuration")
 
-				self.Library:Notify({
-					Title = "Interface",
-					Content = "Config loader",
-					SubContent = string.format("Auto loaded config %q", name),
-					Duration = 7
-				})
-			end
-		end
-	end
-	
-	function SaveManager:BuildConfigSection(tab)
-		assert(self.Library, "Must set SaveManager.Library")
+        section:AddInput("SaveManager_ConfigName", { Title = "Config name" })
+        section:AddDropdown("SaveManager_ConfigList", { Title = "Config list", Values = self:RefreshConfigList(), AllowNull = true })
 
-		local section = tab:AddSection("Configuration")
+        local function notify(title, subContent)
+            self.Library:Notify({
+                Title = "Interface",
+                Content = "Config loader",
+                SubContent = subContent,
+                Duration = 7
+            })
+        end
 
-		section:AddInput("SaveManager_ConfigName",    { Title = "Config name" })
-		section:AddDropdown("SaveManager_ConfigList", { Title = "Config list", Values = self:RefreshConfigList(), AllowNull = true })
+        section:AddButton({
+            Title = "Create config",
+            Callback = function()
+                local name = self.Options.SaveManager_ConfigName.Value
+                if name:match("^%s*$") then
+                    return notify("Interface", "Invalid config name (empty)")
+                end
 
-		section:AddButton({
-			Title = "Create config",
-			Callback = function()
-				local name = SaveManager.Options.SaveManager_ConfigName.Value
+                local success, err = self:Save(name .. ".json")
+                notify("Interface", success and ("Created config " .. name) or ("Failed to save config: " .. err))
+                self.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+                self.Options.SaveManager_ConfigList:SetValue(name)
+            end
+        })
 
-				if name:gsub(" ", "") == "" then 
-					return self.Library:Notify({
-						Title = "Interface",
-						Content = "Config loader",
-						SubContent = "Invalid config name (empty)",
-						Duration = 7
-					})
-				end
+        section:AddButton({
+            Title = "Load config",
+            Callback = function()
+                local name = self.Options.SaveManager_ConfigList.Value
+                if not name or name == "" then
+                    return notify("Interface", "No config selected")
+                end
+                
+                if not name:match("%.json$") then
+                    name = name .. ".json"
+                end
+                
+                local success, err = self:Load(name)
+                notify("Interface", success and ("Loaded config " .. name) or ("Failed to load config: " .. err))
+            end
+        })
 
-				local success, err = self:Save(name)
-				if not success then
-					return self.Library:Notify({
-						Title = "Interface",
-						Content = "Config loader",
-						SubContent = "Failed to save config: " .. err,
-						Duration = 7
-					})
-				end
+        section:AddButton({
+            Title = "Overwrite config",
+            Callback = function()
+                local name = self.Options.SaveManager_ConfigList.Value
+                if not name or name == "" then
+                    return notify("Interface", "No config selected")
+                end
+                
+                if not name:match("%.json$") then
+                    name = name .. ".json"
+                end
+                
+                local success, err = self:Save(name)
+                notify("Interface", success and ("Overwrote config " .. name) or ("Failed to overwrite config: " .. err))
+            end
+        })
 
-				self.Library:Notify({
-					Title = "Interface",
-					Content = "Config loader",
-					SubContent = string.format("Created config %q", name),
-					Duration = 7
-				})
+        section:AddButton({
+            Title = "Refresh list",
+            Callback = function()
+                self.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
+            end
+        })
 
-				SaveManager.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
-				SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
-			end
-		})
+        local AutoloadButton = section:AddButton({
+            Title = "Set as autoload",
+            Description = "Current autoload config: none",
+            Callback = function()
+                local name = self.Options.SaveManager_ConfigList.Value
+                if not name or name == "" then
+                    return notify("Interface", "No config selected")
+                end
+                
+                if not name:match("%.json$") then
+                    name = name .. ".json"
+                end
+                
+                writefile(self.Folder .. "/settings/autoload.txt", name)
+                AutoloadButton:SetDesc("Current autoload config: " .. name)
+                notify("Interface", "Set " .. name .. " to auto load")
+            end
+        })
 
-		section:AddButton({Title = "Load config", Callback = function()
-			local name = SaveManager.Options.SaveManager_ConfigList.Value
+        local autoloadFile = self.Folder .. "/settings/autoload.txt"
+        if isfile(autoloadFile) then
+            AutoloadButton:SetDesc("Current autoload config: " .. readfile(autoloadFile))
+        end
 
-			local success, err = self:Load(name)
-			if not success then
-				return self.Library:Notify({
-					Title = "Interface",
-					Content = "Config loader",
-					SubContent = "Failed to load config: " .. err,
-					Duration = 7
-				})
-			end
+        local successSaveLoad, errSaveLoad = pcall(function()
+            local Players = game:GetService("Players")
+            local Player = Players.LocalPlayer
+            
+            local settingsPath = self.Folder .. "/settings/Settings_" .. Player.Name .. ".json"
+            local autoLoadPath = self.Folder .. "/" .. Player.Name .. "_IsAutoLoad.txt"
+            
+            local isAutoSaveEnabled = false
+            if isfile and isfile(autoLoadPath) then
+                isAutoSaveEnabled = (readfile(autoLoadPath) == "true")
+            end
+            
+            getgenv().isAutoSaving = isAutoSaveEnabled
+            
+            local AutoSaveConfig = section:AddToggle("AutoSaveConfig", {
+                Title = "Auto Save Config",
+                Description = "Auto Load and Save current config.",
+                Default = false
+            })
+            
+            AutoSaveConfig:SetValue(isAutoSaveEnabled)
 
-			self.Library:Notify({
-				Title = "Interface",
-				Content = "Config loader",
-				SubContent = string.format("Loaded config %q", name),
-				Duration = 7
-			})
-		end})
+            if isAutoSaveEnabled and isfile and isfile(settingsPath) then
+                local loadSuccess, loadErr = self:Load("Settings_" .. Player.Name .. ".json")
+                if loadSuccess then
+                    if self.Options.RefreshedNpc then
+                        self.Options.RefreshedNpc:SetValue(true)
+                    end
+                else
+                    warn("Failed to load settings:", loadErr)
+                end
+            end
+            
+            local AutoSaveThread
+            AutoSaveConfig:OnChanged(function(value)
+                getgenv().isAutoSaving = value
+                if writefile then
+                    writefile(autoLoadPath, tostring(value))
+                end
+                
+                if getgenv().isAutoSaving then
+                    if AutoSaveThread then
+                        task.cancel(AutoSaveThread)
+                        AutoSaveThread = nil
+                    end
+                    
+                    AutoSaveThread = getgenv().AshSpawn(function()
+                        while getgenv().isAutoSaving and not getgenv().AshDestroyed do
+                        local saveSuccess, saveErr = self:Save("Settings_" .. Player.Name .. ".json")
+                            if not saveSuccess then
+                                warn("Failed to save settings:", saveErr)
+                            end
+                            task.wait(0.5)
+                        end
+                    end)
 
-		section:AddButton({Title = "Save config", Callback = function()
-			local name = SaveManager.Options.SaveManager_ConfigList.Value
+                elseif AutoSaveThread then
+                    task.cancel(AutoSaveThread)
+                    AutoSaveThread = nil
+                end
+            end)
+        end)
+        
+        if not successSaveLoad then
+            warn("Error in auto-save:", errSaveLoad)
+        end
 
-			local success, err = self:Save(name)
-			if not success then
-				return self.Library:Notify({
-					Title = "Interface",
-					Content = "Config loader",
-					SubContent = "Failed to overwrite config: " .. err,
-					Duration = 7
-				})
-			end
+        self:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName", "AutoSaveConfig" })
+    end
 
-			self.Library:Notify({
-				Title = "Interface",
-				Content = "Config loader",
-				SubContent = string.format("Overwrote config %q", name),
-				Duration = 7
-			})
-		end})
-
-		section:AddButton({Title = "Refresh list", Callback = function()
-			SaveManager.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
-			SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
-		end})
-
-		local AutoloadButton
-		AutoloadButton = section:AddButton({Title = "Set as autoload", Description = "Current autoload config: none", Callback = function()
-			local name = SaveManager.Options.SaveManager_ConfigList.Value
-			writefile(self.Folder .. "/autoload.txt", name)
-			AutoloadButton:SetDesc("Current autoload config: " .. name)
-			self.Library:Notify({
-				Title = "Interface",
-				Content = "Config loader",
-				SubContent = string.format("Set %q to auto load", name),
-				Duration = 7
-			})
-		end})
-
-		if isfile(self.Folder .. "/autoload.txt") then
-			local name = readfile(self.Folder .. "/autoload.txt")
-			AutoloadButton:SetDesc("Current autoload config: " .. name)
-		end
-
-		SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName" })
-	end
-
-	if not RunService:IsStudio() then
-		SaveManager:BuildFolderTree()
-	end
+    SaveManager:BuildFolderTree()
 end
 
 local InterfaceManager = {} do
@@ -6250,14 +6415,14 @@ local InterfaceManager = {} do
 	end
 
 	function InterfaceManager:SaveSettings()
-		writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
+		writefile(self.Folder .. "/options.json", HttpService:JSONEncode(InterfaceManager.Settings))
 	end
 
 	function InterfaceManager:LoadSettings()
 		local path = self.Folder .. "/options.json"
 		if isfile(path) then
 			local data = readfile(path)
-			local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+			local success, decoded = pcall(HttpService.JSONDecode, HttpService, data)
 
 			if success then
 				for i, v in next, decoded do
@@ -6267,108 +6432,140 @@ local InterfaceManager = {} do
 		end
 	end
 
-	function InterfaceManager:BuildInterfaceSection(tab)
-		assert(self.Library, "Must set InterfaceManager.Library")
-		local Library = self.Library
-		local Settings = InterfaceManager.Settings
+local IconSizes = {
+    Small = 32,
+    Medium = 48,
+    Large = 64,
+}
 
-		InterfaceManager:LoadSettings()
+function InterfaceManager:BuildInterfaceSection(tab)
+    assert(self.Library, "Must set InterfaceManager.Library")
+    local Library = self.Library
+    local Settings = InterfaceManager.Settings
 
-		local section = tab:AddSection("Interface")
-		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = "Theme",
-			Description = "Changes the interface theme.",
-			Values = Library.Themes,
-			Default = self.Library.Theme,
-			Callback = function(Value)
-				Library:SetTheme(Value)
-				Settings.Theme = Value
-				InterfaceManager:SaveSettings()
-			end
-		})
+    InterfaceManager:LoadSettings()
 
-		InterfaceTheme:SetValue(Settings.Theme)
+    local section = tab:AddSection("Interface")
 
-		if Library.UseAcrylic then
-			section:AddToggle("AcrylicToggle", {
-				Title = "Acrylic",
-				Description = "The blurred background requires graphic quality 8+",
-				Default = Settings.Acrylic,
-				Callback = function(Value)
-					Library:ToggleAcrylic(Value)
-					Settings.Acrylic = Value
-					InterfaceManager:SaveSettings()
-				end
-			})
-		end
+    local function safeSetTheme(themeName)
+        Settings.Theme = themeName
+        if Library then
+            Library.Theme = themeName
+            if Library.Window then
+                Library:SetTheme(themeName)
+            end
+        end
+        InterfaceManager:SaveSettings()
+    end
 
-		section:AddToggle("TransparentToggle", {
-			Title = "Transparency",
-			Description = "Makes the interface transparent.",
-			Default = Settings.Transparency,
-			Callback = function(Value)
-				Library:ToggleTransparency(Value)
-				Settings.Transparency = Value
-				InterfaceManager:SaveSettings()
-			end
-		})
+    local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
+        Title = "Theme",
+        Description = "Changes the interface theme.",
+        Values = Library.Themes,
+        Default = Settings.Theme or Library.Theme,
+        Callback = safeSetTheme
+    })
 
-		section:AddSlider("CooldownDragging", {
-			Title = "GUI dragging cooldown.",
-			Default = 5,
-			Min = 0,
-			Max = 50,
-			Rounding = 1,
-			Callback = function(Value)
-				CDDrag = Value
-			end,
-		})
+    if Settings.Theme and (Settings.Theme ~= Library.Theme) then
+        safeSetTheme(Settings.Theme)
+        InterfaceTheme:SetValue(Settings.Theme)
+    end
+    if Library.Theme and (InterfaceTheme.Value ~= Library.Theme) then
+        InterfaceTheme:SetValue(Library.Theme)
+    end
 
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Library.MinimizeKey.Name or Settings.MenuKeybind })
-		MenuKeybind:OnChanged(function()
-			Settings.MenuKeybind = MenuKeybind.Value
-			InterfaceManager:SaveSettings()
-		end)
-		Library.MinimizeKeybind = MenuKeybind
-	end
+    if Library.UseAcrylic then
+        section:AddToggle("AcrylicToggle", {
+            Title = "Acrylic",
+            Description = "The blurred background requires graphic quality 8+",
+            Default = Settings.Acrylic,
+            Callback = function(Value)
+                Library:ToggleAcrylic(Value)
+                Settings.Acrylic = Value
+                InterfaceManager:SaveSettings()
+            end
+        })
+    end
+
+    section:AddToggle("TransparentToggle", {
+        Title = "Transparency",
+        Description = "Makes the interface transparent.",
+        Default = Settings.Transparency,
+        Callback = function(Value)
+            Library:ToggleTransparency(Value)
+            Settings.Transparency = Value
+            InterfaceManager:SaveSettings()
+        end
+    })
+
+    section:AddToggle("EnableUIButton", {
+        Title = "Enable UI Button",
+        Description = "Shows/hides the main UI button.",
+        Default = getgenv().AshEnableUIButton,
+        Callback = function(Value)
+            getgenv().AshEnableUIButton = Value
+            if getgenv().MinimizerButton then
+                getgenv().MinimizerButton.Visible = Value
+            end
+        end
+    })
+
+    section:AddToggle("DraggableUIButton", {
+        Title = "Draggable UI Button",
+        Description = "Allows dragging the UI button.",
+        Default = getgenv().AshDraggableUIButton,
+        Callback = function(Value)
+            getgenv().AshDraggableUIButton = Value
+            if getgenv().MinimizerButton then
+                getgenv().MinimizerButton.Draggable = Value
+            end
+        end
+    })
+
+    local IconSizeDD = section:AddDropdown("IconSizeDD", {
+        Title = "Icon Size",
+        Description = "Select the size of the icon button.",
+        Values = {"Small", "Medium", "Large"},
+        Multi = false,
+        Default = "Medium"
+    })
+
+    IconSizeDD:OnChanged(function(value)
+        local sizeName = type(value) == "table" and next(value) or value
+        if IconSizes[sizeName] then
+            getgenv().UIIconSize = IconSizes[sizeName]
+            if getgenv().MinimizerButton then
+                getgenv().MinimizerButton.Size = UDim2.new(0, getgenv().UIIconSize, 0, getgenv().UIIconSize)
+                local px, py = getgenv().MinimizerButton.Position.X.Offset, getgenv().MinimizerButton.Position.Y.Offset
+                clampToViewport(getgenv().MinimizerButton, px, py)
+            end
+        end
+    end)
+
+
+
+    section:AddToggle("WindowFixedPosition", {
+        Title = "Window Fixed Position",
+        Description = "Prevents the window from being moved.",
+        Default = getgenv().ASHWindowPosChange or false,
+        Callback = function(Value)
+            getgenv().ASHWindowPosChange = Value
+        end
+    })
+
+    local MenuKeybind = section:AddKeybind("MenuKeybind", {
+        Title = "Minimize Bind",
+        Default = Library.MinimizeKey.Name or Settings.MenuKeybind
+    })
+    MenuKeybind:OnChanged(function()
+        Settings.MenuKeybind = MenuKeybind.Value
+        InterfaceManager:SaveSettings()
+    end)
+    Library.MinimizeKeybind = MenuKeybind
 end
 
-function Library:CreateWindow(Config)
-	assert(Config.Title, "Window - Missing Title")
 
-	if Library.Window then
-		print("You cannot create more than one window.")
-		return
-	end
 
-	Library.MinimizeKey = Config.MinimizeKey or Enum.KeyCode.LeftControl
-	Library.UseAcrylic = Config.Acrylic or false
-	Library.Acrylic = Config.Acrylic or false
-	Library.Theme = Config.Theme or "Dark"
-	if Config.Acrylic then
-		Acrylic.init()
-	end
-
-	local Window = Components.Window({
-		Parent = GUI,
-		Size = Config.Size,
-		Title = Config.Title,
-		SubTitle = Config.SubTitle,
-		TabWidth = Config.TabWidth,
-	})
-
-	Library.Window = Window
-	InterfaceManager:SetTheme(Config.Theme)
-	Library:SetTheme(Config.Theme)
-
-	return Window
-end
-
-function Library:SetTheme(Value)
-	if Library.Window and table.find(Library.Themes, Value) then
-		Library.Theme = Value
-		Creator.UpdateTheme()
-	end
 end
 
 function Library:Destroy()
@@ -6412,160 +6609,138 @@ else
 	Fluent = Library
 end
 
-local MinimizeButton = New("TextButton", {
-	BackgroundTransparency = 1,
-	Size = UDim2.new(1, 0, 1, 0),
-	BorderSizePixel = 0
-}, {
-	New("UIPadding", {
-		PaddingBottom = UDim.new(0, 2),
-		PaddingLeft = UDim.new(0, 2),
-		PaddingRight = UDim.new(0, 2),
-		PaddingTop = UDim.new(0, 2),
-	}),
-	New("ImageLabel", {
-		Image = Mobile and Button_Icon or Asset.."10734897102" or "",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-	}, {
-		New("UIAspectRatioConstraint", {
-			AspectRatio = 1,
-			AspectType = Enum.AspectType.FitWithinMaxSize,
-		})
-	})
-})
+local lastX, lastY = loadPosition()
+local defaultX, defaultY = 8, 36
 
-local Minimizer
+-- GLOBALS
+getgenv().MinimizerButton = getgenv().MinimizerButton or nil
+getgenv().UIIconSize = getgenv().UIIconSize or 48
+getgenv().AshEnableUIButton = getgenv().AshEnableUIButton or true
+getgenv().AshDraggableUIButton = getgenv().AshDraggableUIButton or true
 
-if getgenv().MinimizerButton then
-    if Mobile then
-        Minimizer = New("Frame", {
-            Parent = GUI,
-            Size = UDim2.new(0.06, 0, 0.15, 0),
-            Position = UDim2.new(0.45, 0, 0.025, 0),
-            BackgroundTransparency = 1,
-            ZIndex = 999999999,
-        }, {
-            New("Frame", {
-                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 0.5,
-                BorderSizePixel = 0
-            }, {
-                New("UICorner", {
-                    CornerRadius = UDim.new(0.25, 0),
-                }),
-                MinimizeButton
-            })
-        })
-    else
-        Minimizer = New("Frame", {
-            Parent = GUI,
-            Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.45, 0, 0.025, 0),
-            BackgroundTransparency = 1,
-            ZIndex = 999999999,
-        }, {
-            New("Frame", {
-                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-                Size = UDim2.new(0, 0, 0, 0),
-                BackgroundTransparency = 0,
-                BorderSizePixel = 0
-            }, {
-                New("UICorner", {
-                    CornerRadius = UDim.new(0.25, 0),
-                }),
-                MinimizeButton
-            })
-        })
-    end
+local IconSizes = {
+    Small = 32,
+    Medium = 48,
+    Large = 64,
+}
+
+-- CLAMP FUNCTION
+local MIN_TOP_MARGIN, MIN_BOTTOM_MARGIN = 8, 8
+local function clampToViewport(button, x, y)
+    local viewport = workspace.CurrentCamera.ViewportSize
+    local absSize = button.AbsoluteSize
+    local minX, minY = 0, MIN_TOP_MARGIN
+    local maxX = math.max(minX, viewport.X - absSize.X)
+    local maxY = math.max(minY, viewport.Y - absSize.Y - MIN_BOTTOM_MARGIN)
+    x = math.clamp(x, minX, maxX)
+    y = math.clamp(y, minY, maxY)
+    button.Position = UDim2.new(0, x, 0, y)
+    return x, y
 end
-if Minimizer then
-    Creator.AddSignal(Minimizer.InputBegan, function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            Dragging = true
-            MousePos = Input.Position
-            StartPos = Minimizer.Position
 
-            Input.Changed:Connect(function()
-                if Input.UserInputState == Enum.UserInputState.End then
-                    Dragging = false
-                end
-            end)
+-- CREATE WINDOW
+function Library:CreateWindow(Config)
+    assert(Config.Title, "Window - Missing Title")
+    if Library.Window then return print("You cannot create more than one window.") end
+
+    Library.MinimizeKey = Config.MinimizeKey or Enum.KeyCode.LeftControl
+    Library.UseAcrylic = Config.Acrylic or false
+    Library.Acrylic = Config.Acrylic or false
+    Library.UIButton = Config.UIButton or false
+    Library.Theme = Config.Theme or "Dark"
+
+    if Config.Acrylic then Acrylic.init() end
+
+    local Window = Components.Window({
+        Parent = GUI,
+        Size = Config.Size,
+        Title = Config.Title,
+        SubTitle = Config.SubTitle,
+        TabWidth = Config.TabWidth,
+    })
+    Library.Window = Window
+    InterfaceManager:SetTheme(Config.Theme)
+    Library:SetTheme(Config.Theme)
+
+    if Library.UIButton and getgenv().AshEnableUIButton then
+        local posX, posY = 8, 36
+        local MinimizerGUI = Instance.new("ScreenGui")
+        MinimizerGUI.Parent = gethui()
+        MinimizerGUI.Name = "AshMinimizerGUI"
+        MinimizerGUI.ResetOnSpawn = false
+		
+
+coreGui.ChildRemoved:Connect(function(removedChild)
+    if removedChild.Name == getgenv().FluentUI then
+        local guiToRemove = coreGui:FindFirstChild(MinimizerGUI.Name)
+        if guiToRemove then
+            guiToRemove:Destroy()
         end
-    end)
-else
-    
+
+        if AshConnections then
+            AshConnections:DisconnectAll()
+        end
+
+    end
+end)
+        local size = getgenv().UIIconSize
+        local btn = Instance.new("ImageButton")
+        btn.Parent = MinimizerGUI
+        btn.Name = "AshMinimizerButton"
+        btn.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
+        btn.BackgroundTransparency = 1
+        btn.BorderSizePixel = 0
+        btn.Size = UDim2.new(0, size, 0, size)
+        btn.Position = UDim2.new(0, posX, 0, posY)
+        btn.Image = "rbxassetid://103387420686884"
+        btn.ScaleType = Enum.ScaleType.Crop
+        btn.ZIndex = 999
+        btn.Visible = true
+        btn.Draggable = getgenv().AshDraggableUIButton
+
+        getgenv().MinimizerButton = btn
+        clampToViewport(btn, posX, posY)
+
+        -- DRAGGING
+        local Dragging, DragInput, MousePos, StartPos
+        btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = true
+                MousePos = input.Position
+                StartPos = btn.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        Dragging = false
+                        clampToViewport(btn, btn.Position.X.Offset, btn.Position.Y.Offset)
+                    end
+                end)
+            end
+        end)
+
+        btn.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                DragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == DragInput and Dragging and getgenv().AshDraggableUIButton then
+                local Delta = input.Position - MousePos
+                local px = StartPos.X.Offset + Delta.X
+                local py = StartPos.Y.Offset + Delta.Y
+                clampToViewport(btn, px, py)
+            end
+        end)
+
+        btn.MouseButton1Click:Connect(function()
+            Library.Window:Minimize()
+        end)
+    end
+
+    return Window
 end
 
 
-Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseButton1
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		Dragging = true
-		MousePos = Input.Position
-		StartPos = Minimizer.Position
-
-		Input.Changed:Connect(function()
-			if Input.UserInputState == Enum.UserInputState.End then
-				Dragging = false
-			end
-		end)
-	end
-end)
-
-Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseMovement
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		DragInput = Input
-	end
-end)
-
-if Minimizer then
-Creator.AddSignal(Minimizer.InputChanged, function(Input)
-	if
-		Input.UserInputType == Enum.UserInputType.MouseMovement
-		or Input.UserInputType == Enum.UserInputType.Touch
-	then
-		DragInput = Input
-	end
-end)
-end
-Creator.AddSignal(UserInputService.InputChanged, function(Input)
-	if Input == DragInput and Dragging then
-		local GuiInset = GuiService:GetGuiInset()
-		local Delta = Input.Position - MousePos
-		local ViewportSize = workspace.Camera.ViewportSize
-		local CurrentX = StartPos.X.Scale + (Delta.X/ViewportSize.X)
-		local CurrentY = StartPos.Y.Scale + (Delta.Y/ViewportSize.Y)
-
-		if CurrentX<0 or CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X then
-			if CurrentX < 0 then
-				CurrentX = 0
-			else
-				CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X
-			end
-		end
-
-		if CurrentY < 0 or CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y) then
-			if CurrentY < 0 then
-				CurrentY = 0
-			else
-				CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y)
-			end
-		end
-
-		Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
-	end
-end)
-
-AddSignal(MinimizeButton.MouseButton1Click, function()
-	Library.Window:Minimize()
-end)
 
 
 return Library, SaveManager, InterfaceManager, Mobile
