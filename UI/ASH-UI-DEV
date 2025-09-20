@@ -24,6 +24,7 @@ LocalPlayer = Players.LocalPlayer
 Camera = Workspace.CurrentCamera
 Mouse = LocalPlayer:GetMouse()
 
+uiFile = "AshbornnHub/AutoCloseUI.json"
 local posFile = "AshbornnHub/UILibbtnPos.json"
 local MIN_TOP_MARGIN = 8
 local MIN_BOTTOM_MARGIN = 8
@@ -3320,13 +3321,13 @@ Components.Window = (function()
 				local Key = Library.MinimizeKeybind and Library.MinimizeKeybind.Value or Library.MinimizeKey.Name
 				if not Mobile then Library:Notify({
 					Title = getgenv().AshTitle,
-					Content = "Press " .. Key .. " to toggle the interface. Loading the UI Please Wait",
+					Content = "Press " .. Key .. " to toggle the interface.",
 					Duration = 6
 					})
 				else 
 					Library:Notify({
 						Title = getgenv().AshTitle,
-						Content = "Tap to the button to toggle the interface. Loading the UI Please Wait",
+						Content = "Tap to the button to toggle the interface.",
 						Duration = 6
 					})
 				end
@@ -6445,7 +6446,7 @@ function InterfaceManager:BuildInterfaceSection(tab)
 
     InterfaceManager:LoadSettings()
 
-    local section = tab:AddSection("Interface")
+    local section = tab:AddSection("UI Window")
 
     local function safeSetTheme(themeName)
         Settings.Theme = themeName
@@ -6459,8 +6460,8 @@ function InterfaceManager:BuildInterfaceSection(tab)
     end
 
     local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-        Title = "Theme",
-        Description = "Changes the interface theme.",
+        Title = "Window Theme",
+        Description = "Changes the Window interface theme.",
         Values = Library.Themes,
         Default = Settings.Theme or Library.Theme,
         Callback = safeSetTheme
@@ -6542,7 +6543,26 @@ function InterfaceManager:BuildInterfaceSection(tab)
         end
     end)
 
+	local defaultState = false
+	if isfile(uiFile) then
+    	local success, data = pcall(function()
+        	return game:GetService("HttpService"):JSONDecode(readfile(uiFile))
+    	end)
+    	if success and type(data) == "table" and type(data.AutoCloseUI) == "boolean" then
+        	defaultState = data.AutoCloseUI
+    	end
+	end
 
+	AutoCloseUIOnLoad = section:AddToggle("AutoCloseUIOnLoad", {
+    	Title = "Auto Minimize(Hide) UI on Load",
+    	Description = "Automatically hides the UI when the script loads.",
+    	Default = defaultState
+	})
+
+	AutoCloseUIOnLoad:OnChanged(function(value)
+    	if not isfolder("AshbornnHub") then makefolder("AshbornnHub") end
+    	writefile(uiFile, game:GetService("HttpService"):JSONEncode({ AutoCloseUI = value }))
+	end)
 
     section:AddToggle("WindowFixedPosition", {
         Title = "Window Fixed Position",
@@ -6574,10 +6594,23 @@ function Library:Destroy()
 		if Library.UseAcrylic then
 			Library.Window.AcrylicPaint.Model:Destroy()
 		end
+
 		Creator.Disconnect()
-		Library.GUI:Destroy()
+
+		if Library.GUI then
+			Library.GUI:Destroy()
+		end
+
+		local minimizer = gethui():FindFirstChild("AshMinimizerGUI")
+		if minimizer then
+			minimizer:Destroy()
+		end
+
+		Library.Window = nil
+		getgenv().MinimizerButton = nil
 	end
 end
+
 
 function Library:ToggleAcrylic(Value)
 	if Library.Window then
@@ -6638,7 +6671,8 @@ local function clampToViewport(button, x, y)
     return x, y
 end
 
--- CREATE WINDOW
+
+
 function Library:CreateWindow(Config)
     assert(Config.Title, "Window - Missing Title")
     if Library.Window then return print("You cannot create more than one window.") end
@@ -6662,62 +6696,52 @@ function Library:CreateWindow(Config)
     InterfaceManager:SetTheme(Config.Theme)
     Library:SetTheme(Config.Theme)
 
+    local minimizerGUI
+    local minimizerBtn
+
     if Library.UIButton and getgenv().AshEnableUIButton then
         local posX, posY = 8, 36
-        local MinimizerGUI = Instance.new("ScreenGui")
-        MinimizerGUI.Parent = gethui()
-        MinimizerGUI.Name = "AshMinimizerGUI"
-        MinimizerGUI.ResetOnSpawn = false
-		
-
-coreGui.ChildRemoved:Connect(function(removedChild)
-    if removedChild.Name == getgenv().FluentUI then
-        local guiToRemove = coreGui:FindFirstChild(MinimizerGUI.Name)
-        if guiToRemove then
-            guiToRemove:Destroy()
-        end
-
-        if AshConnections then
-            AshConnections:DisconnectAll()
-        end
-
-    end
-end)
         local size = getgenv().UIIconSize
-        local btn = Instance.new("ImageButton")
-        btn.Parent = MinimizerGUI
-        btn.Name = "AshMinimizerButton"
-        btn.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
-        btn.BackgroundTransparency = 1
-        btn.BorderSizePixel = 0
-        btn.Size = UDim2.new(0, size, 0, size)
-        btn.Position = UDim2.new(0, posX, 0, posY)
-        btn.Image = "rbxassetid://103387420686884"
-        btn.ScaleType = Enum.ScaleType.Crop
-        btn.ZIndex = 999
-        btn.Visible = true
-        btn.Draggable = getgenv().AshDraggableUIButton
 
-        getgenv().MinimizerButton = btn
-        clampToViewport(btn, posX, posY)
+        minimizerGUI = Instance.new("ScreenGui")
+        minimizerGUI.Name = "AshMinimizerGUI"
+        minimizerGUI.ResetOnSpawn = false
+        minimizerGUI.Parent = gethui()
 
-        -- DRAGGING
+        minimizerBtn = Instance.new("ImageButton")
+        minimizerBtn.Name = "AshMinimizerButton"
+        minimizerBtn.Parent = minimizerGUI
+        minimizerBtn.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
+        minimizerBtn.BackgroundTransparency = 1
+        minimizerBtn.BorderSizePixel = 0
+        minimizerBtn.Size = UDim2.new(0, size, 0, size)
+        minimizerBtn.Position = UDim2.new(0, posX, 0, posY)
+        minimizerBtn.Image = "rbxassetid://103387420686884"
+        minimizerBtn.ScaleType = Enum.ScaleType.Crop
+        minimizerBtn.ZIndex = 999
+        minimizerBtn.Visible = true
+        minimizerBtn.Draggable = getgenv().AshDraggableUIButton
+
+        getgenv().MinimizerButton = minimizerBtn
+        clampToViewport(minimizerBtn, posX, posY)
+
+        -- Dragging
         local Dragging, DragInput, MousePos, StartPos
-        btn.InputBegan:Connect(function(input)
+        minimizerBtn.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = true
                 MousePos = input.Position
-                StartPos = btn.Position
+                StartPos = minimizerBtn.Position
                 input.Changed:Connect(function()
                     if input.UserInputState == Enum.UserInputState.End then
                         Dragging = false
-                        clampToViewport(btn, btn.Position.X.Offset, btn.Position.Y.Offset)
+                        clampToViewport(minimizerBtn, minimizerBtn.Position.X.Offset, minimizerBtn.Position.Y.Offset)
                     end
                 end)
             end
         end)
 
-        btn.InputChanged:Connect(function(input)
+        minimizerBtn.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
                 DragInput = input
             end
@@ -6728,18 +6752,56 @@ end)
                 local Delta = input.Position - MousePos
                 local px = StartPos.X.Offset + Delta.X
                 local py = StartPos.Y.Offset + Delta.Y
-                clampToViewport(btn, px, py)
+                clampToViewport(minimizerBtn, px, py)
             end
         end)
 
-        btn.MouseButton1Click:Connect(function()
-            Library.Window:Minimize()
+        minimizerBtn.MouseButton1Click:Connect(function()
+            if Library.Window then
+                Library.Window:Minimize()
+            end
+        end)
+    end
+
+    -- Auto-clean when window is destroyed
+    local oldDestroy = Window.Destroy
+    function Window:Destroy()
+        oldDestroy(self)
+        Library.Window = nil
+
+        if minimizerGUI then
+            minimizerGUI:Destroy()
+            minimizerGUI = nil
+        end
+
+        if AshConnections then
+            AshConnections:DisconnectAll()
+        end
+    end
+
+    -- =========================
+    -- AUTO MINIMIZE ON LOAD
+    -- =========================
+    local autoMinimize = false
+    if isfile(uiFile) then
+        local success, data = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(readfile(uiFile))
+        end)
+        if success and type(data) == "table" and type(data.AutoCloseUI) == "boolean" then
+            autoMinimize = data.AutoCloseUI
+        end
+    end
+
+    if autoMinimize then
+        task.defer(function()
+            if Window and Window.Minimize then
+                Window:Minimize()
+            end
         end)
     end
 
     return Window
 end
-
 
 
 
