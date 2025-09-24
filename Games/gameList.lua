@@ -5,6 +5,7 @@ local games = {
   ["70005410"] = "BloxHunt",
   ["893973440"] = "FleeFacility",
   ["16732694052"] = "Fisch",
+  ["131716211654599"] = "Fisch",
   ["72907489978215"] = "Fisch",
   ["2753915549"] = "BloxFruits",
   ["7449423635"] = "BloxFruits",
