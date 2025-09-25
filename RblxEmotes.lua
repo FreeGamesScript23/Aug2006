@@ -1,11 +1,13 @@
---- Keybind to open for pc is "comma" -> " , "
--- Made by Gi#7331
 
-                        Fluent:Notify({
-                        Title = "Please Wait",
-                        Content = "Wait atleast 5-20 Sec to Load all emotes.",
-                        Duration = 3
-                    })
+
+if Fluent then
+	Fluent:Notify({
+    	Title = "Please Wait",
+    	Content = "Wait atleast 30-1min to Load all emotes. So many emotes is added so.",
+    	Duration = 3
+	})
+end
+
 if game:GetService("CoreGui"):FindFirstChild("Emotes") then
     game:GetService("CoreGui"):FindFirstChild("Emotes"):Destroy()
 end
@@ -25,41 +27,65 @@ local UserInputService = game:GetService("UserInputService")
 
 local Emotes = {}
 local LoadedEmotes = {}
-local function AddEmote(name: string, id: IntValue, price: IntValue?)
-	LoadedEmotes[id] = false
-	task.spawn(function()
-		if not (name and id) then
-			return
-		end
-		local success, date = pcall(function()
-			local info = MarketplaceService:GetProductInfo(id)
-			local updated = info.Updated
-			return DateTime.fromIsoDate(updated):ToUniversalTime()
-		end)
-		if not success then
-			task.wait(10)
-			AddEmote(name, id, price)
-			return
-		end
-		local unix = os.time({
-			year = date.Year,
-			month = date.Month,
-			day = date.Day,
-			hour = date.Hour,
-			min = date.Minute,
-			sec = date.Second
-		})
-		LoadedEmotes[id] = true
-		table.insert(Emotes, {
-			["name"] = name,
-			["id"] = id,
-			["icon"] = "rbxthumb://type=Asset&id=".. id .."&w=150&h=150",
-			["price"] = price or 0,
-			["lastupdated"] = unix,
-			["sort"] = {}
-		})
-	end)
+
+local function hookSearchRefresh(button)
+    button:GetAttributeChangedSignal("name"):Connect(function()
+        local text = SearchBar.Text:lower()
+        if text == "" then
+            button.Visible = true
+        else
+            local currentName = (button:GetAttribute("name") or ""):lower()
+            button.Visible = currentName:match(text) ~= nil
+        end
+    end)
 end
+
+local function AddEmote(name: string?, id: number, price: number?)
+    name = name or "Unknown"
+
+    local EmoteButton = Instance.new("ImageButton")
+    EmoteButton.Name = tostring(id)
+    EmoteButton:SetAttribute("name", name)
+    EmoteButton.Image = "rbxthumb://type=Asset&id="..id.."&w=150&h=150"
+    EmoteButton.Parent = Frame
+
+    EmoteButton.MouseButton1Click:Connect(function()
+        PlayEmote(name, id)
+    end)
+
+    -- make search react to later updates
+    hookSearchRefresh(EmoteButton)
+
+    -- add placeholder so search/sort sees it
+    table.insert(Emotes, {
+        name = name,
+        id = id,
+        icon = EmoteButton.Image,
+        price = price or 0,
+        lastupdated = os.time(),
+        sort = {}
+    })
+
+    task.spawn(function()
+        local success, info = pcall(function()
+            return MarketplaceService:GetProductInfo(id)
+        end)
+        if success and info then
+            local realName = info.Name or name
+            -- update button + Emotes entry
+            EmoteButton:SetAttribute("name", realName)
+            for _,e in ipairs(Emotes) do
+                if e.id == id then
+                    e.name = realName
+                    e.price = info.PriceInRobux or e.price
+                    break
+                end
+            end
+        end
+    end)
+end
+
+
 local CurrentSort = "recentfirst"
 
 local FavoriteOff = "rbxassetid://10651060677"
@@ -624,13 +650,12 @@ end
 LocalPlayer.CharacterAdded:Connect(CharacterAdded)
 
 wait(1)
-
-game.CoreGui.Emotes.Enabled = true
-
+if Fluent then
 Fluent:Notify({
-                        Title = "Emote Loaded",
-                        Content = "Enjoy.",
-                        Duration = 3
-                    })
+    Title = "Emote Loaded",
+    Content = "Enjoy.",
+    Duration = 3
+})
+end
 
 game.Players.LocalPlayer.PlayerGui.ContextActionGui:Destroy()
