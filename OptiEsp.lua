@@ -40,8 +40,10 @@ local Config = {
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
     NamesSize = 16,
-    Distance = false
+    Distance = false,
+    ESPEnabled = false -- add this
 }
+
 local roles = {}
 local SSeeRoles = true
 
@@ -79,17 +81,6 @@ local function IsAlive(Player)
     return data and not (data.Killed or data.Dead)
 end
 
-local function hasWeapon(player, weaponName)
-    if player.Character then
-        for _, tool in ipairs(player.Character:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name == weaponName then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 local function getRoleColor(player)
     local data = roles[player.Name]
     if monarchs[player.UserId] then return Color3.fromRGB(128,0,128) end
@@ -114,14 +105,36 @@ local function getTitleColor(player)
     return Config.NamesColor
 end
 
-local function CreateEsp(Player)
+local ESPUpdaters = {}
+
+function CreateEsp(player)
     local Title = Drawing.new("Text")
     local Name = Drawing.new("Text")
-    local Updater
-    Updater = RunService.RenderStepped:Connect(function()
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Head") and Player.Character.Humanoid.Health > 0 then
+    
+    local updater = {Title = Title, Name = Name}
+    ESPUpdaters[player] = updater
+
+    updater.Connection = RunService.RenderStepped:Connect(function()
+        if not player.Parent then
+            updater.Connection:Disconnect()
+            Title:Remove()
+            Name:Remove()
+            ESPUpdaters[player] = nil
+            return
+        end
+
+        if not Config.ESPEnabled then
+            Title.Visible = false
+            Name.Visible = false
+            return
+        end
+
+        if player.Character and player.Character:FindFirstChild("Humanoid") 
+           and player.Character:FindFirstChild("HumanoidRootPart") 
+           and player.Character:FindFirstChild("Head") 
+           and player.Character.Humanoid.Health > 0 then
             local cam = workspace.CurrentCamera
-            local HeadPos, OnScreen = cam:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0,2,0))
+            local HeadPos, OnScreen = cam:WorldToViewportPoint(player.Character.Head.Position + Vector3.new(0,2,0))
             local height = 60
 
             Title.Visible = OnScreen
@@ -130,10 +143,10 @@ local function CreateEsp(Player)
             Title.OutlineColor = Config.NamesOutlineColor
             Title.Font = Config.NamesFont
             Title.Size = Config.NamesSize
-            Title.Color = getTitleColor(Player)
-            if premiums[Player.UserId] then
+            Title.Color = getTitleColor(player)
+            if premiums[player.UserId] then
                 Title.Text = "(Premium)"
-            elseif monarchs[Player.UserId] then
+            elseif monarchs[player.UserId] then
                 Title.Text = "(Monarch)"
             else
                 Title.Text = ""
@@ -141,26 +154,21 @@ local function CreateEsp(Player)
             Title.Position = Vector2.new(HeadPos.X, HeadPos.Y - height*0.5 - 20)
 
             Name.Visible = OnScreen
-            Name.Text = Config.Distance and Player.Name.." "..string.format("%.1f",(Players.LocalPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude).."m" or Player.Name
+            Name.Text = Config.Distance and player.Name.." "..string.format("%.1f",(Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude).."m" or player.Name
             Name.Center = true
             Name.Outline = Config.NamesOutline
             Name.OutlineColor = Config.NamesOutlineColor
             Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height*0.5)
             Name.Font = Config.NamesFont
             Name.Size = Config.NamesSize
-            Name.Color = IsAlive(Player) and getRoleColor(Player) or Color3.fromRGB(128,128,128)
+            Name.Color = IsAlive(player) and getRoleColor(player) or Color3.fromRGB(128,128,128)
         else
             Title.Visible = false
             Name.Visible = false
         end
-
-        if not Player.Parent then
-            Updater:Disconnect()
-            Title:Remove()
-            Name:Remove()
-        end
     end)
 end
+
 
 local function OnPlayerAdded(v)
     if v ~= Players.LocalPlayer then
