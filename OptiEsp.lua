@@ -60,6 +60,10 @@ local RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart
 local RoleSelect = ReplicatedStorage.Remotes.Gameplay.RoleSelect
 local PlayerDataChanged = ReplicatedStorage.Remotes.Gameplay.PlayerDataChanged
 
+if SSeeRoles then
+    fetchRoles()
+end
+
 RoundStart.OnClientEvent:Connect(function()
     if SSeeRoles then fetchRoles() end
 end)
