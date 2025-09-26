@@ -34,13 +34,13 @@ local monarchs = {
 }
 
 local Config = {
-    Names = true,
-    NamesOutline = true,
+    Names = false,
+    NamesOutline = false,
     NamesColor = Color3.fromRGB(255, 255, 255),
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
     NamesSize = 16,
-    Distance = true
+    Distance = false
 }
 local roles = {}
 local SSeeRoles = true
