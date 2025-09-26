@@ -2,28 +2,35 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
+local KEY = 55
+local function dec(t)
+    local s = {}
+    for i=1,#t do s[i] = tostring(t[i] - KEY) end
+    return tonumber(table.concat(s))
+end
+
 local premiums = {
-    [6069697086] = true,
-    [4072731377] = true,
-    [6150337449] = true,
-    [1571371222] = true,
-    [2911976621] = true,
-    [2729297689] = true,
-    [6150320395] = true,
-    [301098121] = true,
-    [773902683] = true,
-    [671905963] = true,
-    [3129701628] = true,
-    [3063352401] = true,
-    [7007834038] = true,
-    [4767937607] = true,
-    [3129413184] = true
+    [dec{61,55,61,64,61,64,62,55,63,61}] = true,
+    [dec{59,55,62,57,62,58,56,58,62,62}] = true,
+    [dec{61,56,60,55,58,58,62,59,59,64}] = true,
+    [dec{56,60,62,56,58,62,56,57,57,57}] = true,
+    [dec{57,64,56,56,64,62,61,61,57,56}] = true,
+    [dec{57,62,57,64,57,64,62,61,63,64}] = true,
+    [dec{61,56,60,55,58,57,55,58,64,60}] = true,
+    [dec{58,55,56,55,64,63,56,57,56}] = true,
+    [dec{62,62,58,64,55,57,61,63,58}] = true,
+    [dec{61,62,56,64,55,60,64,61,58}] = true,
+    [dec{58,56,57,64,62,55,56,61,57,63}] = true,
+    [dec{58,55,61,58,58,60,57,59,55,56}] = true,
+    [dec{62,55,55,62,63,58,59,55,58,63}] = true,
+    [dec{59,62,61,62,64,58,62,61,55,62}] = true,
+    [dec{58,56,57,64,59,56,58,56,63,59}] = true,
 }
 
 local monarchs = {
-    [129215104] = true,
-    [6135258891] = true,
-    [290931] = true
+    [dec{56,57,64,57,56,60,56,55,59}] = true,
+    [dec{61,56,58,60,57,60,63,63,64,56}] = true,
+    [dec{57,64,55,64,58,56}] = true,
 }
 
 local Config = {
@@ -33,36 +40,43 @@ local Config = {
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
     NamesSize = 16,
-    Distance = true -- Option to display distance
+    Distance = true
 }
-
 local roles = {}
-local lastUpdate = 0
+local SSeeRoles = true
 
-local function updateRoles()
-    if os.time() - lastUpdate > 2 then
-        local success, result = pcall(function()
-            return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-        end)
-        if success then
-            roles = result
-            lastUpdate = os.time()
-        end
+local function fetchRoles()
+    local remote = ReplicatedStorage:FindFirstChild("GetPlayerData", true)
+    if not remote then return end
+    local success, result = pcall(function()
+        return remote:InvokeServer()
+    end)
+    if success and type(result) == "table" then
+        roles = result
     end
 end
 
-RunService.RenderStepped:Connect(updateRoles)
+local RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart
+local RoleSelect = ReplicatedStorage.Remotes.Gameplay.RoleSelect
+local PlayerDataChanged = ReplicatedStorage.Remotes.Gameplay.PlayerDataChanged
+
+RoundStart.OnClientEvent:Connect(function()
+    if SSeeRoles then fetchRoles() end
+end)
+RoleSelect.OnClientEvent:Connect(function(playerName)
+    if SSeeRoles then fetchRoles() end
+end)
+PlayerDataChanged.OnClientEvent:Connect(function(playerName)
+    if SSeeRoles then fetchRoles() end
+end)
 
 local function IsAlive(Player)
-    local playerData = roles[Player.Name]
-    if playerData then
-        return not (playerData.Killed or playerData.Dead)
-    end
-    return false
+    local data = roles[Player.Name]
+    return data and not (data.Killed or data.Dead)
 end
 
 local function hasWeapon(player, weaponName)
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
+    if player.Character then
         for _, tool in ipairs(player.Character:GetChildren()) do
             if tool:IsA("Tool") and tool.Name == weaponName then
                 return true
@@ -73,105 +87,69 @@ local function hasWeapon(player, weaponName)
 end
 
 local function getRoleColor(player)
-    local playerData = roles[player.Name]
-
-    if monarchs[player.UserId] then
-        return Color3.fromRGB(128, 0, 128)
-    elseif premiums[player.UserId] then
-        return Color3.fromRGB(0, 255, 255)
-    end
-
-    if playerData then
-        if playerData.Role == "Murderer" or playerData.Role == "Vampire" then
-            if hasWeapon(player, "Knife") then
-                return Color3.fromRGB(139, 0, 0) -- Red color for Murderer or Vampire with Knife
-            else
-                return Color3.fromRGB(139, 0, 0) -- Lighter red if no Knife
-            end
-        elseif playerData.Role == "Sheriff" or playerData.Role == "Hunter" then
-            if hasWeapon(player, "Gun") then
-                return Color3.fromRGB(0, 0, 255) -- Blue color for Sheriff or Hunter with Gun
-            else
-                return Color3.fromRGB(0, 0, 255) -- Gray color if no Gun
-            end
-        elseif playerData.Role == "Hero" then
-            return Color3.fromRGB(255, 255, 0) -- Yellow color
+    local data = roles[player.Name]
+    if monarchs[player.UserId] then return Color3.fromRGB(128,0,128) end
+    if premiums[player.UserId] then return Color3.fromRGB(0,255,255) end
+    if data then
+        if data.Role == "Murderer" or data.Role == "Vampire" then
+            return Color3.fromRGB(139,0,0)
+        elseif data.Role == "Sheriff" or data.Role == "Hunter" then
+            return Color3.fromRGB(0,0,255)
+        elseif data.Role == "Hero" then
+            return Color3.fromRGB(255,255,0)
+        elseif data.Role == "Innocent" then
+            return Color3.fromRGB(0,225,0)
         end
     end
-
-    return Color3.fromRGB(0, 225, 0) -- Green color for alive players
+    return Color3.fromRGB(128,128,128)
 end
 
 local function getTitleColor(player)
-    if premiums[player.UserId] then
-        return Color3.fromRGB(0, 255, 255) -- Dark blue color for premiums
-    elseif monarchs[player.UserId] then
-        return Color3.fromRGB(128, 0, 128) -- Purple color for monarchs
-    end
-    return Config.NamesColor -- Default color
+    if premiums[player.UserId] then return Color3.fromRGB(0,255,255) end
+    if monarchs[player.UserId] then return Color3.fromRGB(128,0,128) end
+    return Config.NamesColor
 end
 
 local function CreateEsp(Player)
     local Title = Drawing.new("Text")
     local Name = Drawing.new("Text")
-
-    local function UpdateEsp()
-        local localPlayer = Players.LocalPlayer
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Head") and Player.Character.Humanoid.Health > 0 and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 2, 0))
+    local Updater
+    Updater = RunService.RenderStepped:Connect(function()
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Head") and Player.Character.Humanoid.Health > 0 then
+            local cam = workspace.CurrentCamera
+            local HeadPos, OnScreen = cam:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0,2,0))
             local height = 60
 
-            if Config.Names then
-                local playerDistance = Config.Distance and (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude or 0
-
-                Title.Visible = IsVisible
-                Title.Center = true
-                Title.Outline = Config.NamesOutline
-                Title.OutlineColor = Config.NamesOutlineColor
-                Title.Font = Config.NamesFont
-                Title.Size = Config.NamesSize
-                Title.Color = getTitleColor(Player)
-
-                if premiums[Player.UserId] then
-                    Title.Text = "(Premium)"
-                elseif monarchs[Player.UserId] then
-                    Title.Text = "(Monarch)"
-                else
-                    Title.Text = ""
-                end
-
-                Title.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5 - 20)
-
-                Name.Visible = IsVisible
-                if IsAlive(Player) then
-                    Name.Color = getRoleColor(Player)
-                elseif premiums[Player.UserId] then
-                    Name.Color = Color3.fromRGB(0, 255, 255) -- Cyan for premiums when not alive
-                elseif monarchs[Player.UserId] then
-                    Name.Color = Color3.fromRGB(128, 0, 128) -- Purple for monarchs when not alive
-                else
-                    Name.Color = Color3.fromRGB(128, 128, 128) -- Gray color if not alive
-                end
-                Name.Text = Config.Distance and Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m" or Player.Name
-                Name.Center = true
-                Name.Outline = Config.NamesOutline
-                Name.OutlineColor = Config.NamesOutlineColor
-                Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5)
-                Name.Font = Config.NamesFont
-                Name.Size = Config.NamesSize
+            Title.Visible = OnScreen
+            Title.Center = true
+            Title.Outline = Config.NamesOutline
+            Title.OutlineColor = Config.NamesOutlineColor
+            Title.Font = Config.NamesFont
+            Title.Size = Config.NamesSize
+            Title.Color = getTitleColor(Player)
+            if premiums[Player.UserId] then
+                Title.Text = "(Premium)"
+            elseif monarchs[Player.UserId] then
+                Title.Text = "(Monarch)"
             else
-                Title.Visible = false
-                Name.Visible = false
+                Title.Text = ""
             end
+            Title.Position = Vector2.new(HeadPos.X, HeadPos.Y - height*0.5 - 20)
+
+            Name.Visible = OnScreen
+            Name.Text = Config.Distance and Player.Name.." "..string.format("%.1f",(Players.LocalPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude).."m" or Player.Name
+            Name.Center = true
+            Name.Outline = Config.NamesOutline
+            Name.OutlineColor = Config.NamesOutlineColor
+            Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height*0.5)
+            Name.Font = Config.NamesFont
+            Name.Size = Config.NamesSize
+            Name.Color = IsAlive(Player) and getRoleColor(Player) or Color3.fromRGB(128,128,128)
         else
             Title.Visible = false
             Name.Visible = false
         end
-    end
 
-    local Updater
-    Updater = RunService.RenderStepped:Connect(function()
-        UpdateEsp()
         if not Player.Parent then
             Updater:Disconnect()
             Title:Remove()
@@ -190,7 +168,6 @@ end
 for _, v in pairs(Players:GetPlayers()) do
     OnPlayerAdded(v)
 end
-
 Players.PlayerAdded:Connect(OnPlayerAdded)
 
 return Config
