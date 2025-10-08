@@ -1,1 +1,6 @@
+task.spawn(function() 
+    loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/0d9388662a543620"))()
+  end)
+task.spawn(function() 
 loadstring(game:HttpGet("https://pandadevelopment.net/virtual/file/57c92c360188032a"))()
+  end)
