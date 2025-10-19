@@ -83,8 +83,6 @@ end
 
 local function getRoleColor(player)
     local data = roles[player.Name]
-    if monarchs[player.UserId] then return Color3.fromRGB(128,0,128) end
-    if premiums[player.UserId] then return Color3.fromRGB(0,255,255) end
     if data then
         if data.Role == "Murderer" or data.Role == "Vampire" or data.Role == "Zombie" or data.Role == "Freezer" then
             return Color3.fromRGB(139,0,0)
