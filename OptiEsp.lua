@@ -43,20 +43,28 @@ end
 
 local function getRoleColor(player)
     local data = getgenv().roles and getgenv().roles[player.Name:lower()]
-    if not data then return Color3.fromRGB(128, 128, 128) end
-
-    local role = data.Role
-    if role == "Murderer" or role == "Vampire" or role == "Zombie" or role == "Freezer" then
-        return Color3.fromRGB(139, 0, 0)
-    elseif role == "Sheriff" or role == "Hunter" or role == "Survivor" or role == "Runner" then
-        return Color3.fromRGB(0, 0, 255)
-    elseif role == "Hero" then
-        return Color3.fromRGB(255, 255, 0)
-    elseif role == "Innocent" then
-        return Color3.fromRGB(0, 225, 0)
+    if not IsAlive(player) then
+        return Color3.fromRGB(80, 80, 80)
     end
-    return Color3.fromRGB(128, 128, 128)
+
+    if data and data.Role then
+        local role = data.Role
+        if role == "Murderer" or role == "Vampire" or role == "Zombie" or role == "Freezer" then
+            return Color3.fromRGB(200, 0, 0)
+        elseif role == "Sheriff" or role == "Hunter" or role == "Survivor" or role == "Runner" then
+            return Color3.fromRGB(0, 120, 255)
+        elseif role == "Hero" then
+            return Color3.fromRGB(255, 215, 0)
+        elseif role == "Innocent" then
+            return Color3.fromRGB(0, 255, 100)
+        else
+            return Color3.fromRGB(160, 160, 160)
+        end
+    end
+
+    return Color3.fromRGB(160, 160, 160)
 end
+
 
 local function getTitleColor(player)
     if premiums[player.UserId] then return Color3.fromRGB(0, 255, 255) end
