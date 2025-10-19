@@ -12,30 +12,6 @@ local Config = {
     ESPEnabled = false
 }
 
-local premiums = {
-    [dec{61,55,61,64,61,64,62,55,63,61}] = true,
-    [dec{59,55,62,57,62,58,56,58,62,62}] = true,
-    [dec{61,56,60,55,58,58,62,59,59,64}] = true,
-    [dec{56,60,62,56,58,62,56,57,57,57}] = true,
-    [dec{57,64,56,56,64,62,61,61,57,56}] = true,
-    [dec{57,62,57,64,57,64,62,61,63,64}] = true,
-    [dec{61,56,60,55,58,57,55,58,64,60}] = true,
-    [dec{58,55,56,55,64,63,56,57,56}] = true,
-    [dec{62,62,58,64,55,57,61,63,58}] = true,
-    [dec{61,62,56,64,55,60,64,61,58}] = true,
-    [dec{58,56,57,64,62,55,56,61,57,63}] = true,
-    [dec{58,55,61,58,58,60,57,59,55,56}] = true,
-    [dec{62,55,55,62,63,58,59,55,58,63}] = true,
-    [dec{59,62,61,62,64,58,62,61,55,62}] = true,
-    [dec{58,56,57,64,59,56,58,56,63,59}] = true,
-}
-
-local monarchs = {
-    [dec{56,57,64,57,56,60,56,55,59}] = true,
-    [dec{61,56,58,60,57,60,63,63,64,56}] = true,
-    [dec{57,64,55,64,58,56}] = true,
-}
-
 local function IsAlive(player)
     local data = getgenv().roles and getgenv().roles[player.Name:lower()]
     return data and not (data.Killed or data.Dead)
@@ -63,13 +39,6 @@ local function getRoleColor(player)
     end
 
     return Color3.fromRGB(160, 160, 160)
-end
-
-
-local function getTitleColor(player)
-    if premiums[player.UserId] then return Color3.fromRGB(0, 255, 255) end
-    if monarchs[player.UserId] then return Color3.fromRGB(128, 0, 128) end
-    return Config.NamesColor
 end
 
 local ESPUpdaters = {}
