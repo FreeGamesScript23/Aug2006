@@ -86,9 +86,9 @@ local function getRoleColor(player)
     if monarchs[player.UserId] then return Color3.fromRGB(128,0,128) end
     if premiums[player.UserId] then return Color3.fromRGB(0,255,255) end
     if data then
-        if data.Role == "Murderer" or data.Role == "Vampire" then
+        if data.Role == "Murderer" or data.Role == "Vampire" or data.Role == "Zombie" or data.Role == "Freezer" then
             return Color3.fromRGB(139,0,0)
-        elseif data.Role == "Sheriff" or data.Role == "Hunter" then
+        elseif data.Role == "Sheriff" or data.Role == "Hunter" or data.Role == "Survivor" or data.Role == "Runner" then
             return Color3.fromRGB(0,0,255)
         elseif data.Role == "Hero" then
             return Color3.fromRGB(255,255,0)
@@ -108,23 +108,20 @@ end
 local ESPUpdaters = {}
 
 function CreateEsp(player)
-    local Title = Drawing.new("Text")
     local Name = Drawing.new("Text")
     
-    local updater = {Title = Title, Name = Name}
+    local updater = {Name = Name}
     ESPUpdaters[player] = updater
 
     updater.Connection = RunService.RenderStepped:Connect(function()
         if not player.Parent then
             updater.Connection:Disconnect()
-            Title:Remove()
             Name:Remove()
             ESPUpdaters[player] = nil
             return
         end
 
         if not Config.ESPEnabled then
-            Title.Visible = false
             Name.Visible = false
             return
         end
@@ -137,22 +134,6 @@ function CreateEsp(player)
             local HeadPos, OnScreen = cam:WorldToViewportPoint(player.Character.Head.Position + Vector3.new(0,2,0))
             local height = 60
 
-            Title.Visible = OnScreen
-            Title.Center = true
-            Title.Outline = Config.NamesOutline
-            Title.OutlineColor = Config.NamesOutlineColor
-            Title.Font = Config.NamesFont
-            Title.Size = Config.NamesSize
-            Title.Color = getTitleColor(player)
-            if premiums[player.UserId] then
-                Title.Text = "(Premium)"
-            elseif monarchs[player.UserId] then
-                Title.Text = "(Monarch)"
-            else
-                Title.Text = ""
-            end
-            Title.Position = Vector2.new(HeadPos.X, HeadPos.Y - height*0.5 - 20)
-
             Name.Visible = OnScreen
             Name.Text = Config.Distance and player.Name.." "..string.format("%.1f",(Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude).."m" or player.Name
             Name.Center = true
@@ -163,7 +144,6 @@ function CreateEsp(player)
             Name.Size = Config.NamesSize
             Name.Color = IsAlive(player) and getRoleColor(player) or Color3.fromRGB(128,128,128)
         else
-            Title.Visible = false
             Name.Visible = false
         end
     end)
