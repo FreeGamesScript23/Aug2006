@@ -1,12 +1,41 @@
-getgenv().flingloop = true
+getgenv().flingloop = false
 
-local function flingloopfix()
+Players = cloneref(game:GetService("Players"))
+Player = Players.LocalPlayer
+OriginalPhysics = {}
+
+function setCharacterPhysics(enabled)
+	local Character = Player.Character
+	if not Character then return end
+	for _, part in pairs(Character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			if enabled then
+				if not OriginalPhysics[part] then
+					OriginalPhysics[part] = {CanCollide = part.CanCollide, Massless = part.Massless}
+				end
+				part.CanCollide, part.Massless = false, true
+			else
+				if OriginalPhysics[part] then
+					part.CanCollide = OriginalPhysics[part].CanCollide
+					part.Massless = OriginalPhysics[part].Massless
+					OriginalPhysics[part] = nil
+				else
+					part.CanCollide, part.Massless = true, false
+				end
+			end
+		end
+	end
+end
+
+function flingloopfix()
     local Targets = {getgenv().FLINGTARGET}
 
     local Players = game:GetService("Players")
     local Player = Players.LocalPlayer
 
     local AllBool = false
+
+    setCharacterPhysics(true)
 
     local GetPlayer = function(Name)
         Name = Name:lower()
@@ -268,12 +297,11 @@ local function flingloopfix()
     end
 end
 
-pcall(function()
-    while true do
-        if not getgenv().flingloop then
-            break
-        end
-        flingloopfix()
-        task.wait()
-    end
+task.spawn(function()
+	while not getgenv().AshDestroyed do
+		if getgenv().flingloop then
+			pcall(flingloopfix)
+		end
+		task.wait(1)
+	end
 end)
