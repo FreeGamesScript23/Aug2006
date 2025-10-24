@@ -1,4 +1,4 @@
-getgenv().flingloop = false
+getgenv().flingloop = true
 
 Players = cloneref(game:GetService("Players"))
 Player = Players.LocalPlayer
