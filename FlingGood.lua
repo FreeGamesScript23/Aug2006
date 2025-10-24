@@ -278,13 +278,11 @@ function flingloopfix()
     end
 end
 
-pcall(function()
+task.spawn(function()
     while not getgenv().AshDestroyed do
-        if not getgenv().flingloop then
-            setCharacterPhysics(false)
-            break
+        if getgenv().flingloop then
+            pcall(flingloopfix)
         end
-        flingloopfix()
-        task.wait()
+        task.wait(1)
     end
 end)
