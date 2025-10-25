@@ -122,6 +122,8 @@ function flingloopfix()
                 RootPart.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
             end
 
+            getgenv().FPDH = getgenv().FPDH or workspace.FallenPartsDestroyHeight
+            
             local SFBasePart = function(BasePart)
                 local TimeToWait = 2
                 local Time = tick()
@@ -231,7 +233,7 @@ function flingloopfix()
                 end)
                 task.wait()
             until (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
-            workspace.FallenPartsDestroyHeight = getgenv().FPDH
+            workspace.FallenPartsDestroyHeight = (getgenv().FPDH ~= nil) and getgenv().FPDH or 0
         else
             return Message("Error Occurred", "Random error", 5)
         end
