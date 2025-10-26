@@ -102,7 +102,7 @@ function flingloopfix()
         })
     end
 
-    local SkidFling = function(TargetPlayer)
+    local AshFling = function(TargetPlayer)
         local Character = Player.Character
         local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
         local RootPart = Humanoid and Humanoid.RootPart
@@ -288,7 +288,7 @@ function flingloopfix()
     if AllBool then
         for _, x in next, Players:GetPlayers() do
             if x ~= Player then
-                SkidFling(x)
+                AshFling(x)
             end
         end
     end
@@ -318,12 +318,12 @@ function flingloopfix()
             if x:lower() == "all" then
                 for _, player in ipairs(Players:GetPlayers()) do
                     if not WhitelistedUserIDs[player.UserId] then
-                        SkidFling(player)
+                        AshFling(player)
                     end
                 end
             else
                 if not WhitelistedUserIDs[TPlayer.UserId] then
-                    SkidFling(TPlayer)
+                    AshFling(TPlayer)
                 else
                     Message("Info", "Player is whitelisted and skipped.", 3)
                 end
