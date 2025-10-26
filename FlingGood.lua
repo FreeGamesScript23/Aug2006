@@ -1,4 +1,5 @@
 getgenv().flingloop = false
+getgenv().FlingConnection = nil
 
 Players = cloneref(game:GetService("Players"))
 Player = Players.LocalPlayer
@@ -24,6 +25,73 @@ function setCharacterPhysics(enabled)
 				end
 			end
 		end
+	end
+end
+
+local function monitorTools()
+	local Character = Player.Character
+	if not Character then return end
+	
+	Character.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and getgenv().flingloop then
+			task.wait(0.1)
+			for _, part in pairs(child:GetDescendants()) do
+				if part:IsA("BasePart") then
+					if not OriginalPhysics[part] then
+						OriginalPhysics[part] = {CanCollide = part.CanCollide, Massless = part.Massless}
+					end
+					part.CanCollide, part.Massless = false, true
+				end
+			end
+		end
+	end)
+end
+
+Player.CharacterAdded:Connect(function(char)
+	task.wait(0.5)
+	monitorTools()
+	if getgenv().flingloop then
+		setCharacterPhysics(true)
+	end
+end)
+
+if Player.Character then
+	monitorTools()
+end
+
+function cleanup()
+	setCharacterPhysics(false)
+
+	local Character = Player.Character
+	if Character then
+		local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			workspace.CurrentCamera.CameraSubject = Humanoid
+			workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+			
+			Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+			Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
+			Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+		end
+		
+		local RootPart = Humanoid and Humanoid.RootPart
+		if RootPart then
+			local BV = RootPart:FindFirstChild("EpixVel")
+			if BV then
+				BV:Destroy()
+			end
+			
+			for _, part in pairs(Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.Velocity = Vector3.new()
+					part.RotVelocity = Vector3.new()
+				end
+			end
+		end
+	end
+	
+	if getgenv().FPDH ~= nil then
+		workspace.FallenPartsDestroyHeight = getgenv().FPDH
 	end
 end
 
@@ -102,14 +170,16 @@ function flingloopfix()
                 getgenv().OldPos = RootPart.CFrame
             end
             if THumanoid and THumanoid.Sit and not AllBool then
-                return Message("Error Occurred", "Targeting is sitting", 5) -- u can remove dis part if u want lol
+                return Message("Error Occurred", "Targeting is sitting", 5)
             end
-            if THead then
-                workspace.CurrentCamera.CameraSubject = THead
-            elseif not THead and Handle then
-                workspace.CurrentCamera.CameraSubject = Handle
-            elseif THumanoid and TRootPart then
-                workspace.CurrentCamera.CameraSubject = THumanoid
+            if THumanoid and THumanoid.Health > 0 then
+                if THead then
+                    workspace.CurrentCamera.CameraSubject = THead
+                elseif not THead and Handle then
+                    workspace.CurrentCamera.CameraSubject = Handle
+                elseif THumanoid and TRootPart then
+                    workspace.CurrentCamera.CameraSubject = THumanoid
+                end
             end
             if not TCharacter:FindFirstChildWhichIsA("BasePart") then
                 return
@@ -131,7 +201,12 @@ function flingloopfix()
 
                 repeat
                     if not getgenv().flingloop then
-                        return
+                        break
+                    end
+
+                    if not THumanoid or THumanoid.Health <= 0 then
+                        workspace.CurrentCamera.CameraSubject = Humanoid
+                        break
                     end
 
                     if RootPart and THumanoid then
@@ -220,19 +295,43 @@ function flingloopfix()
 
             BV:Destroy()
             Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+            
             workspace.CurrentCamera.CameraSubject = Humanoid
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
 
-            repeat
-                RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
-                Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
-                Humanoid:ChangeState("GettingUp")
-                table.foreach(Character:GetChildren(), function(_, x)
-                    if x:IsA("BasePart") then
-                        x.Velocity, x.RotVelocity = Vector3.new(), Vector3.new()
+            if getgenv().OldPos and RootPart then
+                for _, part in pairs(Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.Velocity = Vector3.new()
+                        part.RotVelocity = Vector3.new()
+                        part.AssemblyLinearVelocity = Vector3.new()
+                        part.AssemblyAngularVelocity = Vector3.new()
                     end
-                end)
-                task.wait()
-            until (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
+                end
+                
+                task.wait(0.1)
+                
+                repeat
+                    if RootPart and getgenv().OldPos then
+                        RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
+                        Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
+                        Humanoid:ChangeState("GettingUp")
+                        
+                        for _, x in pairs(Character:GetChildren()) do
+                            if x:IsA("BasePart") then
+                                x.Velocity, x.RotVelocity = Vector3.new(), Vector3.new()
+                            end
+                        end
+                        
+                        workspace.CurrentCamera.CameraSubject = Humanoid
+                    end
+                    task.wait()
+                until not RootPart or (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
+            end
+            
+            workspace.CurrentCamera.CameraSubject = Humanoid
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+            
             workspace.FallenPartsDestroyHeight = (getgenv().FPDH ~= nil) and getgenv().FPDH or 0
         else
             return Message("Error Occurred", "Random error", 5)
@@ -246,16 +345,15 @@ function flingloopfix()
 
     if Targets[1] then
         for _, x in next, Targets do
-            GetPlayer(x)
+            if x:lower() == "all" or x:lower() == "others" then
+                AllBool = true
+                break
+            else
+                GetPlayer(x)
+            end
         end
     else
         return
-    end
-
-    if AllBool then
-        for _, x in next, Players:GetPlayers() do
-            SkidFling(x)
-        end
     end
 
     local WhitelistedUserIDs = {
@@ -277,33 +375,74 @@ function flingloopfix()
         [3129413184] = true
     }
 
-    for _, x in next, Targets do
-        local TPlayer = GetPlayer(x)
-        if TPlayer and TPlayer ~= Player then
-            if x:lower() == "all" then
-                for _, player in ipairs(Players:GetPlayers()) do
-                    if not WhitelistedUserIDs[player.UserId] then
-                        SkidFling(player)
-                    end
-                end
-            else
+    if AllBool then
+        for _, player in next, Players:GetPlayers() do
+            if player ~= Player and not WhitelistedUserIDs[player.UserId] then
+                if not getgenv().flingloop then break end
+                SkidFling(player)
+                task.wait(0.5)
+            end
+        end
+    else
+        for _, x in next, Targets do
+            if not getgenv().flingloop then break end
+            local TPlayer = GetPlayer(x)
+            if TPlayer and TPlayer ~= Player then
                 if not WhitelistedUserIDs[TPlayer.UserId] then
                     SkidFling(TPlayer)
+                    task.wait(0.5)
                 else
                     Message("Info", "Player is whitelisted and skipped.", 3)
                 end
+            elseif not TPlayer then
+                Message("Error", "Invalid username or player not found.", 3)
             end
-        elseif not TPlayer and not AllBool then
-            Message("Error", "Invalid username or player not found.", 3)
         end
     end
 end
 
-task.spawn(function()
-	while not getgenv().AshDestroyed do
-		if getgenv().flingloop then
-			pcall(flingloopfix)
-		end
-		task.wait(1)
+function disconnectFling()
+	if getgenv().FlingConnection then
+		task.cancel(getgenv().FlingConnection)
+		getgenv().FlingConnection = nil
+		cleanup()
+		print("Fling loop disconnected")
 	end
+end
+
+function connectFling()
+	if not getgenv().FlingConnection then
+		getgenv().FlingConnection = task.spawn(function()
+			while not getgenv().AshDestroyed do
+				if getgenv().flingloop then
+					pcall(flingloopfix)
+				else
+					cleanup()
+				end
+				task.wait(1)
+			end
+		end)
+		print("Fling loop connected")
+	end
+end
+
+task.spawn(function()
+	local lastState = getgenv().flingloop
+	
+	if getgenv().flingloop then
+		connectFling()
+	end
+	
+	while not getgenv().AshDestroyed do
+		if getgenv().flingloop ~= lastState then
+			if getgenv().flingloop then
+				connectFling()
+			else
+				disconnectFling()
+			end
+			lastState = getgenv().flingloop
+		end
+		task.wait(0.1)
+	end
+	disconnectFling()
 end)
