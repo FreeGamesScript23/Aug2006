@@ -94,14 +94,6 @@ function flingloopfix()
         end
     end
 
-    local Message = function(_Title, _Text, Time)
-        Fluent:Notify({
-            Title = _Title,
-            Content = _Text,
-            Duration = Time
-        })
-    end
-
     local AshFling = function(TargetPlayer)
         local Character = Player.Character
         local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
@@ -135,7 +127,7 @@ function flingloopfix()
                 getgenv().OldPos = RootPart.CFrame
             end
             if THumanoid and THumanoid.Sit and not AllBool then
-                return Message("Error Occurred", "Targeting is sitting", 5)
+                return
             end
             if THead then
                 workspace.CurrentCamera.CameraSubject = THead
@@ -248,7 +240,7 @@ function flingloopfix()
             elseif not TRootPart and not THead and Accessory and Handle then
                 SFBasePart(Handle)
             else
-                return Message("Error Occurred", "Target is missing everything", 5)
+                return
             end
 
             BV:Destroy()
@@ -268,14 +260,9 @@ function flingloopfix()
             until (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
             workspace.FallenPartsDestroyHeight = getgenv().FPDH
         else
-            return Message("Error Occurred", "Random error", 5)
+            return
         end
     end
-
-    if not Welcome then
-        Message("Hub Says:", "Fling Script has been loaded", 3)
-    end
-    getgenv().Welcome = true
 
     if Targets[1] then
         for _, x in next, Targets do
@@ -324,12 +311,8 @@ function flingloopfix()
             else
                 if not WhitelistedUserIDs[TPlayer.UserId] then
                     AshFling(TPlayer)
-                else
-                    Message("Info", "Player is whitelisted and skipped.", 3)
                 end
             end
-        elseif not TPlayer and not AllBool then
-            Message("Error", "Invalid username or player not found.", 3)
         end
     end
 end
