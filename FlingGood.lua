@@ -334,14 +334,16 @@ function flingloopfix()
     end
 end
 
+isFlinging = false
 task.spawn(function()
-	while not getgenv().AshDestroyed do
-		if getgenv().flingloop then
-			pcall(flingloopfix)
-		else
-			-- Reset physics when disabled
-			setCharacterPhysics(false)
-		end
-		task.wait(1)
-	end
+    while not getgenv().AshDestroyed do
+        if getgenv().flingloop and not isFlinging then
+            isFlinging = true
+            pcall(flingloopfix)
+            isFlinging = false
+        elseif not getgenv().flingloop then
+            setCharacterPhysics(false)
+        end
+        task.wait(1)
+    end
 end)
