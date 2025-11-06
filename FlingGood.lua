@@ -27,6 +27,77 @@ function setCharacterPhysics(enabled)
 	end
 end
 
+-- Safely stabilize character before disabling physics
+function safelyStabilizeCharacter()
+	local Character = Player.Character
+	if not Character then return end
+	
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+	local RootPart = Humanoid and Humanoid.RootPart
+	
+	if not RootPart then return end
+	
+	-- Remove any existing BodyVelocity
+	for _, v in pairs(RootPart:GetChildren()) do
+		if v:IsA("BodyVelocity") then
+			v:Destroy()
+		end
+	end
+	
+	-- Teleport to safe position if we have one stored
+	if getgenv().OldPos then
+		RootPart.CFrame = getgenv().OldPos * CFrame.new(0, 3, 0)
+		Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, 3, 0))
+	end
+	
+	-- Stabilization loop - ensure velocity is normalized
+	local maxAttempts = 60 -- 3 seconds max
+	local attempts = 0
+	
+	repeat
+		attempts = attempts + 1
+		
+		-- Reset all part velocities
+		for _, part in pairs(Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.Velocity = Vector3.new(0, 0, 0)
+				part.RotVelocity = Vector3.new(0, 0, 0)
+				part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+				part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			end
+		end
+		
+		-- Get humanoid up
+		if Humanoid then
+			Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+		end
+		
+		task.wait(0.05)
+		
+		-- Check if velocity is normalized
+		local currentVelocity = RootPart.Velocity.Magnitude
+		local isStable = currentVelocity < 5
+		
+		if isStable and attempts > 10 then -- Wait at least 0.5 seconds
+			break
+		end
+		
+	until attempts >= maxAttempts
+	
+	-- Final safety check - anchor briefly then unanchor
+	RootPart.Anchored = true
+	task.wait(0.1)
+	RootPart.Anchored = false
+	
+	-- One more velocity reset
+	for _, part in pairs(Character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.Velocity = Vector3.new(0, 0, 0)
+			part.RotVelocity = Vector3.new(0, 0, 0)
+		end
+	end
+end
+
 -- Monitor for equipped tools and apply physics
 local function setupToolMonitor()
 	local Character = Player.Character
@@ -34,7 +105,7 @@ local function setupToolMonitor()
 	
 	Character.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") and getgenv().flingloop then
-			task.wait(0.1) -- Small delay for tool to fully equip
+			task.wait(0.1)
 			for _, part in pairs(child:GetDescendants()) do
 				if part:IsA("BasePart") then
 					if not OriginalPhysics[part] then
@@ -318,14 +389,20 @@ function flingloopfix()
 end
 
 isFlinging = false
+hasStabilized = false
+
 task.spawn(function()
     while not getgenv().AshDestroyed do
         if getgenv().flingloop and not isFlinging then
             isFlinging = true
+            hasStabilized = false -- Reset stabilization flag when starting fling
             pcall(flingloopfix)
             isFlinging = false
-        elseif not getgenv().flingloop then
+        elseif not getgenv().flingloop and not hasStabilized then
+            -- Stabilize character before restoring physics (only once)
+            safelyStabilizeCharacter()
             setCharacterPhysics(false)
+            hasStabilized = true
         end
         task.wait(1)
     end
